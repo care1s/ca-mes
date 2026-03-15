@@ -1,0 +1,105 @@
+# MES制造执行系统配置文件
+# 作者: carels
+# 版本: V1.0
+# 日期: 2026-03-15
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+# Spring配置
+spring:
+  application:
+    name: mes-system
+  profiles:
+    active: dev
+  
+  # 数据源配置
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mes-dev?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 12345678
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1 FROM DUAL
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+  
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+# MyBatis配置
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.carels.mes.**.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    lazy-loading-enabled: true
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    use-generated-keys: true
+    default-executor-type: simple
+    default-statement-timeout: 25000
+
+# PageHelper分页配置
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+# 日志配置
+logging:
+  level:
+    com.carels.mes: debug
+    org.springframework: warn
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# 自定义配置
+mes:
+  # JWT配置
+  jwt:
+    secret: carels-mes-secret-key-2026
+    expiration: 43200000  # 12小时 = 12 * 60 * 60 * 1000
+    header: Authorization
+  
+  # 文件上传配置
+  file:
+    upload-path: /data/mes/upload
+    max-size: 10485760
+    allowed-types: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx
+  
+  # 扫码配置
+  barcode:
+    prefix: MES
+    length: 20
+  
+  # 异常升级配置
+  escalation:
+    enabled: true
+    levels: 3
+    timeouts: 15,30,60

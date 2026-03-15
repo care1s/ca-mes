@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdItemMapper">
+    
+    <resultMap type="com.carels.mes.module.md.domain.MdItem" id="MdItemResult">
+        <id property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="itemTypeId" column="item_type_id"/>
+        <result property="itemTypeName" column="item_type_name"/>
+        <result property="specification" column="specification"/>
+        <result property="unitId" column="unit_id"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="itemAttr" column="item_attr"/>
+        <result property="barcodeType" column="barcode_type"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="locationId" column="location_id"/>
+        <result property="locationName" column="location_name"/>
+        <result property="safetyStock" column="safety_stock"/>
+        <result property="maxStock" column="max_stock"/>
+        <result property="minStock" column="min_stock"/>
+        <result property="purchasePrice" column="purchase_price"/>
+        <result property="salePrice" column="sale_price"/>
+        <result property="standardCost" column="standard_cost"/>
+        <result property="shelfLife" column="shelf_life"/>
+        <result property="status" column="status"/>
+        <result property="inspectFlag" column="inspect_flag"/>
+        <result property="inspectTemplateId" column="inspect_template_id"/>
+        <result property="drawingNo" column="drawing_no"/>
+        <result property="brand" column="brand"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <sql id="selectMdItemVo">
+        select item_id, item_code, item_name, item_type_id, item_type_name, 
+               specification, unit_id, unit_name, item_attr, barcode_type,
+               warehouse_id, warehouse_name, location_id, location_name,
+               safety_stock, max_stock, min_stock, purchase_price, sale_price,
+               standard_cost, shelf_life, status, inspect_flag, inspect_template_id,
+               drawing_no, brand, manufacturer, remark, create_by, create_time,
+               update_by, update_time
+        from md_item
+    </sql>
+    
+    <select id="selectMdItemList" parameterType="com.carels.mes.module.md.domain.MdItem" resultMap="MdItemResult">
+        <include refid="selectMdItemVo"/>
+        <where>
+            <if test="itemCode != null and itemCode != ''">
+                AND item_code like concat('%', #{itemCode}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name like concat('%', #{itemName}, '%')
+            </if>
+            <if test="itemTypeId != null">
+                AND item_type_id = #{itemTypeId}
+            </if>
+            <if test="itemAttr != null and itemAttr != ''">
+                AND item_attr = #{itemAttr}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectMdItemById" resultMap="MdItemResult">
+        <include refid="selectMdItemVo"/>
+        where item_id = #{itemId}
+    </select>
+    
+    <select id="selectMdItemByCode" resultMap="MdItemResult">
+        <include refid="selectMdItemVo"/>
+        where item_code = #{itemCode}
+    </select>
+    
+    <insert id="insertMdItem" parameterType="com.carels.mes.module.md.domain.MdItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into md_item (
+            item_code, item_name, item_type_id, item_type_name, specification,
+            unit_id, unit_name, item_attr, barcode_type, warehouse_id,
+            warehouse_name, location_id, location_name, safety_stock, max_stock,
+            min_stock, purchase_price, sale_price, standard_cost, shelf_life,
+            status, inspect_flag, inspect_template_id, drawing_no, brand,
+            manufacturer, remark, create_by, create_time
+        ) values (
+            #{itemCode}, #{itemName}, #{itemTypeId}, #{itemTypeName}, #{specification},
+            #{unitId}, #{unitName}, #{itemAttr}, #{barcodeType}, #{warehouseId},
+            #{warehouseName}, #{locationId}, #{locationName}, #{safetyStock}, #{maxStock},
+            #{minStock}, #{purchasePrice}, #{salePrice}, #{standardCost}, #{shelfLife},
+            #{status}, #{inspectFlag}, #{inspectTemplateId}, #{drawingNo}, #{brand},
+            #{manufacturer}, #{remark}, #{createBy}, now()
+        )
+    </insert>
+    
+    <update id="updateMdItem" parameterType="com.carels.mes.module.md.domain.MdItem">
+        update md_item
+        <set>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="itemTypeId != null">item_type_id = #{itemTypeId},</if>
+            <if test="itemTypeName != null">item_type_name = #{itemTypeName},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="unitId != null">unit_id = #{unitId},</if>
+            <if test="unitName != null">unit_name = #{unitName},</if>
+            <if test="itemAttr != null">item_attr = #{itemAttr},</if>
+            <if test="barcodeType != null">barcode_type = #{barcodeType},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="locationId != null">location_id = #{locationId},</if>
+            <if test="locationName != null">location_name = #{locationName},</if>
+            <if test="safetyStock != null">safety_stock = #{safetyStock},</if>
+            <if test="maxStock != null">max_stock = #{maxStock},</if>
+            <if test="minStock != null">min_stock = #{minStock},</if>
+            <if test="purchasePrice != null">purchase_price = #{purchasePrice},</if>
+            <if test="salePrice != null">sale_price = #{salePrice},</if>
+            <if test="standardCost != null">standard_cost = #{standardCost},</if>
+            <if test="shelfLife != null">shelf_life = #{shelfLife},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="inspectFlag != null">inspect_flag = #{inspectFlag},</if>
+            <if test="inspectTemplateId != null">inspect_template_id = #{inspectTemplateId},</if>
+            <if test="drawingNo != null">drawing_no = #{drawingNo},</if>
+            <if test="brand != null">brand = #{brand},</if>
+            <if test="manufacturer != null">manufacturer = #{manufacturer},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy},
+            update_time = now()
+        </set>
+        where item_id = #{itemId}
+    </update>
+    
+    <delete id="deleteMdItemById">
+        delete from md_item where item_id = #{itemId}
+    </delete>
+    
+    <delete id="deleteMdItemByIds">
+        delete from md_item where item_id in
+        <foreach collection="array" item="itemId" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+    
+</mapper>
