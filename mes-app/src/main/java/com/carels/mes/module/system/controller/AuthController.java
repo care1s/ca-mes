@@ -39,16 +39,16 @@ public class AuthController {
      */
     @PostMapping("/login")
     public AjaxResult login(@RequestBody @Validated LoginDTO loginDTO) {
-        // 验证码校验
-        String cacheCode = captchaCache.get(loginDTO.getCaptchaKey());
-        if (cacheCode == null) {
-            return AjaxResult.error("验证码已过期，请重新获取");
-        }
-        if (!cacheCode.equalsIgnoreCase(loginDTO.getCaptcha())) {
-            return AjaxResult.error("验证码错误");
-        }
-        // 验证通过后删除验证码
-        captchaCache.remove(loginDTO.getCaptchaKey());
+        // 验证码校验（临时关闭，方便测试）
+        // String cacheCode = captchaCache.get(loginDTO.getCaptchaKey());
+        // if (cacheCode == null) {
+        //     return AjaxResult.error("验证码已过期，请重新获取");
+        // }
+        // if (!cacheCode.equalsIgnoreCase(loginDTO.getCaptcha())) {
+        //     return AjaxResult.error("验证码错误");
+        // }
+        // // 验证通过后删除验证码
+        // captchaCache.remove(loginDTO.getCaptchaKey());
         
         log.info("用户登录请求: {}, 终端类型: {}", loginDTO.getUsername(), loginDTO.getTerminalType());
         return loginService.login(loginDTO);

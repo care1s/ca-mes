@@ -6,8 +6,12 @@ import store from './store'
 const whiteList = ['/login', '/404']
 
 router.beforeEach((to, from, next) => {
-  // 获取token
-  const token = localStorage.getItem('mes-token')
+  // 获取token（先从localStorage获取，如果不存在则从store获取）
+  let token = localStorage.getItem('mes-token')
+  if (!token && store.state.user) {
+    token = store.state.user.token
+  }
+  console.log('路由跳转检查 - from:', from.path, 'to:', to.path, 'token:', token ? '存在' : 'null', 'localStorage:', localStorage.getItem('mes-token') ? '有' : '无', 'store:', store.state.user ? store.state.user.token ? '有' : '无' : '无store')
   
   if (token) {
     // 有token，已登录
@@ -25,6 +29,7 @@ router.beforeEach((to, from, next) => {
       next()
     } else {
       // 不在白名单中，重定向到登录页
+      console.log('无token，跳转到登录页')
       next('/login')
     }
   }

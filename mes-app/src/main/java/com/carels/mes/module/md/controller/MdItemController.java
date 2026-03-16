@@ -28,8 +28,10 @@ public class MdItemController extends BaseController {
      * 查询物料列表
      */
     @GetMapping("/list")
-    public TableDataInfo list(MdItem mdItem) {
-        startPage();
+    public TableDataInfo list(@RequestParam(defaultValue = "1") Integer pageNum,
+                              @RequestParam(defaultValue = "20") Integer pageSize,
+                              MdItem mdItem) {
+        startPage(pageNum, pageSize);
         List<MdItem> list = mdItemService.selectMdItemList(mdItem);
         return getDataTable(list);
     }

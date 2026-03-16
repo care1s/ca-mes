@@ -90,70 +90,83 @@
           <el-submenu index="/more" v-if="hiddenMenus.length > 0" class="more-menu">
             <template slot="title">
               <span>更多</span>
-              <i class="el-icon-arrow-down"></i>
+              <el-badge :value="hiddenMenus.length" class="more-badge" type="primary"></el-badge>
+              <i class="el-icon-arrow-down more-arrow"></i>
             </template>
             
             <!-- 主数据 -->
             <div v-if="hiddenMenus.includes('/md')" class="menu-group">
               <div class="menu-group-title">主数据</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/md/item">物料信息</el-menu-item>
-              <el-menu-item index="/md/workshop">车间管理</el-menu-item>
-              <el-menu-item index="/md/workstation">工作站</el-menu-item>
-              <el-menu-item index="/md/client">客户管理</el-menu-item>
-              <el-menu-item index="/md/vendor">供应商</el-menu-item>
-              <el-menu-item index="/md/bom">产品BOM</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/md/item">物料信息</el-menu-item>
+                <el-menu-item index="/md/workshop">车间管理</el-menu-item>
+                <el-menu-item index="/md/workstation">工作站</el-menu-item>
+                <el-menu-item index="/md/client">客户管理</el-menu-item>
+                <el-menu-item index="/md/vendor">供应商</el-menu-item>
+                <el-menu-item index="/md/bom">产品BOM</el-menu-item>
+              </div>
             </div>
             
             <!-- 生产执行 -->
             <div v-if="hiddenMenus.includes('/pro')" class="menu-group">
               <div class="menu-group-title">生产执行</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
-              <el-menu-item index="/pro/task">生产任务</el-menu-item>
-              <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
-              <el-menu-item index="/pro/route">工艺路线</el-menu-item>
-              <el-menu-item index="/pro/andon">异常管理</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
+                <el-menu-item index="/pro/task">生产任务</el-menu-item>
+                <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
+                <el-menu-item index="/pro/route">工艺路线</el-menu-item>
+                <el-menu-item index="/pro/andon">异常管理</el-menu-item>
+              </div>
             </div>
             
             <!-- 仓储物流 -->
             <div v-if="hiddenMenus.includes('/wm')" class="menu-group">
               <div class="menu-group-title">仓储物流</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/wm/warehouse">仓库管理</el-menu-item>
-              <el-menu-item index="/wm/stock">库存查询</el-menu-item>
-              <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
-              <el-menu-item index="/wm/issue">出库管理</el-menu-item>
-              <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/wm/warehouse">仓库管理</el-menu-item>
+                <el-menu-item index="/wm/stock">库存查询</el-menu-item>
+                <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
+                <el-menu-item index="/wm/issue">出库管理</el-menu-item>
+                <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+              </div>
             </div>
             
             <!-- 质量管理 -->
             <div v-if="hiddenMenus.includes('/qc')" class="menu-group">
               <div class="menu-group-title">质量管理</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/qc/iqc">来料检验</el-menu-item>
-              <el-menu-item index="/qc/ipqc">过程检验</el-menu-item>
-              <el-menu-item index="/qc/oqc">出货检验</el-menu-item>
-              <el-menu-item index="/qc/template">检验模板</el-menu-item>
-              <el-menu-item index="/qc/defect">缺陷记录</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/qc/iqc">来料检验</el-menu-item>
+                <el-menu-item index="/qc/ipqc">过程检验</el-menu-item>
+                <el-menu-item index="/qc/oqc">出货检验</el-menu-item>
+                <el-menu-item index="/qc/template">检验模板</el-menu-item>
+                <el-menu-item index="/qc/defect">缺陷记录</el-menu-item>
+              </div>
             </div>
             
             <!-- 设备运维 -->
             <div v-if="hiddenMenus.includes('/dv')" class="menu-group">
               <div class="menu-group-title">设备运维</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/dv/machinery">设备台账</el-menu-item>
-              <el-menu-item index="/dv/check">点检管理</el-menu-item>
-              <el-menu-item index="/dv/repair">维修管理</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/dv/machinery">设备台账</el-menu-item>
+                <el-menu-item index="/dv/check">点检管理</el-menu-item>
+                <el-menu-item index="/dv/repair">维修管理</el-menu-item>
+              </div>
             </div>
             
             <!-- 报表分析 -->
             <div v-if="hiddenMenus.includes('/report')" class="menu-group">
               <div class="menu-group-title">报表分析</div>
               <div class="menu-group-divider"></div>
-              <el-menu-item index="/report/chart">生产报表</el-menu-item>
-              <el-menu-item index="/report/workorder-board">工单看板</el-menu-item>
-              <el-menu-item index="/report/quality-board">质量看板</el-menu-item>
+              <div class="menu-group-content">
+                <el-menu-item index="/report/chart">生产报表</el-menu-item>
+                <el-menu-item index="/report/workorder-board">工单看板</el-menu-item>
+                <el-menu-item index="/report/quality-board">质量看板</el-menu-item>
+              </div>
             </div>
           </el-submenu>
         </el-menu>
@@ -287,7 +300,10 @@ export default {
       }
     },
     logout() {
-      this.$router.push('/login')
+      this.$store.dispatch('user/logout').then(() => {
+        this.$message.success('退出登录成功')
+        this.$router.push('/login')
+      })
     },
     calculateVisibleMenus() {
       // 根据屏幕宽度决定显示多少个菜单
@@ -371,16 +387,30 @@ export default {
       background: transparent !important;
       border-radius: 16px;
       padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .el-menu-item, .el-submenu {
+        flex: 1;
+        max-width: 140px;
+        min-width: 100px;
+        text-align: center;
+      }
       
       .el-menu-item, .el-submenu__title {
-        height: 46px;
-        line-height: 46px;
-        font-size: 14px;
+        height: 48px;
+        line-height: 48px;
+        font-size: 15px;
         font-weight: 500;
         border-radius: 25px;
-        margin: 0 3px;
-        padding: 0 20px !important;
+        margin: 0 4px;
+        padding: 0 !important;
+        letter-spacing: 0.3px;
         transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         
         i {
           margin-right: 6px;
@@ -687,9 +717,11 @@ export default {
 // 更多菜单特殊样式
 ::v-deep .more-menu {
   .el-menu--popup {
-    min-width: 180px;
-    max-height: 500px;
+    min-width: 400px !important;
+    width: auto !important;
+    max-height: 600px;
     overflow-y: auto;
+    padding: 12px 0 !important;
     
     // 自定义滚动条
     &::-webkit-scrollbar {
@@ -706,40 +738,75 @@ export default {
     }
     
     .menu-group {
-      padding: 8px 0;
+      padding: 12px 16px;
       
       &:not(:first-child) {
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        margin-top: 4px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        margin-top: 8px;
+        padding-top: 16px;
       }
       
+      // 一级菜单标题 - 独占一行
       .menu-group-title {
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 8px 0;
+        font-size: 14px;
         font-weight: 600;
         color: #7C3AED;
         display: flex;
         align-items: center;
+        margin-bottom: 8px;
         
         &::before {
           content: '';
           width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: #7C3AED;
-          margin-right: 8px;
+          height: 16px;
+          border-radius: 2px;
+          background: linear-gradient(180deg, #7C3AED 0%, #A78BFA 100%);
+          margin-right: 10px;
         }
       }
       
+      // 分割线
       .menu-group-divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
-        margin: 4px 12px;
+        background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.3), transparent);
+        margin: 8px 0 12px 0;
       }
       
+      // 子菜单容器 - 网格布局，每行3个
+      .menu-group-content {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 0 4px;
+      }
+      
+      // 子菜单项
       .el-menu-item {
-        padding-left: 32px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+        padding: 0 12px !important;
         font-size: 13px;
+        border-radius: 8px;
+        margin: 0 !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 0 !important;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        
+        &:hover {
+          background: rgba(124, 58, 237, 0.1) !important;
+        }
+        
+        &.is-active {
+          background: rgba(124, 58, 237, 0.15) !important;
+          color: #7C3AED !important;
+          font-weight: 500;
+        }
       }
     }
   }
@@ -757,12 +824,23 @@ export default {
         color: #A78BFA;
         
         &::before {
-          background: #A78BFA;
+          background: linear-gradient(180deg, #A78BFA 0%, #C4B5FD 100%);
         }
       }
       
       .menu-group-divider {
-        background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.3), transparent);
+        background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.4), transparent);
+      }
+      
+      .el-menu-item {
+        &:hover {
+          background: rgba(167, 139, 250, 0.15) !important;
+        }
+        
+        &.is-active {
+          background: rgba(167, 139, 250, 0.2) !important;
+          color: #A78BFA !important;
+        }
       }
     }
     

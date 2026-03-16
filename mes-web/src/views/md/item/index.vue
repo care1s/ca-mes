@@ -19,9 +19,6 @@
         <el-card class="tree-card" shadow="never" :body-style="{ padding: '0' }">
           <div slot="header" class="tree-header">
             <span><i class="el-icon-s-grid"></i> 物料类型</span>
-            <el-tooltip content="添加顶级类型" placement="top">
-              <el-button type="text" icon="el-icon-plus" @click="handleAddType(0)"></el-button>
-            </el-tooltip>
           </div>
           <div class="tree-search">
             <el-input
@@ -143,36 +140,29 @@
               stripe
               highlight-current-row
               size="small"
-              style="width: 100%; min-width: 1200px;"
+              style="width: 100%;"
               :height="tableHeight"
               @row-dblclick="handleRowDblClick"
+              class="md-item-table"
             >
-              <el-table-column type="index" label="序号" width="45" align="center" fixed="left" />
-              <el-table-column prop="itemCode" label="物料编码" min-width="100" show-overflow-tooltip fixed="left">
+              <el-table-column type="index" label="序号" width="50" align="center" fixed="left" />
+              <el-table-column prop="itemCode" label="物料编码" min-width="110" show-overflow-tooltip fixed="left">
                 <template slot-scope="scope">
                   <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.itemCode }}</el-link>
                 </template>
               </el-table-column>
-              <el-table-column prop="itemName" label="物料名称" min-width="140" show-overflow-tooltip fixed="left" />
-              <el-table-column prop="typeName" label="所属类型" min-width="90" align="center">
+              <el-table-column prop="itemName" label="物料名称" min-width="150" show-overflow-tooltip />
+              <el-table-column label="所属类型" min-width="90" align="center">
                 <template slot-scope="scope">
                   <el-tag size="mini" :type="getTypeTagType(scope.row.itemAttr)" effect="plain">
-                    {{ scope.row.typeName }}
+                    {{ scope.row.itemTypeName }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="specification" label="规格型号" min-width="100" show-overflow-tooltip />
-              <el-table-column prop="unitName" label="单位" min-width="50" align="center" />
-              <el-table-column prop="safetyStock" label="安全库存" min-width="80" align="right" />
-              <el-table-column prop="quantity" label="当前库存" min-width="80" align="right">
-                <template slot-scope="scope">
-                  <span :class="getStockClass(scope.row)">{{ scope.row.quantity }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="standardCost" label="标准成本" min-width="85" align="right">
-                <template slot-scope="scope">¥{{ scope.row.standardCost }}</template>
-              </el-table-column>
-              <el-table-column prop="status" label="状态" min-width="60" align="center">
+              <el-table-column prop="specification" label="规格型号" min-width="120" show-overflow-tooltip />
+              <el-table-column prop="unitName" label="单位" min-width="60" align="center" />
+              <el-table-column prop="safetyStock" label="安全库存" min-width="90" align="right" />
+              <el-table-column prop="status" label="状态" min-width="70" align="center">
                 <template slot-scope="scope">
                   <el-switch
                     v-model="scope.row.status"
@@ -182,7 +172,7 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" min-width="120" align="center" fixed="right">
+              <el-table-column label="操作" min-width="130" align="center" fixed="right">
                 <template slot-scope="scope">
                   <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
                   <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
@@ -210,7 +200,14 @@
     </el-row>
 
     <!-- 物料详情弹框 -->
-    <el-dialog title="物料详情" :visible.sync="detailDialogVisible" width="600px" :close-on-click-modal="true">
+    <el-dialog 
+      title="物料详情" 
+      :visible.sync="detailDialogVisible" 
+      width="600px" 
+      :close-on-click-modal="true"
+      :modal="false"
+      custom-class="no-mask-dialog"
+    >
       <div class="detail-content" v-if="currentRow">
         <el-row :gutter="20" class="detail-section">
           <el-col :span="12">
@@ -233,7 +230,7 @@
               <span class="detail-label">所属类型：</span>
               <span class="detail-value">
                 <el-tag size="small" :type="getTypeTagType(currentRow.itemAttr)" effect="plain">
-                  {{ currentRow.typeName }}
+                  {{ currentRow.itemTypeName }}
                 </el-tag>
               </span>
             </div>
@@ -251,12 +248,6 @@
             <div class="detail-item">
               <span class="detail-label">计量单位：</span>
               <span class="detail-value">{{ currentRow.unitName }}</span>
-            </div>
-          </el-col>
-          <el-col :span="12">
-            <div class="detail-item">
-              <span class="detail-label">标准成本：</span>
-              <span class="detail-value cost">¥{{ currentRow.standardCost }}</span>
             </div>
           </el-col>
         </el-row>
@@ -303,71 +294,186 @@
     </el-dialog>
 
     <!-- 物料对话框 -->
-    <el-dialog :title="isEdit ? '编辑物料' : '新增物料'" :visible.sync="dialogVisible" width="680px" :close-on-click-modal="false">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="物料编码" prop="itemCode">
-              <el-input v-model="form.itemCode" placeholder="请输入" :disabled="isEdit">
-                <el-button v-if="!isEdit" slot="append" icon="el-icon-refresh" @click="generateCode"></el-button>
-              </el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="物料名称" prop="itemName">
-              <el-input v-model="form.itemName" placeholder="请输入" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-form-item label="物料类型" prop="typeId">
-          <el-cascader
-            v-model="form.typePath"
-            :options="typeTreeData"
-            :props="{ value: 'typeId', label: 'typeName', children: 'children', emitPath: false, checkStrictly: true }"
-            placeholder="选择类型"
-            style="width: 100%"
-            @change="handleTypeChange"
-          />
-        </el-form-item>
-        
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="规格型号">
-              <el-input v-model="form.specification" placeholder="请输入" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="计量单位" prop="unitName">
-              <el-select v-model="form.unitName" placeholder="选择" style="width: 100%" filterable allow-create>
-                <el-option v-for="unit in unitOptions" :key="unit" :label="unit" :value="unit" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="安全库存">
-              <el-input-number v-model="form.safetyStock" :min="0" :precision="2" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="最大库存">
-              <el-input-number v-model="form.maxStock" :min="0" :precision="2" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="标准成本">
-              <el-input-number v-model="form.standardCost" :min="0" :precision="2" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-form-item label="备注">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入" />
-        </el-form-item>
-      </el-form>
+    <el-dialog 
+      :title="isEdit ? '编辑物料' : '新增物料'" 
+      :visible.sync="dialogVisible" 
+      width="780px" 
+      :close-on-click-modal="false"
+      :modal="false"
+      custom-class="no-mask-dialog item-dialog"
+    >
+      <!-- 基本信息区域 -->
+      <div class="basic-info-section">
+        <div class="section-title">
+          <i class="el-icon-info"></i>
+          <span>基本信息</span>
+        </div>
+        <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="物料编码" prop="itemCode">
+                <el-input v-model="form.itemCode" placeholder="请输入物料编码" :disabled="isEdit" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="物料名称" prop="itemName">
+                <el-input v-model="form.itemName" placeholder="请输入物料名称" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="物料类型" prop="itemTypeId">
+                <el-select
+                  v-model="form.itemTypeId"
+                  placeholder="选择物料类型"
+                  style="width: 100%"
+                  @change="handleTypeChange"
+                >
+                  <el-option
+                    v-for="type in typeTreeData"
+                    :key="type.typeId"
+                    :label="type.typeName"
+                    :value="type.typeId"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="计量单位" prop="unitName">
+                <el-select v-model="form.unitName" placeholder="选择单位" style="width: 100%" filterable allow-create>
+                  <el-option v-for="unit in unitOptions" :key="unit" :label="unit" :value="unit" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="规格型号">
+                <el-input v-model="form.specification" placeholder="请输入规格型号" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="启用安全库存">
+                <el-switch
+                  v-model="form.enableSafetyStock"
+                  active-text="启用"
+                  inactive-text="不启用"
+                  @change="handleSafetyStockChange"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-row :gutter="20" v-if="form.enableSafetyStock">
+            <el-col :span="12">
+              <el-form-item label="安全库存">
+                <el-input-number v-model="form.safetyStock" :min="0" :precision="2" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="最大库存">
+                <el-input-number v-model="form.maxStock" :min="0" :precision="2" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-form-item label="备注">
+            <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注信息" />
+          </el-form-item>
+        </el-form>
+      </div>
+      
+      <!-- 子标签页区域 -->
+      <div class="sub-tabs-section">
+        <el-tabs v-model="activeSubTab" type="card">
+          <el-tab-pane label="BOM物料清单" name="bom">
+            <div class="bom-section">
+              <div class="bom-header">
+                <span class="bom-title">子物料组成</span>
+                <el-button type="primary" size="small" icon="el-icon-plus" @click="addBomLine">添加物料</el-button>
+              </div>
+              <el-table :data="form.bomLines" border size="small" style="width: 100%" max-height="300">
+                <el-table-column type="index" label="序号" width="50" align="center" />
+                <el-table-column label="物料" min-width="220">
+                  <template slot-scope="scope">
+                    <el-select 
+                      v-model="scope.row.itemId" 
+                      placeholder="选择物料" 
+                      style="width: 100%"
+                      filterable
+                      @change="(val) => handleBomItemChange(val, scope.$index)"
+                    >
+                      <el-option 
+                        v-for="item in availableBomItems" 
+                        :key="item.itemId" 
+                        :label="item.itemCode + ' - ' + item.itemName" 
+                        :value="item.itemId"
+                      />
+                    </el-select>
+                  </template>
+                </el-table-column>
+                <el-table-column label="规格型号" min-width="120">
+                  <template slot-scope="scope">
+                    <span>{{ scope.row.specification || '-' }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="单位" width="70" align="center">
+                  <template slot-scope="scope">
+                    <span>{{ scope.row.unitName || '-' }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="用量" width="100">
+                  <template slot-scope="scope">
+                    <el-input-number 
+                      v-model="scope.row.quantity" 
+                      :min="0.01" 
+                      :precision="2" 
+                      size="small"
+                      style="width: 100%"
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="60" align="center">
+                  <template slot-scope="scope">
+                    <el-button type="text" size="small" style="color: #f56c6c" @click="removeBomLine(scope.$index)">
+                      <i class="el-icon-delete"></i>
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div v-if="form.bomLines.length === 0" class="bom-empty">
+                <i class="el-icon-s-grid"></i>
+                <span>暂无BOM物料，点击上方按钮添加</span>
+              </div>
+            </div>
+          </el-tab-pane>
+          
+          <el-tab-pane label="SIP检验标准" name="sip">
+            <div class="empty-placeholder">
+              <i class="el-icon-document-checked"></i>
+              <span>SIP检验标准功能开发中...</span>
+            </div>
+          </el-tab-pane>
+          
+          <el-tab-pane label="SOP作业指导" name="sop">
+            <div class="empty-placeholder">
+              <i class="el-icon-document"></i>
+              <span>SOP作业指导功能开发中...</span>
+            </div>
+          </el-tab-pane>
+          
+          <el-tab-pane label="工艺参数" name="param">
+            <div class="empty-placeholder">
+              <i class="el-icon-setting"></i>
+              <span>工艺参数功能开发中...</span>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      
       <div slot="footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitForm">保 存</el-button>
@@ -375,7 +481,13 @@
     </el-dialog>
 
     <!-- 类型对话框 -->
-    <el-dialog :title="isEditType ? '编辑类型' : '新增类型'" :visible.sync="typeDialogVisible" width="500px">
+    <el-dialog 
+      :title="isEditType ? '编辑类型' : '新增类型'" 
+      :visible.sync="typeDialogVisible" 
+      width="500px"
+      :modal="false"
+      custom-class="no-mask-dialog"
+    >
       <el-form :model="typeForm" :rules="typeRules" ref="typeForm" label-width="100px">
         <el-form-item label="上级类型">
           <span v-if="typeForm.parentName">{{ typeForm.parentName }}</span>
@@ -443,6 +555,8 @@ export default {
       
       typeTreeData: [],
       
+      availableBomItems: [],
+      
       defaultProps: {
         children: 'children',
         label: 'typeName'
@@ -452,23 +566,24 @@ export default {
       
       dialogVisible: false,
       isEdit: false,
+      activeSubTab: 'bom',
       form: {
         itemId: null,
         itemCode: '',
         itemName: '',
-        typeId: null,
-        typePath: [],
+        itemTypeId: null,
         specification: '',
         unitName: '',
+        enableSafetyStock: false,
         safetyStock: 0,
         maxStock: 0,
-        standardCost: 0,
-        remark: ''
+        remark: '',
+        bomLines: []
       },
       rules: {
         itemCode: [{ required: true, message: '请输入物料编码', trigger: 'blur' }],
         itemName: [{ required: true, message: '请输入物料名称', trigger: 'blur' }],
-        typeId: [{ required: true, message: '请选择物料类型', trigger: 'change' }],
+        itemTypeId: [{ required: true, message: '请选择物料类型', trigger: 'change' }],
         unitName: [{ required: true, message: '请选择单位', trigger: 'change' }]
       },
       
@@ -535,14 +650,18 @@ export default {
         const params = {
           pageNum: this.queryParams.pageNum,
           pageSize: this.queryParams.pageSize,
-          typeId: this.currentTypeId,
+          itemTypeId: this.currentTypeId,
           keyword: this.queryParams.keyword
         }
+        console.log('请求参数:', params)
+        console.log('Token:', localStorage.getItem('mes-token'))
         const res = await listItem(params)
+        console.log('响应结果:', res)
         this.tableData = res.rows || []
         this.total = res.total || 0
         this.updateStatistics()
       } catch (error) {
+        console.error('获取物料列表失败:', error)
         this.$message.error('获取物料列表失败')
       } finally {
         this.loading = false
@@ -633,25 +752,41 @@ export default {
     
     handleAdd() {
       this.isEdit = false
+      // 自动生成物料编码：MAT + 年月日 + 4位随机数
+      const date = new Date()
+      const dateStr = date.getFullYear().toString().substr(2) + 
+                     String(date.getMonth() + 1).padStart(2, '0') + 
+                     String(date.getDate()).padStart(2, '0')
+      const randomNum = Math.floor(1000 + Math.random() * 9000)
+      const autoCode = 'MAT' + dateStr + randomNum
+      
       this.form = {
         itemId: null,
-        itemCode: '',
+        itemCode: autoCode,
         itemName: '',
-        typeId: this.currentTypeId,
-        typePath: this.currentTypeId ? [this.currentTypeId] : [],
+        itemTypeId: this.currentTypeId,
         specification: '',
         unitName: '',
+        enableSafetyStock: false,
         safetyStock: 0,
         maxStock: 0,
-        standardCost: 0,
-        remark: ''
+        remark: '',
+        bomLines: []
       }
+      // 加载可用的BOM物料（排除当前物料本身）
+      this.loadAvailableBomItems()
+      this.activeSubTab = 'bom'
       this.dialogVisible = true
     },
     
     handleEdit(row) {
       this.isEdit = true
-      this.form = { ...row, typePath: [row.typeId] }
+      this.form = { 
+        ...row,
+        bomLines: row.bomLines || []
+      }
+      // 加载可用的BOM物料
+      this.loadAvailableBomItems()
       this.dialogVisible = true
     },
     
@@ -665,7 +800,7 @@ export default {
       this.$alert(
         `<strong>物料编码：</strong>${row.itemCode}<br>
          <strong>物料名称：</strong>${row.itemName}<br>
-         <strong>所属类型：</strong>${row.typeName}<br>
+         <strong>所属类型：</strong>${row.itemTypeName}<br>
          <strong>规格型号：</strong>${row.specification}<br>
          <strong>当前库存：</strong>${row.quantity}<br>
          <strong>标准成本：</strong>¥${row.standardCost}`,
@@ -708,7 +843,7 @@ export default {
     },
     
     handleTypeChange(val) {
-      this.form.typeId = val
+      this.form.itemTypeId = val
     },
     
     generateCode() {
@@ -719,11 +854,16 @@ export default {
       this.$refs.form.validate(async valid => {
         if (valid) {
           try {
+            // 过滤掉未选择物料的BOM行
+            const submitData = {
+              ...this.form,
+              bomLines: this.form.bomLines.filter(line => line.itemId)
+            }
             if (this.isEdit) {
-              await updateItem(this.form)
+              await updateItem(submitData)
               this.$message.success('更新成功')
             } else {
-              await addItem(this.form)
+              await addItem(submitData)
               this.$message.success('新增成功')
             }
             this.dialogVisible = false
@@ -733,6 +873,54 @@ export default {
           }
         }
       })
+    },
+    
+    handleSafetyStockChange(val) {
+      if (!val) {
+        this.form.safetyStock = 0
+        this.form.maxStock = 0
+      }
+    },
+    
+    // BOM操作
+    addBomLine() {
+      this.form.bomLines.push({
+        itemId: null,
+        itemCode: '',
+        itemName: '',
+        specification: '',
+        unitName: '',
+        quantity: 1
+      })
+    },
+    
+    removeBomLine(index) {
+      this.form.bomLines.splice(index, 1)
+    },
+    
+    handleBomItemChange(itemId, index) {
+      const item = this.availableBomItems.find(i => i.itemId === itemId)
+      if (item) {
+        this.form.bomLines[index].itemCode = item.itemCode
+        this.form.bomLines[index].itemName = item.itemName
+        this.form.bomLines[index].specification = item.specification
+        this.form.bomLines[index].unitName = item.unitName
+      }
+    },
+    
+    // 加载可用的BOM物料
+    async loadAvailableBomItems() {
+      try {
+        // 查询原材料和半成品作为BOM物料选项
+        const res = await listItem({ pageNum: 1, pageSize: 1000 })
+        this.availableBomItems = (res.rows || []).filter(item => 
+          item.itemTypeId !== this.form.itemTypeId && 
+          item.status === '0'
+        )
+      } catch (error) {
+        console.error('加载BOM物料失败:', error)
+        this.availableBomItems = []
+      }
     },
     
     // 类型操作
@@ -1164,6 +1352,189 @@ export default {
   .el-card__header {
     padding: 12px 15px;
     border-bottom: 1px solid #EBEEF5;
+  }
+  
+  // 表格表头样式 - 文字不换行，宽度自适应
+  .md-item-table {
+    // 统一表头和内容行高
+    .el-table__cell {
+      padding: 8px 0 !important;
+      height: 40px !important;
+      
+      .cell {
+        line-height: 24px;
+        padding: 0 8px;
+      }
+    }
+    
+    // 表头样式 - 文字完全显示
+    .el-table__header-wrapper {
+      .el-table__header {
+        th.el-table__cell {
+          .cell {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            font-weight: 600;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+    
+    // 内容样式 - 超出显示省略号
+    .el-table__body-wrapper {
+      .el-table__body {
+        td.el-table__cell {
+          .cell {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            font-size: 13px;
+          }
+        }
+      }
+    }
+    
+    // 固定列样式统一
+    .el-table__fixed,
+    .el-table__fixed-right {
+      .el-table__cell {
+        padding: 8px 0 !important;
+        height: 40px !important;
+      }
+    }
+  }
+  
+  // 物料弹框样式
+  ::v-deep .item-dialog {
+    .el-dialog__body {
+      padding: 20px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    // 基本信息区域
+    .basic-info-section {
+      margin-bottom: 20px;
+      
+      .section-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #7C3AED;
+        
+        i {
+          font-size: 18px;
+          color: #7C3AED;
+          margin-right: 8px;
+        }
+        
+        span {
+          font-size: 16px;
+          font-weight: 600;
+          color: #303133;
+        }
+      }
+    }
+    
+    // 子标签页区域
+    .sub-tabs-section {
+      margin-top: 20px;
+      
+      .el-tabs__header {
+        margin-bottom: 15px;
+      }
+      
+      .el-tabs__item {
+        font-size: 14px;
+        
+        &.is-active {
+          color: #7C3AED;
+          font-weight: 600;
+        }
+      }
+      
+      .el-tabs__active-bar {
+        background-color: #7C3AED;
+      }
+    }
+  }
+  
+  // BOM区域样式
+  .bom-section {
+    .bom-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 0 5px;
+      
+      .bom-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #303133;
+      }
+    }
+    
+    .bom-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      color: #909399;
+      
+      i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        color: #dcdfe6;
+      }
+      
+      span {
+        font-size: 14px;
+      }
+    }
+  }
+  
+  // 空状态占位
+  .empty-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #909399;
+    
+    i {
+      font-size: 56px;
+      margin-bottom: 15px;
+      color: #dcdfe6;
+    }
+    
+    span {
+      font-size: 14px;
+    }
+  }
+  
+  // 无遮罩弹框样式
+  .no-mask-dialog {
+    .el-dialog {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+      border: 1px solid #dcdfe6;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0 !important;
+    }
+    
+    &.el-dialog__wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 </style>

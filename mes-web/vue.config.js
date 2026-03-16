@@ -28,21 +28,21 @@ module.exports = {
     },
     proxy: {
       '/mes': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8088',
         changeOrigin: true,
         pathRewrite: {
           '^/mes': '/mes'
         }
       },
       '/mobile': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8088',
         changeOrigin: true,
         pathRewrite: {
           '^/mobile': '/mobile'
         }
       },
       '/auth': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8088',
         changeOrigin: true,
         pathRewrite: {
           '^/auth': '/auth'

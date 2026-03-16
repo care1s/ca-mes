@@ -60,22 +60,22 @@ public class MdItem extends BaseEntity {
     private String locationName;
     
     /** 安全库存 */
-    private Double safetyStock;
+    private java.math.BigDecimal safetyStock;
     
     /** 最大库存 */
-    private Double maxStock;
+    private java.math.BigDecimal maxStock;
     
     /** 最小库存 */
-    private Double minStock;
+    private java.math.BigDecimal minStock;
     
     /** 采购单价 */
-    private Double purchasePrice;
+    private java.math.BigDecimal purchasePrice;
     
     /** 销售单价 */
-    private Double salePrice;
+    private java.math.BigDecimal salePrice;
     
     /** 标准成本 */
-    private Double standardCost;
+    private java.math.BigDecimal standardCost;
     
     /** 保质期(天) */
     private Integer shelfLife;
@@ -97,4 +97,7 @@ public class MdItem extends BaseEntity {
     
     /** 生产厂家 */
     private String manufacturer;
+    
+    /** 搜索关键字（不入库，仅用于查询） */
+    private String keyword;
 }

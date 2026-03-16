@@ -50,6 +50,8 @@ export default new Vuex.Store({
         SET_TOKEN: (state, token) => {
           state.token = token
           localStorage.setItem('mes-token', token)
+          console.log('Token已保存到localStorage:', token)
+          console.log('验证保存结果:', localStorage.getItem('mes-token'))
         },
         SET_NAME: (state, name) => {
           state.name = name
@@ -81,8 +83,11 @@ export default new Vuex.Store({
             }).then(response => {
               console.log('登录响应:', response)
               const res = response.data
+              console.log('响应数据:', res)
+              console.log('token:', res.data ? res.data.token : 'undefined')
               if (res.code === 200) {
                 const { token, userName } = res.data
+                console.log('保存token:', token)
                 commit('SET_TOKEN', token)
                 commit('SET_NAME', userName || username)
                 resolve(res.data)

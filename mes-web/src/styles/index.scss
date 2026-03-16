@@ -267,3 +267,85 @@ $border-radius-xs: 6px;
   background: rgba(124, 58, 237, 0.2);
   color: #7C3AED;
 }
+
+// ========== 下拉框文字居中优化 ==========
+
+// Dropdown 下拉菜单宽度和文字居中（与一级菜单一致）
+.el-dropdown-menu {
+  min-width: 120px !important;
+  width: auto !important;
+  
+  .el-dropdown-menu__item {
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 120px !important;
+    max-width: 140px !important;
+  }
+}
+
+// Select 选择器下拉框宽度和文字居中（与一级菜单一致）
+.el-select-dropdown {
+  min-width: 120px !important;
+  width: auto !important;
+  
+  .el-select-dropdown__item {
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 120px !important;
+    max-width: 140px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    
+    // 选中状态的勾选图标
+    &::after {
+      right: 15px !important;
+    }
+  }
+}
+
+// Cascader 级联选择器文字居中
+.el-cascader__dropdown {
+  .el-cascader-node {
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+// DatePicker 日期选择器文字居中
+.el-picker-panel {
+  .el-date-table td {
+    text-align: center !important;
+    
+    .cell {
+      margin: 0 auto !important;
+    }
+  }
+  
+  .el-year-table td,
+  .el-month-table td {
+    text-align: center !important;
+  }
+}
+
+// 顶部导航下拉菜单宽度和文字居中（与一级菜单一致）
+.el-menu--horizontal {
+  .el-menu--popup {
+    min-width: 120px !important;
+    width: auto !important;
+    
+    .el-menu-item {
+      text-align: center !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-width: 120px !important;
+      max-width: 140px !important;
+    }
+  }
+}

@@ -23,9 +23,16 @@ service.interceptors.request.use(
   config => {
     // 从 localStorage 获取 token
     const token = localStorage.getItem('mes-token')
+    console.log('=== Request Debug ===')
+    console.log('URL:', config.url)
+    console.log('Token from localStorage:', token ? token.substring(0, 30) + '...' : 'null')
     if (token) {
       config.headers['Authorization'] = 'Bearer ' + token
+      console.log('Authorization header set:', config.headers['Authorization'].substring(0, 40) + '...')
+    } else {
+      console.warn('No token available!')
     }
+    console.log('=== End Request Debug ===')
     return config
   },
   error => {
@@ -39,24 +46,63 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     
+    // 如果返回的不是JSON格式（比如HTML错误页面），直接返回
+    if (typeof res !== 'object' || res === null) {
+      return response.data
+    }
+    
     // 如果返回的状态码不是 200，说明出错了
     if (res.code !== 200) {
       Message.error(res.msg || '请求失败')
       
       // 401: 未登录或 token 过期
       if (res.code === 401) {
-        localStorage.removeItem('mes-token')
-        window.location.href = '/login'
+        // 延迟跳转，让用户看到错误信息
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 1500)
       }
       
       return Promise.reject(new Error(res.msg || '请求失败'))
     }
     
-    return res.data
+    // 返回整个响应对象，包含 code, msg, data/total/rows 等
+    return res
   },
   error => {
     console.error('响应错误:', error)
-    Message.error(error.message || '网络错误')
+    
+    // 获取错误状态码和消息
+    const status = error.response && error.response.status
+    const msg = (error.response && error.response.data && error.response.data.msg) || error.message || '网络错误'
+    
+    // HTTP 401: 未授权（token过期）
+    if (status === 401) {
+      Message.error('登录已过期，请重新登录')
+      // 延迟跳转
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
+      return Promise.reject(error)
+    }
+    
+    // HTTP 403: 禁止访问（未登录）
+    if (status === 403) {
+      Message.error('请先登录')
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
+      return Promise.reject(error)
+    }
+    
+    // HTTP 500: 服务器错误
+    if (status === 500) {
+      Message.error('服务器内部错误，请联系管理员')
+      return Promise.reject(error)
+    }
+    
+    // 其他错误
+    Message.error(msg)
     return Promise.reject(error)
   }
 )

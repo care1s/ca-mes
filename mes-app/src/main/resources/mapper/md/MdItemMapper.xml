@@ -59,6 +59,9 @@
             <if test="itemName != null and itemName != ''">
                 AND item_name like concat('%', #{itemName}, '%')
             </if>
+            <if test="keyword != null and keyword != ''">
+                AND (item_code like concat('%', #{keyword}, '%') OR item_name like concat('%', #{keyword}, '%'))
+            </if>
             <if test="itemTypeId != null">
                 AND item_type_id = #{itemTypeId}
             </if>
