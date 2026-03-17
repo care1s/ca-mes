@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdVendorMapper">
+
+    <resultMap type="com.carels.mes.module.md.domain.MdVendor" id="MdVendorResult">
+        <id property="vendorId" column="vendor_id"/>
+        <result property="vendorCode" column="vendor_code"/>
+        <result property="vendorName" column="vendor_name"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectMdVendorVo">
+        select vendor_id, vendor_code, vendor_name, contact_person, phone, email, address,
+               status, remark, create_by, create_time, update_by, update_time
+        from md_vendor
+    </sql>
+
+    <select id="selectMdVendorList" parameterType="com.carels.mes.module.md.domain.MdVendor" resultMap="MdVendorResult">
+        <include refid="selectMdVendorVo"/>
+        <where>
+            <if test="vendorCode != null and vendorCode != ''">
+                AND vendor_code like concat('%', #{vendorCode}, '%')
+            </if>
+            <if test="vendorName != null and vendorName != ''">
+                AND vendor_name like concat('%', #{vendorName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectMdVendorById" resultMap="MdVendorResult">
+        <include refid="selectMdVendorVo"/>
+        where vendor_id = #{vendorId}
+    </select>
+
+    <select id="selectMdVendorByCode" resultMap="MdVendorResult">
+        <include refid="selectMdVendorVo"/>
+        where vendor_code = #{vendorCode}
+    </select>
+
+    <select id="selectAllEnabledVendors" resultMap="MdVendorResult">
+        <include refid="selectMdVendorVo"/>
+        where status = '0'
+        order by vendor_name
+    </select>
+
+    <insert id="insertMdVendor" parameterType="com.carels.mes.module.md.domain.MdVendor" useGeneratedKeys="true" keyProperty="vendorId">
+        insert into md_vendor (
+            vendor_code, vendor_name, contact_person, phone, email, address,
+            status, remark, create_by, create_time
+        ) values (
+            #{vendorCode}, #{vendorName}, #{contactPerson}, #{phone}, #{email}, #{address},
+            #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateMdVendor" parameterType="com.carels.mes.module.md.domain.MdVendor">
+        update md_vendor
+        <set>
+            <if test="vendorCode != null">vendor_code = #{vendorCode},</if>
+            <if test="vendorName != null">vendor_name = #{vendorName},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where vendor_id = #{vendorId}
+    </update>
+
+    <delete id="deleteMdVendorById">
+        delete from md_vendor where vendor_id = #{vendorId}
+    </delete>
+
+    <delete id="deleteMdVendorByIds">
+        delete from md_vendor where vendor_id in
+        <foreach collection="array" item="vendorId" open="(" separator="," close=")">
+            #{vendorId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -427,3 +427,167 @@ export function delWorkstationBatch(workstationIds) {
   })
 }
 
+// ==================== 客户管理 API ====================
+
+/**
+ * 获取客户列表
+ * @param {Object} params 查询参数
+ */
+export function listClient(params) {
+  return request({
+    url: '/mes/md/client/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取所有启用的客户（下拉选择用）
+ */
+export function getAllClients() {
+  return request({
+    url: '/mes/md/client/all',
+    method: 'get'
+  })
+}
+
+/**
+ * 根据ID获取客户
+ * @param {number} clientId 客户ID
+ */
+export function getClient(clientId) {
+  return request({
+    url: '/mes/md/client/' + clientId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增客户
+ * @param {Object} data 客户数据
+ */
+export function addClient(data) {
+  return request({
+    url: '/mes/md/client',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改客户
+ * @param {Object} data 客户数据
+ */
+export function updateClient(data) {
+  return request({
+    url: '/mes/md/client',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除客户
+ * @param {number} clientId 客户ID
+ */
+export function delClient(clientId) {
+  return request({
+    url: '/mes/md/client/' + clientId,
+    method: 'delete'
+  })
+}
+
+/**
+ * 批量删除客户
+ * @param {Array} clientIds 客户ID数组
+ */
+export function delClientBatch(clientIds) {
+  return request({
+    url: '/mes/md/client/batch/' + clientIds.join(','),
+    method: 'delete'
+  })
+}
+
+// ==================== 供应商管理 API ====================
+
+/**
+ * 获取供应商列表
+ * @param {Object} params 查询参数
+ */
+export function listVendor(params) {
+  return request({
+    url: '/mes/md/vendor/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取所有启用的供应商（下拉选择用）
+ */
+export function getAllVendors() {
+  return request({
+    url: '/mes/md/vendor/all',
+    method: 'get'
+  })
+}
+
+/**
+ * 根据ID获取供应商
+ * @param {number} vendorId 供应商ID
+ */
+export function getVendor(vendorId) {
+  return request({
+    url: '/mes/md/vendor/' + vendorId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增供应商
+ * @param {Object} data 供应商数据
+ */
+export function addVendor(data) {
+  return request({
+    url: '/mes/md/vendor',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改供应商
+ * @param {Object} data 供应商数据
+ */
+export function updateVendor(data) {
+  return request({
+    url: '/mes/md/vendor',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除供应商
+ * @param {number} vendorId 供应商ID
+ */
+export function delVendor(vendorId) {
+  return request({
+    url: '/mes/md/vendor/' + vendorId,
+    method: 'delete'
+  })
+}
+
+/**
+ * 批量删除供应商
+ * @param {Array} vendorIds 供应商ID数组
+ */
+export function delVendorBatch(vendorIds) {
+  return request({
+    url: '/mes/md/vendor/batch/' + vendorIds.join(','),
+    method: 'delete'
+  })
+}
+
+
+

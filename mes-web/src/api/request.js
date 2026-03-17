@@ -9,6 +9,7 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import router from '@/router'
+import store from '@/store'
 
 // 创建 axios 实例
 const service = axios.create({
@@ -22,11 +23,14 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 从 localStorage 获取 token
-    const token = localStorage.getItem('mes-token')
+    // 从 localStorage 获取 token，如果没有则从 store 获取
+    let token = localStorage.getItem('mes-token')
+    if (!token && store.state.user && store.state.user.token) {
+      token = store.state.user.token
+    }
     console.log('=== Request Debug ===')
     console.log('URL:', config.url)
-    console.log('Token from localStorage:', token ? token.substring(0, 30) + '...' : 'null')
+    console.log('Token:', token ? token.substring(0, 30) + '...' : 'null')
     if (token) {
       config.headers['Authorization'] = 'Bearer ' + token
       console.log('Authorization header set:', config.headers['Authorization'].substring(0, 40) + '...')
@@ -103,12 +107,16 @@ service.interceptors.response.use(
  */
 function handleLogout(message) {
   Message.error(message)
-  // 清除 token
+  // 清除 localStorage token
   localStorage.removeItem('mes-token')
-  // 使用 Vue Router 跳转到登录页
+  // 清除 store 中的 token（如果存在）
+  if (store.state && store.state.user) {
+    store.state.user.token = null
+  }
+  // 强制跳转到登录页（使用 window.location 避免路由守卫干扰）
   setTimeout(() => {
-    router.push('/login')
-  }, 1500)
+    window.location.href = '/login'
+  }, 1000)
 }
 
 export default service

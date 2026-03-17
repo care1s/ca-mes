@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdClientMapper">
+
+    <resultMap type="com.carels.mes.module.md.domain.MdClient" id="MdClientResult">
+        <id property="clientId" column="client_id"/>
+        <result property="clientCode" column="client_code"/>
+        <result property="clientName" column="client_name"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectMdClientVo">
+        select client_id, client_code, client_name, contact_person, phone, email, address,
+               status, remark, create_by, create_time, update_by, update_time
+        from md_client
+    </sql>
+
+    <select id="selectMdClientList" parameterType="com.carels.mes.module.md.domain.MdClient" resultMap="MdClientResult">
+        <include refid="selectMdClientVo"/>
+        <where>
+            <if test="clientCode != null and clientCode != ''">
+                AND client_code like concat('%', #{clientCode}, '%')
+            </if>
+            <if test="clientName != null and clientName != ''">
+                AND client_name like concat('%', #{clientName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectMdClientById" resultMap="MdClientResult">
+        <include refid="selectMdClientVo"/>
+        where client_id = #{clientId}
+    </select>
+
+    <select id="selectMdClientByCode" resultMap="MdClientResult">
+        <include refid="selectMdClientVo"/>
+        where client_code = #{clientCode}
+    </select>
+
+    <select id="selectAllEnabledClients" resultMap="MdClientResult">
+        <include refid="selectMdClientVo"/>
+        where status = '0'
+        order by client_name
+    </select>
+
+    <insert id="insertMdClient" parameterType="com.carels.mes.module.md.domain.MdClient" useGeneratedKeys="true" keyProperty="clientId">
+        insert into md_client (
+            client_code, client_name, contact_person, phone, email, address,
+            status, remark, create_by, create_time
+        ) values (
+            #{clientCode}, #{clientName}, #{contactPerson}, #{phone}, #{email}, #{address},
+            #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateMdClient" parameterType="com.carels.mes.module.md.domain.MdClient">
+        update md_client
+        <set>
+            <if test="clientCode != null">client_code = #{clientCode},</if>
+            <if test="clientName != null">client_name = #{clientName},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where client_id = #{clientId}
+    </update>
+
+    <delete id="deleteMdClientById">
+        delete from md_client where client_id = #{clientId}
+    </delete>
+
+    <delete id="deleteMdClientByIds">
+        delete from md_client where client_id in
+        <foreach collection="array" item="clientId" open="(" separator="," close=")">
+            #{clientId}
+        </foreach>
+    </delete>
+
+</mapper>

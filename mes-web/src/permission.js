@@ -6,10 +6,13 @@ import store from './store'
 const whiteList = ['/login', '/404']
 
 router.beforeEach((to, from, next) => {
-  // 获取token（先从localStorage获取，如果不存在则从store获取）
-  let token = localStorage.getItem('mes-token')
-  if (!token && store.state.user) {
+  // 获取token（先从store获取，如果不存在则从localStorage获取）
+  let token = null
+  if (store.state.user && store.state.user.token) {
     token = store.state.user.token
+  }
+  if (!token) {
+    token = localStorage.getItem('mes-token')
   }
   console.log('路由跳转检查 - from:', from.path, 'to:', to.path, 'token:', token ? '存在' : 'null', 'localStorage:', localStorage.getItem('mes-token') ? '有' : '无', 'store:', store.state.user ? store.state.user.token ? '有' : '无' : '无store')
   

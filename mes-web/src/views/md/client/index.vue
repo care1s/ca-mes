@@ -9,8 +9,25 @@
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
+      </div>
+    </div>
+
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">总数</span>
+        <span class="stat-value blue">{{ stats.total }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">启用</span>
+        <span class="stat-value green">{{ stats.active }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">停用</span>
+        <span class="stat-value orange">{{ stats.inactive }}</span>
       </div>
     </div>
 
@@ -18,10 +35,10 @@
     <el-card class="search-card" shadow="never">
       <el-form :inline="true" :model="queryParams" class="search-form">
         <el-form-item label="编码">
-          <el-input v-model="queryParams.code" placeholder="请输入编码" clearable />
+          <el-input v-model="queryParams.clientCode" placeholder="请输入编码" clearable />
         </el-form-item>
         <el-form-item label="名称">
-          <el-input v-model="queryParams.name" placeholder="请输入名称" clearable />
+          <el-input v-model="queryParams.clientName" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
@@ -30,43 +47,6 @@
       </el-form>
     </el-card>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总数</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
-            <i class="el-icon-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.active }}</div>
-            <div class="stat-label">启用</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-close"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.inactive }}</div>
-            <div class="stat-label">停用</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <div slot="header" class="card-header">
@@ -74,16 +54,6 @@
           <i class="el-icon-user"></i>
           客户管理列表
         </span>
-        <el-pagination
-          class="pagination"
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="queryParams.pageSize"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
       </div>
       
       <el-table
@@ -93,11 +63,30 @@
         stripe
         highlight-current-row
         style="width: 100%"
+        @row-dblclick="handleRowDblclick"
       >
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
-        <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80" align="center">
+        <el-table-column type="index" label="序号" width="80" align="center" />
+        <el-table-column prop="clientCode" label="编码" width="120" show-overflow-tooltip />
+        <el-table-column prop="clientName" label="名称" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="contactPerson" label="联系人" width="100" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span v-if="scope.row.contactPerson">{{ scope.row.contactPerson }}</span>
+            <span v-else style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="电话" width="120" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span v-if="scope.row.phone">{{ scope.row.phone }}</span>
+            <span v-else style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="email" label="邮箱" min-width="150" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span v-if="scope.row.email">{{ scope.row.email }}</span>
+            <span v-else style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100" align="center">
           <template slot-scope="scope">
             <el-switch
               v-model="scope.row.status"
@@ -107,8 +96,8 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
+        <el-table-column prop="createTime" label="创建时间" width="150" align="center" />
+        <el-table-column label="操作" width="180" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
             <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
@@ -116,19 +105,44 @@
           </template>
         </el-table-column>
       </el-table>
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="queryParams.pageSize"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" :modal="false" custom-class="no-mask-dialog">
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码" />
+        <el-form-item label="客户编码" prop="clientCode">
+          <el-input v-model="form.clientCode" placeholder="请输入客户编码" />
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
+        <el-form-item label="客户名称" prop="clientName">
+          <el-input v-model="form.clientName" placeholder="请输入客户名称" />
+        </el-form-item>
+        <el-form-item label="联系人" prop="contactPerson">
+          <el-input v-model="form.contactPerson" placeholder="请输入联系人" />
+        </el-form-item>
+        <el-form-item label="联系电话" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入联系电话" />
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="form.address" type="textarea" :rows="2" placeholder="请输入地址" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
+          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -140,62 +154,48 @@
 </template>
 
 <script>
+import { listClient, addClient, updateClient, delClient, delClientBatch } from '@/api/md'
+
 /**
  * 客户管理 - carels
  * @author carels
- * @version V9.0
- * @date 2026-03-15
+ * @version V9.1
+ * @date 2026-03-17
  */
 export default {
   name: 'MdClient',
   data() {
     return {
       loading: false,
-      total: 50,
+      total: 0,
       stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
+        total: 0,
+        active: 0,
+        inactive: 0
       },
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        code: '',
-        name: ''
+        clientCode: '',
+        clientName: ''
       },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
+      tableData: [],
       dialogVisible: false,
-      dialogTitle: '新增',
+      dialogTitle: '',
       form: {
-        code: '',
-        name: '',
-        remark: ''
+        clientId: null,
+        clientCode: '',
+        clientName: '',
+        contactPerson: '',
+        phone: '',
+        email: '',
+        address: '',
+        remark: '',
+        status: '0'
       },
       rules: {
-        code: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
+        clientCode: [{ required: true, message: '请输入客户编码', trigger: 'blur' }],
+        clientName: [{ required: true, message: '请输入客户名称', trigger: 'blur' }]
       }
     }
   },
@@ -203,73 +203,125 @@ export default {
     this.fetchData()
   },
   methods: {
-    fetchData() {
+    async fetchData() {
       this.loading = true
-      setTimeout(() => {
+      try {
+        const res = await listClient(this.queryParams)
+        this.tableData = res.rows || []
+        this.total = res.total || 0
+        this.updateStatistics()
+      } catch (error) {
+        this.$message.error('获取数据失败')
+      } finally {
         this.loading = false
-      }, 500)
+      }
     },
+    
+    updateStatistics() {
+      this.stats.total = this.tableData.length
+      this.stats.active = this.tableData.filter(item => item.status === '0').length
+      this.stats.inactive = this.tableData.filter(item => item.status === '1').length
+    },
+    
     handleQuery() {
       this.queryParams.pageNum = 1
       this.fetchData()
     },
+    
     resetQuery() {
       this.queryParams = {
         pageNum: 1,
         pageSize: 10,
-        code: '',
-        name: ''
+        clientCode: '',
+        clientName: ''
       }
       this.fetchData()
     },
+    
     handleAdd() {
-      this.dialogTitle = '新增'
+      this.dialogTitle = '新增客户'
       this.form = {
-        code: '',
-        name: '',
-        remark: ''
+        clientId: null,
+        clientCode: '',
+        clientName: '',
+        contactPerson: '',
+        phone: '',
+        email: '',
+        address: '',
+        remark: '',
+        status: '0'
       }
       this.dialogVisible = true
     },
+    
     handleEdit(row) {
-      this.dialogTitle = '编辑'
+      this.dialogTitle = '编辑客户'
       this.form = { ...row }
       this.dialogVisible = true
     },
+    
     handleView(row) {
-      this.$alert(`编码：${row.code}<br>名称：${row.name}`, '详情', {
+      this.$alert(`编码：${row.clientCode}<br>名称：${row.clientName}<br>联系人：${row.contactPerson || '-'}<br>电话：${row.phone || '-'}`, '客户详情', {
         dangerouslyUseHTMLString: true,
         confirmButtonText: '确定'
       })
     },
+    
+    handleRowDblclick(row) {
+      this.handleView(row)
+    },
+    
     handleDelete(row) {
-      this.$confirm(`确认删除 "${row.name}" 吗？`, '提示', {
+      this.$confirm(`确定删除客户 "${row.clientName}" 吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
+        await delClient(row.clientId)
         this.$message.success('删除成功')
+        this.fetchData()
+      }).catch(() => {})
+    },
+    
+    async handleStatusChange(row) {
+      const statusText = row.status === '0' ? '启用' : '停用'
+      try {
+        await updateClient({ clientId: row.clientId, status: row.status })
+        this.$message.success(`已${statusText}`)
+      } catch (error) {
+        this.$message.error('状态更新失败')
+        row.status = row.status === '0' ? '1' : '0'
+      }
+    },
+    
+    submitForm() {
+      this.$refs.form.validate(async (valid) => {
+        if (valid) {
+          try {
+            if (this.form.clientId) {
+              await updateClient(this.form)
+              this.$message.success('更新成功')
+            } else {
+              await addClient(this.form)
+              this.$message.success('新增成功')
+            }
+            this.dialogVisible = false
+            this.fetchData()
+          } catch (error) {
+            this.$message.error('操作失败')
+          }
+        }
       })
     },
-    handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
-      this.$message.success(`已${status}：${row.name}`)
-    },
+    
     handleSizeChange(val) {
       this.queryParams.pageSize = val
       this.fetchData()
     },
+    
     handleCurrentChange(val) {
       this.queryParams.pageNum = val
       this.fetchData()
-    },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
-        }
-      })
     }
   }
 }
@@ -278,117 +330,88 @@ export default {
 <style lang="scss" scoped>
 .app-container {
   padding: 20px;
-  min-height: calc(100vh - 120px);
 }
 
-// 页面头部
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 0 15px 0;
-  border-bottom: 2px solid #EBEEF5;
-
+  
   .title-section {
     display: flex;
     align-items: center;
     
     i {
-      font-size: 28px;
+      font-size: 24px;
       color: #409EFF;
-      margin-right: 12px;
+      margin-right: 10px;
     }
     
     .title {
-      font-size: 22px;
-      font-weight: 600;
-      color: #303133;
+      font-size: 20px;
+      font-weight: bold;
       margin-right: 10px;
     }
     
     .subtitle {
-      font-size: 13px;
-      color: #909399;
-      font-weight: normal;
-    }
-  }
-}
-
-// 搜索栏
-.search-card {
-  margin-bottom: 20px;
-  
-  .search-form {
-    .el-form-item {
-      margin-bottom: 0;
-      margin-right: 20px;
-    }
-  }
-}
-
-// 统计卡片
-.stat-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  transition: all 0.3s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    
-    i {
-      font-size: 28px;
-      color: #fff;
-    }
-    
-    &.blue {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    &.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    &.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-  }
-  
-  .stat-info {
-    flex: 1;
-    
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #303133;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-    
-    .stat-label {
       font-size: 14px;
       color: #909399;
     }
   }
 }
 
-// 表格卡片
+// 统计信息栏
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: #fff;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .stat-label {
+      font-size: 13px;
+      color: #606266;
+    }
+    
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      
+      &.blue {
+        color: #409EFF;
+      }
+      
+      &.green {
+        color: #67c23a;
+      }
+      
+      &.orange {
+        color: #e6a23c;
+      }
+    }
+  }
+  
+  .stat-divider {
+    width: 1px;
+    height: 20px;
+    background: #ebeef5;
+    margin: 0 20px;
+  }
+}
+
+.search-card {
+  margin-bottom: 20px;
+}
+
 .table-card {
   .card-header {
     display: flex;
@@ -396,37 +419,46 @@ export default {
     align-items: center;
     
     .header-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #303133;
+      font-weight: bold;
       
       i {
-        margin-right: 8px;
-        color: #409EFF;
+        margin-right: 5px;
       }
     }
   }
   
   .el-table {
-    margin-top: 15px;
-  }
-}
-
-// 响应式调整
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
+    margin-bottom: 15px;
     
-    .action-section {
-      margin-top: 10px;
+    ::v-deep .el-table__row {
+      height: 40px;
+    }
+    
+    ::v-deep .el-table__cell {
+      padding: 4px 0;
+    }
+    
+    ::v-deep th.el-table__cell {
+      padding: 8px 0;
     }
   }
   
-  .stat-row {
-    .el-col {
-      margin-bottom: 15px;
-    }
+  .pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 15px;
+    border-top: 1px solid #ebeef5;
+  }
+}
+
+// 无遮罩弹框样式
+.no-mask-dialog {
+  .el-dialog {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  &.el-dialog__wrapper {
+    background: transparent !important;
   }
 }
 </style>

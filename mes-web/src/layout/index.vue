@@ -30,18 +30,6 @@
             <el-menu-item index="/md/vendor">供应商</el-menu-item>
           </el-submenu>
           
-          <!-- 生产执行 - 无图标 -->
-          <el-submenu index="/pro" v-if="!hiddenMenus.includes('/pro')">
-            <template slot="title">
-              <span>生产执行</span>
-            </template>
-            <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
-            <el-menu-item index="/pro/task">生产任务</el-menu-item>
-            <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
-            <el-menu-item index="/pro/route">工艺路线</el-menu-item>
-            <el-menu-item index="/pro/andon">异常管理</el-menu-item>
-          </el-submenu>
-          
           <!-- 仓储物流 - 无图标 -->
           <el-submenu index="/wm" v-if="!hiddenMenus.includes('/wm')">
             <template slot="title">
@@ -52,6 +40,18 @@
             <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
             <el-menu-item index="/wm/issue">出库管理</el-menu-item>
             <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+          </el-submenu>
+          
+          <!-- 生产执行 - 无图标 -->
+          <el-submenu index="/pro" v-if="!hiddenMenus.includes('/pro')">
+            <template slot="title">
+              <span>生产执行</span>
+            </template>
+            <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
+            <el-menu-item index="/pro/task">生产任务</el-menu-item>
+            <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
+            <el-menu-item index="/pro/route">工艺路线</el-menu-item>
+            <el-menu-item index="/pro/andon">异常管理</el-menu-item>
           </el-submenu>
           
           <!-- 质量管理 - 无图标 -->
@@ -108,19 +108,6 @@
               </div>
             </div>
             
-            <!-- 生产执行 -->
-            <div v-if="hiddenMenus.includes('/pro')" class="menu-group">
-              <div class="menu-group-title">生产执行</div>
-              <div class="menu-group-divider"></div>
-              <div class="menu-group-content">
-                <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
-                <el-menu-item index="/pro/task">生产任务</el-menu-item>
-                <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
-                <el-menu-item index="/pro/route">工艺路线</el-menu-item>
-                <el-menu-item index="/pro/andon">异常管理</el-menu-item>
-              </div>
-            </div>
-            
             <!-- 仓储物流 -->
             <div v-if="hiddenMenus.includes('/wm')" class="menu-group">
               <div class="menu-group-title">仓储物流</div>
@@ -131,6 +118,19 @@
                 <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
                 <el-menu-item index="/wm/issue">出库管理</el-menu-item>
                 <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+              </div>
+            </div>
+            
+            <!-- 生产执行 -->
+            <div v-if="hiddenMenus.includes('/pro')" class="menu-group">
+              <div class="menu-group-title">生产执行</div>
+              <div class="menu-group-divider"></div>
+              <div class="menu-group-content">
+                <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
+                <el-menu-item index="/pro/task">生产任务</el-menu-item>
+                <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
+                <el-menu-item index="/pro/route">工艺路线</el-menu-item>
+                <el-menu-item index="/pro/andon">异常管理</el-menu-item>
               </div>
             </div>
             
