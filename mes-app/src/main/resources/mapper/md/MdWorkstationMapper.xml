@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdWorkstationMapper">
+    
+    <resultMap type="com.carels.mes.module.md.domain.MdWorkstation" id="MdWorkstationResult">
+        <id property="workstationId" column="workstation_id"/>
+        <result property="workstationCode" column="workstation_code"/>
+        <result property="workstationName" column="workstation_name"/>
+        <result property="workshopId" column="workshop_id"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="productionLineId" column="production_line_id"/>
+        <result property="productionLineName" column="production_line_name"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <sql id="selectMdWorkstationVo">
+        select ws.workstation_id, ws.workstation_code, ws.workstation_name, ws.workshop_id, ws.workshop_name,
+               ws.production_line_id, ws.production_line_name, ws.status, ws.remark, ws.create_by, ws.create_time,
+               ws.update_by, ws.update_time
+        from md_workstation ws
+    </sql>
+    
+    <select id="selectMdWorkstationList" parameterType="com.carels.mes.module.md.domain.MdWorkstation" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        <where>
+            <if test="workstationCode != null and workstationCode != ''">
+                AND ws.workstation_code like concat('%', #{workstationCode}, '%')
+            </if>
+            <if test="workstationName != null and workstationName != ''">
+                AND ws.workstation_name like concat('%', #{workstationName}, '%')
+            </if>
+            <if test="workshopId != null">
+                AND ws.workshop_id = #{workshopId}
+            </if>
+            <if test="productionLineId != null">
+                AND ws.production_line_id = #{productionLineId}
+            </if>
+            <if test="status != null and status != ''">
+                AND ws.status = #{status}
+            </if>
+        </where>
+        order by ws.create_time desc
+    </select>
+    
+    <select id="selectMdWorkstationById" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        where ws.workstation_id = #{workstationId}
+    </select>
+    
+    <select id="selectMdWorkstationByCode" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        where ws.workstation_code = #{workstationCode}
+    </select>
+    
+    <select id="selectMdWorkstationByWorkshopId" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        where ws.workshop_id = #{workshopId}
+        order by ws.workstation_name
+    </select>
+    
+    <select id="selectMdWorkstationByLineId" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        where ws.production_line_id = #{lineId}
+        order by ws.workstation_name
+    </select>
+    
+    <select id="selectAllEnabledWorkstations" resultMap="MdWorkstationResult">
+        <include refid="selectMdWorkstationVo"/>
+        where ws.status = '0'
+        order by ws.workstation_name
+    </select>
+    
+    <insert id="insertMdWorkstation" parameterType="com.carels.mes.module.md.domain.MdWorkstation" useGeneratedKeys="true" keyProperty="workstationId">
+        insert into md_workstation (
+            workstation_code, workstation_name, workshop_id, workshop_name, production_line_id,
+            production_line_name, status, remark, create_by, create_time
+        ) values (
+            #{workstationCode}, #{workstationName}, #{workshopId}, #{workshopName}, #{productionLineId},
+            #{productionLineName}, #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+    
+    <update id="updateMdWorkstation" parameterType="com.carels.mes.module.md.domain.MdWorkstation">
+        update md_workstation
+        <set>
+            <if test="workstationCode != null">workstation_code = #{workstationCode},</if>
+            <if test="workstationName != null">workstation_name = #{workstationName},</if>
+            <if test="workshopId != null">workshop_id = #{workshopId},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <!-- 生产线ID：始终更新（包括设置为null的情况） -->
+            production_line_id = #{productionLineId},
+            <!-- 生产线名称：始终更新 -->
+            production_line_name = #{productionLineName},
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where workstation_id = #{workstationId}
+    </update>
+    
+    <delete id="deleteMdWorkstationById">
+        delete from md_workstation where workstation_id = #{workstationId}
+    </delete>
+    
+    <delete id="deleteMdWorkstationByIds">
+        delete from md_workstation where workstation_id in
+        <foreach collection="array" item="workstationId" open="(" separator="," close=")">
+            #{workstationId}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteMdWorkstationByWorkshopId">
+        delete from md_workstation where workshop_id = #{workshopId}
+    </delete>
+    
+    <delete id="deleteMdWorkstationByLineId">
+        delete from md_workstation where production_line_id = #{lineId}
+    </delete>
+</mapper>

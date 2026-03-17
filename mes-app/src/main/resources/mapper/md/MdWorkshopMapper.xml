@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdWorkshopMapper">
+    
+    <resultMap type="com.carels.mes.module.md.domain.MdWorkshop" id="MdWorkshopResult">
+        <id property="workshopId" column="workshop_id"/>
+        <result property="workshopCode" column="workshop_code"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="managerId" column="manager_id"/>
+        <result property="managerName" column="manager_name"/>
+        <result property="phone" column="phone"/>
+        <result property="orgMode" column="org_mode"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <sql id="selectMdWorkshopVo">
+        select workshop_id, workshop_code, workshop_name, manager_id, manager_name,
+               phone, org_mode, status, remark, create_by, create_time,
+               update_by, update_time
+        from md_workshop
+    </sql>
+    
+    <select id="selectMdWorkshopList" parameterType="com.carels.mes.module.md.domain.MdWorkshop" resultMap="MdWorkshopResult">
+        <include refid="selectMdWorkshopVo"/>
+        <where>
+            <if test="workshopCode != null and workshopCode != ''">
+                AND workshop_code like concat('%', #{workshopCode}, '%')
+            </if>
+            <if test="workshopName != null and workshopName != ''">
+                AND workshop_name like concat('%', #{workshopName}, '%')
+            </if>
+            <if test="orgMode != null and orgMode != ''">
+                AND org_mode = #{orgMode}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectMdWorkshopById" resultMap="MdWorkshopResult">
+        <include refid="selectMdWorkshopVo"/>
+        where workshop_id = #{workshopId}
+    </select>
+    
+    <select id="selectMdWorkshopByCode" resultMap="MdWorkshopResult">
+        <include refid="selectMdWorkshopVo"/>
+        where workshop_code = #{workshopCode}
+    </select>
+    
+    <select id="selectAllEnabledWorkshops" resultMap="MdWorkshopResult">
+        <include refid="selectMdWorkshopVo"/>
+        where status = '0'
+        order by workshop_name
+    </select>
+    
+    <insert id="insertMdWorkshop" parameterType="com.carels.mes.module.md.domain.MdWorkshop" useGeneratedKeys="true" keyProperty="workshopId">
+        insert into md_workshop (
+            workshop_code, workshop_name, manager_id, manager_name, phone,
+            org_mode, status, remark, create_by, create_time
+        ) values (
+            #{workshopCode}, #{workshopName}, #{managerId}, #{managerName}, #{phone},
+            #{orgMode}, #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+    
+    <update id="updateMdWorkshop" parameterType="com.carels.mes.module.md.domain.MdWorkshop">
+        update md_workshop
+        <set>
+            <if test="workshopCode != null">workshop_code = #{workshopCode},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+            <if test="managerName != null">manager_name = #{managerName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="orgMode != null">org_mode = #{orgMode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where workshop_id = #{workshopId}
+    </update>
+    
+    <delete id="deleteMdWorkshopById">
+        delete from md_workshop where workshop_id = #{workshopId}
+    </delete>
+    
+    <delete id="deleteMdWorkshopByIds">
+        delete from md_workshop where workshop_id in
+        <foreach collection="array" item="workshopId" open="(" separator="," close=")">
+            #{workshopId}
+        </foreach>
+    </delete>
+    
+    <select id="countProductionLinesByWorkshopId" resultType="int">
+        select count(*) from md_production_line where workshop_id = #{workshopId}
+    </select>
+    
+    <select id="countWorkstationsByWorkshopId" resultType="int">
+        select count(*) from md_workstation where workshop_id = #{workshopId}
+    </select>
+</mapper>

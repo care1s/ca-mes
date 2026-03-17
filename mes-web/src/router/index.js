@@ -28,10 +28,10 @@ const Dashboard = () => import('@/views/dashboard/index')
 const MdItem = () => import('@/views/md/item/index')
 const MdItemType = () => import('@/views/md/itemType/index')
 const MdWorkshop = () => import('@/views/md/workshop/index')
+const MdProductionLine = () => import('@/views/md/productionLine/index')
 const MdWorkstation = () => import('@/views/md/workstation/index')
 const MdClient = () => import('@/views/md/client/index')
 const MdVendor = () => import('@/views/md/vendor/index')
-const MdBom = () => import('@/views/md/bom/index')
 
 // 生产管理页面
 const ProWorkorder = () => import('@/views/pro/workorder/index')
@@ -110,10 +110,10 @@ export const routes = [
       { path: 'itemType', name: 'MdItemType', component: MdItemType, meta: { title: '物料类型', icon: 'el-icon-s-grid' } },
       { path: 'item', name: 'MdItem', component: MdItem, meta: { title: '物料信息', icon: 'el-icon-goods' } },
       { path: 'workshop', name: 'MdWorkshop', component: MdWorkshop, meta: { title: '车间管理', icon: 'el-icon-office-building' } },
-      { path: 'workstation', name: 'MdWorkstation', component: MdWorkstation, meta: { title: '工作站', icon: 'el-icon-s-operation' } },
+      { path: 'productionLine', name: 'MdProductionLine', component: MdProductionLine, meta: { title: '生产线管理', icon: 'el-icon-s-operation' } },
+      { path: 'workstation', name: 'MdWorkstation', component: MdWorkstation, meta: { title: '工作站  ', icon: 'el-icon-s-custom' } },
       { path: 'client', name: 'MdClient', component: MdClient, meta: { title: '客户管理', icon: 'el-icon-user' } },
-      { path: 'vendor', name: 'MdVendor', component: MdVendor, meta: { title: '供应商', icon: 'el-icon-truck' } },
-      { path: 'bom', name: 'MdBom', component: MdBom, meta: { title: '产品BOM', icon: 'el-icon-document-copy' } }
+      { path: 'vendor', name: 'MdVendor', component: MdVendor, meta: { title: '供应商  ', icon: 'el-icon-truck' } }
     ]
   },
   

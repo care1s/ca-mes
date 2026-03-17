@@ -21,6 +21,7 @@ module.exports = {
   // 开发服务器配置
   devServer: {
     port: 8081,
+    host: 'localhost',
     open: true,
     overlay: {
       warnings: false,

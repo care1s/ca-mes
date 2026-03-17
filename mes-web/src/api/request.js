@@ -8,6 +8,7 @@
 
 import axios from 'axios'
 import { Message } from 'element-ui'
+import router from '@/router'
 
 // 创建 axios 实例
 const service = axios.create({
@@ -57,10 +58,7 @@ service.interceptors.response.use(
       
       // 401: 未登录或 token 过期
       if (res.code === 401) {
-        // 延迟跳转，让用户看到错误信息
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 1500)
+        handleLogout('登录已过期，请重新登录')
       }
       
       return Promise.reject(new Error(res.msg || '请求失败'))
@@ -78,20 +76,13 @@ service.interceptors.response.use(
     
     // HTTP 401: 未授权（token过期）
     if (status === 401) {
-      Message.error('登录已过期，请重新登录')
-      // 延迟跳转
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 1500)
+      handleLogout('登录已过期，请重新登录')
       return Promise.reject(error)
     }
     
     // HTTP 403: 禁止访问（未登录）
     if (status === 403) {
-      Message.error('请先登录')
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 1500)
+      handleLogout('请先登录')
       return Promise.reject(error)
     }
     
@@ -106,5 +97,18 @@ service.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+/**
+ * 处理登出逻辑
+ */
+function handleLogout(message) {
+  Message.error(message)
+  // 清除 token
+  localStorage.removeItem('mes-token')
+  // 使用 Vue Router 跳转到登录页
+  setTimeout(() => {
+    router.push('/login')
+  }, 1500)
+}
 
 export default service

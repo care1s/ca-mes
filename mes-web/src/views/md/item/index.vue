@@ -325,7 +325,20 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="物料类型" prop="itemTypeId">
+                <!-- 多级类型使用级联选择器 -->
+                <el-cascader
+                  v-if="hasMultiLevelTypes"
+                  v-model="itemTypePath"
+                  :options="typeTreeData"
+                  :props="{ value: 'typeId', label: 'typeName', children: 'children', checkStrictly: true }"
+                  placeholder="选择物料类型"
+                  style="width: 100%"
+                  clearable
+                  @change="handleTypeChange"
+                />
+                <!-- 单级类型使用普通下拉框 -->
                 <el-select
+                  v-else
                   v-model="form.itemTypeId"
                   placeholder="选择物料类型"
                   style="width: 100%"
@@ -395,55 +408,50 @@
                 <span class="bom-title">子物料组成</span>
                 <el-button type="primary" size="small" icon="el-icon-plus" @click="addBomLine">添加物料</el-button>
               </div>
-              <el-table :data="form.bomLines" border size="small" style="width: 100%" max-height="300">
-                <el-table-column type="index" label="序号" width="50" align="center" />
-                <el-table-column label="物料" min-width="220">
-                  <template slot-scope="scope">
-                    <el-select 
-                      v-model="scope.row.itemId" 
-                      placeholder="选择物料" 
-                      style="width: 100%"
-                      filterable
-                      @change="(val) => handleBomItemChange(val, scope.$index)"
-                    >
-                      <el-option 
-                        v-for="item in availableBomItems" 
-                        :key="item.itemId" 
-                        :label="item.itemCode + ' - ' + item.itemName" 
-                        :value="item.itemId"
+              <div class="bom-table-wrapper">
+                <el-table :data="form.bomLines" border size="small" class="bom-table" style="width: 100%">
+                  <el-table-column type="index" label="序号" width="100" align="center" />
+                  <el-table-column label="物料编码" width="180">
+                    <template slot-scope="scope">
+                      <span class="bom-item-code">{{ scope.row.itemCode }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="物料名称" min-width="220" show-overflow-tooltip>
+                    <template slot-scope="scope">
+                      <span>{{ scope.row.itemName }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="规格型号" min-width="180" show-overflow-tooltip>
+                    <template slot-scope="scope">
+                      <span>{{ scope.row.specification || '-' }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="单位" width="80" align="center">
+                    <template slot-scope="scope">
+                      <span>{{ scope.row.unitName || '-' }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="用量" width="180" align="center">
+                    <template slot-scope="scope">
+                      <el-input-number 
+                        v-model="scope.row.quantity" 
+                        :min="0.01" 
+                        :precision="2" 
+                        size="small"
+                        style="width: 150px"
+                        controls-position="right"
                       />
-                    </el-select>
-                  </template>
-                </el-table-column>
-                <el-table-column label="规格型号" min-width="120">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row.specification || '-' }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="单位" width="70" align="center">
-                  <template slot-scope="scope">
-                    <span>{{ scope.row.unitName || '-' }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="用量" width="100">
-                  <template slot-scope="scope">
-                    <el-input-number 
-                      v-model="scope.row.quantity" 
-                      :min="0.01" 
-                      :precision="2" 
-                      size="small"
-                      style="width: 100%"
-                    />
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="60" align="center">
-                  <template slot-scope="scope">
-                    <el-button type="text" size="small" style="color: #f56c6c" @click="removeBomLine(scope.$index)">
-                      <i class="el-icon-delete"></i>
-                    </el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="80" align="center">
+                    <template slot-scope="scope">
+                      <el-button type="text" size="small" style="color: #f56c6c" @click="removeBomLine(scope.$index)">
+                        <i class="el-icon-delete"></i>
+                      </el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
               <div v-if="form.bomLines.length === 0" class="bom-empty">
                 <i class="el-icon-s-grid"></i>
                 <span>暂无BOM物料，点击上方按钮添加</span>
@@ -510,6 +518,52 @@
       <div slot="footer">
         <el-button @click="typeDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitTypeForm">保 存</el-button>
+      </div>
+    </el-dialog>
+    
+    <!-- BOM物料选择弹窗 -->
+    <el-dialog
+      title="选择物料"
+      :visible.sync="bomItemDialogVisible"
+      width="850px"
+      :modal="false"
+      custom-class="no-mask-dialog"
+    >
+      <div class="bom-item-search">
+        <el-input
+          v-model="bomItemSearchKeyword"
+          placeholder="搜索物料编码/名称/规格"
+          size="small"
+          prefix-icon="el-icon-search"
+          clearable
+          @keyup.enter.native="filterBomItems"
+        />
+      </div>
+      <el-table
+        :data="filteredBomItems"
+        border
+        size="small"
+        highlight-current-row
+        @current-change="handleBomItemSelect"
+        v-loading="bomItemDialogLoading"
+        height="350"
+        style="width: 100%"
+      >
+        <el-table-column width="70" align="center">
+          <template slot-scope="scope">
+            <el-radio v-model="selectedBomItem" :label="scope.row" class="hidden-radio">
+              <span></span>
+            </el-radio>
+          </template>
+        </el-table-column>
+        <el-table-column prop="itemCode" label="物料编码" width="180" />
+        <el-table-column prop="itemName" label="物料名称" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="specification" label="规格型号" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="unitName" label="单位" width="80" align="center" />
+      </el-table>
+      <div slot="footer">
+        <el-button @click="bomItemDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmAddBomItem" :disabled="!selectedBomItem">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -593,6 +647,12 @@ export default {
       
       unitOptions: ['PC', 'KG', 'M', 'SET', 'BOX', 'L', 'ML', 'G'],
       
+      // BOM物料选择弹窗
+      bomItemDialogVisible: false,
+      selectedBomItem: null,
+      bomItemSearchKeyword: '',
+      bomItemDialogLoading: false,
+      
       typeDialogVisible: false,
       isEditType: false,
       typeForm: {
@@ -626,6 +686,51 @@ export default {
   
   beforeDestroy() {
     window.removeEventListener('resize', this.calcTableHeight)
+  },
+  
+  computed: {
+    filteredBomItems() {
+      if (!this.bomItemSearchKeyword) {
+        return this.availableBomItems
+      }
+      const keyword = this.bomItemSearchKeyword.toLowerCase()
+      return this.availableBomItems.filter(item => 
+        item.itemCode.toLowerCase().includes(keyword) ||
+        item.itemName.toLowerCase().includes(keyword) ||
+        (item.specification && item.specification.toLowerCase().includes(keyword))
+      )
+    },
+    
+    // 判断是否有多级类型
+    hasMultiLevelTypes() {
+      // 递归检查是否有任何类型有子级
+      const checkChildren = (nodes) => {
+        for (let node of nodes) {
+          if (node.children && node.children.length > 0) {
+            return true
+          }
+        }
+        return false
+      }
+      return checkChildren(this.typeTreeData)
+    },
+    
+    // 级联选择器的值（路径数组）
+    itemTypePath: {
+      get() {
+        // 根据 itemTypeId 查找完整路径
+        if (!this.form.itemTypeId || !this.typeTreeData.length) return []
+        return this.findTypePath(this.typeTreeData, this.form.itemTypeId)
+      },
+      set(val) {
+        // 级联选择器改变时，更新 itemTypeId
+        if (Array.isArray(val) && val.length > 0) {
+          this.form.itemTypeId = val[val.length - 1]
+        } else {
+          this.form.itemTypeId = null
+        }
+      }
+    }
   },
   
   methods: {
@@ -728,6 +833,20 @@ export default {
       return null
     },
     
+    // 查找类型的完整路径（返回 ID 数组）
+    findTypePath(nodes, typeId, path = []) {
+      for (let node of nodes) {
+        if (node.typeId === typeId) {
+          return [...path, node.typeId]
+        }
+        if (node.children && node.children.length > 0) {
+          const result = this.findTypePath(node.children, typeId, [...path, node.typeId])
+          if (result) return result
+        }
+      }
+      return null
+    },
+    
     clearTypeFilter() {
       this.currentTypeId = null
       this.currentTypeName = ''
@@ -797,16 +916,8 @@ export default {
     },
     
     handleView(row) {
-      this.$alert(
-        `<strong>物料编码：</strong>${row.itemCode}<br>
-         <strong>物料名称：</strong>${row.itemName}<br>
-         <strong>所属类型：</strong>${row.itemTypeName}<br>
-         <strong>规格型号：</strong>${row.specification}<br>
-         <strong>当前库存：</strong>${row.quantity}<br>
-         <strong>标准成本：</strong>¥${row.standardCost}`,
-        '物料详情',
-        { dangerouslyUseHTMLString: true }
-      )
+      this.currentRow = row
+      this.detailDialogVisible = true
     },
     
     handleDelete(row) {
@@ -843,7 +954,12 @@ export default {
     },
     
     handleTypeChange(val) {
-      this.form.itemTypeId = val
+      // cascader 返回数组，取最后一个值作为选中的类型ID
+      if (Array.isArray(val) && val.length > 0) {
+        this.form.itemTypeId = val[val.length - 1]
+      } else {
+        this.form.itemTypeId = val
+      }
     },
     
     generateCode() {
@@ -884,37 +1000,57 @@ export default {
     
     // BOM操作
     addBomLine() {
+      // 打开物料选择弹窗
+      this.selectedBomItem = null
+      this.bomItemSearchKeyword = ''
+      this.bomItemDialogVisible = true
+    },
+    
+    confirmAddBomItem() {
+      if (!this.selectedBomItem) {
+        this.$message.warning('请先选择物料')
+        return
+      }
+      
+      // 检查是否已存在
+      const exists = this.form.bomLines.some(line => line.itemId === this.selectedBomItem.itemId)
+      if (exists) {
+        this.$message.warning('该物料已添加')
+        return
+      }
+      
+      // 添加到BOM列表
       this.form.bomLines.push({
-        itemId: null,
-        itemCode: '',
-        itemName: '',
-        specification: '',
-        unitName: '',
+        itemId: this.selectedBomItem.itemId,
+        itemCode: this.selectedBomItem.itemCode,
+        itemName: this.selectedBomItem.itemName,
+        specification: this.selectedBomItem.specification,
+        unitName: this.selectedBomItem.unitName,
         quantity: 1
       })
+      
+      this.bomItemDialogVisible = false
+      this.$message.success('添加成功')
+    },
+    
+    handleBomItemSelect(val) {
+      this.selectedBomItem = val
+    },
+    
+    filterBomItems() {
+      // 搜索功能通过 computed 属性 filteredBomItems 自动实现
     },
     
     removeBomLine(index) {
       this.form.bomLines.splice(index, 1)
     },
     
-    handleBomItemChange(itemId, index) {
-      const item = this.availableBomItems.find(i => i.itemId === itemId)
-      if (item) {
-        this.form.bomLines[index].itemCode = item.itemCode
-        this.form.bomLines[index].itemName = item.itemName
-        this.form.bomLines[index].specification = item.specification
-        this.form.bomLines[index].unitName = item.unitName
-      }
-    },
-    
     // 加载可用的BOM物料
     async loadAvailableBomItems() {
       try {
-        // 查询原材料和半成品作为BOM物料选项
+        // 查询所有启用的物料作为BOM物料选项
         const res = await listItem({ pageNum: 1, pageSize: 1000 })
         this.availableBomItems = (res.rows || []).filter(item => 
-          item.itemTypeId !== this.form.itemTypeId && 
           item.status === '0'
         )
       } catch (error) {
@@ -1478,6 +1614,50 @@ export default {
       }
     }
     
+    .bom-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      
+      &::-webkit-scrollbar {
+        height: 8px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+        border-radius: 4px;
+        
+        &:hover {
+          background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+        }
+      }
+    }
+    
+    .bom-table {
+      width: 100% !important;
+      
+      .el-table__header-wrapper th {
+        background-color: #f5f7fa;
+        font-weight: 600;
+        color: #303133;
+        text-align: center;
+        white-space: nowrap;
+        
+        .cell {
+          white-space: nowrap;
+        }
+      }
+      
+      .el-table__body-wrapper td {
+        vertical-align: middle;
+      }
+    }
+    
     .bom-empty {
       display: flex;
       flex-direction: column;
@@ -1494,6 +1674,37 @@ export default {
       
       span {
         font-size: 14px;
+      }
+    }
+    
+    // BOM表格中物料编码样式
+    .bom-item-code {
+      font-weight: 600;
+      color: #409EFF;
+    }
+  }
+  
+  // BOM物料选择弹窗样式
+  .bom-item-search {
+    margin-bottom: 15px;
+  }
+  
+  .hidden-radio {
+    .el-radio__input {
+      display: block;
+    }
+    .el-radio__label {
+      display: none;
+    }
+  }
+  
+  // 确保弹窗中表格表头不换行
+  .no-mask-dialog {
+    .el-table__header-wrapper th {
+      white-space: nowrap;
+      
+      .cell {
+        white-space: nowrap;
       }
     }
   }
@@ -1534,7 +1745,13 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent !important; /* 去掉灰色遮罩 */
     }
+  }
+  
+  // 全局覆盖 - 去掉所有弹框遮罩背景
+  ::v-deep .el-dialog__wrapper {
+    background: rgba(0, 0, 0, 0) !important;
   }
 }
 </style>

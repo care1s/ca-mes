@@ -166,11 +166,11 @@ export function listWorkshop(params) {
 }
 
 /**
- * 获取所有车间（用于下拉选择）
+ * 获取所有启用的车间（用于下拉选择）
  */
 export function getWorkshopOptions() {
   return request({
-    url: '/mes/md/workshop/options',
+    url: '/mes/md/workshop/all',
     method: 'get'
   })
 }
@@ -210,7 +210,110 @@ export function delWorkshop(workshopId) {
   })
 }
 
-// ==================== 工作站 API ====================
+// ==================== 生产线管理 API ====================
+
+/**
+ * 获取生产线列表
+ * @param {Object} params 查询参数
+ */
+export function listProductionLine(params) {
+  return request({
+    url: '/mes/md/productionLine/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取所有启用的生产线（下拉选择用）
+ */
+export function getAllProductionLines() {
+  return request({
+    url: '/mes/md/productionLine/all',
+    method: 'get'
+  })
+}
+
+/**
+ * 根据车间ID获取生产线列表
+ * @param {number} workshopId 车间ID
+ */
+export function getProductionLinesByWorkshop(workshopId) {
+  return request({
+    url: '/mes/md/productionLine/workshop/' + workshopId,
+    method: 'get'
+  })
+}
+
+/**
+ * 根据ID获取生产线
+ * @param {number} lineId 生产线ID
+ */
+export function getProductionLine(lineId) {
+  return request({
+    url: '/mes/md/productionLine/' + lineId,
+    method: 'get'
+  })
+}
+
+/**
+ * 根据编码获取生产线
+ * @param {string} lineCode 生产线编码
+ */
+export function getProductionLineByCode(lineCode) {
+  return request({
+    url: '/mes/md/productionLine/code/' + lineCode,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增生产线
+ * @param {Object} data 生产线数据
+ */
+export function addProductionLine(data) {
+  return request({
+    url: '/mes/md/productionLine',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改生产线
+ * @param {Object} data 生产线数据
+ */
+export function updateProductionLine(data) {
+  return request({
+    url: '/mes/md/productionLine',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除生产线
+ * @param {number} lineId 生产线ID
+ */
+export function delProductionLine(lineId) {
+  return request({
+    url: '/mes/md/productionLine/' + lineId,
+    method: 'delete'
+  })
+}
+
+/**
+ * 批量删除生产线
+ * @param {Array} lineIds 生产线ID数组
+ */
+export function delProductionLineBatch(lineIds) {
+  return request({
+    url: '/mes/md/productionLine/batch/' + lineIds.join(','),
+    method: 'delete'
+  })
+}
+
+// ==================== 工作站管理 API ====================
 
 /**
  * 获取工作站列表
@@ -221,6 +324,60 @@ export function listWorkstation(params) {
     url: '/mes/md/workstation/list',
     method: 'get',
     params
+  })
+}
+
+/**
+ * 获取所有启用的工作站（下拉选择用）
+ */
+export function getAllWorkstations() {
+  return request({
+    url: '/mes/md/workstation/all',
+    method: 'get'
+  })
+}
+
+/**
+ * 根据车间ID获取工作站列表
+ * @param {number} workshopId 车间ID
+ */
+export function getWorkstationsByWorkshop(workshopId) {
+  return request({
+    url: '/mes/md/workstation/workshop/' + workshopId,
+    method: 'get'
+  })
+}
+
+/**
+ * 根据生产线ID获取工作站列表
+ * @param {number} lineId 生产线ID
+ */
+export function getWorkstationsByLine(lineId) {
+  return request({
+    url: '/mes/md/workstation/line/' + lineId,
+    method: 'get'
+  })
+}
+
+/**
+ * 根据ID获取工作站
+ * @param {number} workstationId 工作站ID
+ */
+export function getWorkstation(workstationId) {
+  return request({
+    url: '/mes/md/workstation/' + workstationId,
+    method: 'get'
+  })
+}
+
+/**
+ * 根据编码获取工作站
+ * @param {string} workstationCode 工作站编码
+ */
+export function getWorkstationByCode(workstationCode) {
+  return request({
+    url: '/mes/md/workstation/code/' + workstationCode,
+    method: 'get'
   })
 }
 
@@ -252,167 +409,20 @@ export function updateWorkstation(data) {
  * 删除工作站
  * @param {number} workstationId 工作站ID
  */
-export function delWorkstation(workshopId) {
+export function delWorkstation(workstationId) {
   return request({
-    url: '/mes/md/workstation/' + workshopId,
+    url: '/mes/md/workstation/' + workstationId,
     method: 'delete'
   })
 }
 
-// ==================== 客户管理 API ====================
-
 /**
- * 获取客户列表
- * @param {Object} params 查询参数
+ * 批量删除工作站
+ * @param {Array} workstationIds 工作站ID数组
  */
-export function listClient(params) {
+export function delWorkstationBatch(workstationIds) {
   return request({
-    url: '/mes/md/client/list',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 新增客户
- * @param {Object} data 客户数据
- */
-export function addClient(data) {
-  return request({
-    url: '/mes/md/client',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 修改客户
- * @param {Object} data 客户数据
- */
-export function updateClient(data) {
-  return request({
-    url: '/mes/md/client',
-    method: 'put',
-    data
-  })
-}
-
-/**
- * 删除客户
- * @param {number} clientId 客户ID
- */
-export function delClient(clientId) {
-  return request({
-    url: '/mes/md/client/' + clientId,
-    method: 'delete'
-  })
-}
-
-// ==================== 供应商 API ====================
-
-/**
- * 获取供应商列表
- * @param {Object} params 查询参数
- */
-export function listVendor(params) {
-  return request({
-    url: '/mes/md/vendor/list',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 新增供应商
- * @param {Object} data 供应商数据
- */
-export function addVendor(data) {
-  return request({
-    url: '/mes/md/vendor',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 修改供应商
- * @param {Object} data 供应商数据
- */
-export function updateVendor(data) {
-  return request({
-    url: '/mes/md/vendor',
-    method: 'put',
-    data
-  })
-}
-
-/**
- * 删除供应商
- * @param {number} vendorId 供应商ID
- */
-export function delVendor(vendorId) {
-  return request({
-    url: '/mes/md/vendor/' + vendorId,
-    method: 'delete'
-  })
-}
-
-// ==================== BOM API ====================
-
-/**
- * 获取BOM列表
- * @param {Object} params 查询参数
- */
-export function listBom(params) {
-  return request({
-    url: '/mes/md/bom/list',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 获取BOM详情
- * @param {number} bomId BOM ID
- */
-export function getBom(bomId) {
-  return request({
-    url: '/mes/md/bom/' + bomId,
-    method: 'get'
-  })
-}
-
-/**
- * 新增BOM
- * @param {Object} data BOM数据
- */
-export function addBom(data) {
-  return request({
-    url: '/mes/md/bom',
-    method: 'post',
-    data
-  })
-}
-
-/**
- * 修改BOM
- * @param {Object} data BOM数据
- */
-export function updateBom(data) {
-  return request({
-    url: '/mes/md/bom',
-    method: 'put',
-    data
-  })
-}
-
-/**
- * 删除BOM
- * @param {number} bomId BOM ID
- */
-export function delBom(bomId) {
-  return request({
-    url: '/mes/md/bom/' + bomId,
+    url: '/mes/md/workstation/batch/' + workstationIds.join(','),
     method: 'delete'
   })
 }

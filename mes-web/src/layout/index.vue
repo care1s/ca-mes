@@ -24,10 +24,10 @@
             </template>
             <el-menu-item index="/md/item">物料信息</el-menu-item>
             <el-menu-item index="/md/workshop">车间管理</el-menu-item>
+            <el-menu-item index="/md/productionLine">生产线管理</el-menu-item>
             <el-menu-item index="/md/workstation">工作站</el-menu-item>
             <el-menu-item index="/md/client">客户管理</el-menu-item>
             <el-menu-item index="/md/vendor">供应商</el-menu-item>
-            <el-menu-item index="/md/bom">产品BOM</el-menu-item>
           </el-submenu>
           
           <!-- 生产执行 - 无图标 -->
@@ -101,10 +101,10 @@
               <div class="menu-group-content">
                 <el-menu-item index="/md/item">物料信息</el-menu-item>
                 <el-menu-item index="/md/workshop">车间管理</el-menu-item>
+                <el-menu-item index="/md/productionLine">生产线管理</el-menu-item>
                 <el-menu-item index="/md/workstation">工作站</el-menu-item>
                 <el-menu-item index="/md/client">客户管理</el-menu-item>
                 <el-menu-item index="/md/vendor">供应商</el-menu-item>
-                <el-menu-item index="/md/bom">产品BOM</el-menu-item>
               </div>
             </div>
             

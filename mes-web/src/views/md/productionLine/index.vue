@@ -3,13 +3,12 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <div class="title-section">
-        <i class="el-icon-office-building"></i>
-        <span class="title">车间管理</span>
-        <span class="subtitle">Workshop Management</span>
+        <i class="el-icon-s-operation"></i>
+        <span class="title">生产线管理</span>
+        <span class="subtitle">Production Line Management</span>
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -35,11 +34,21 @@
     <!-- 搜索栏 -->
     <el-card class="search-card" shadow="never">
       <el-form :inline="true" :model="queryParams" class="search-form">
+        <el-form-item label="所属车间">
+          <el-select v-model="queryParams.workshopId" placeholder="请选择车间" clearable style="width: 200px">
+            <el-option
+              v-for="item in workshopList"
+              :key="item.workshopId"
+              :label="item.workshopName"
+              :value="item.workshopId"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="编码">
-          <el-input v-model="queryParams.workshopCode" placeholder="请输入编码" clearable />
+          <el-input v-model="queryParams.lineCode" placeholder="请输入编码" clearable />
         </el-form-item>
         <el-form-item label="名称">
-          <el-input v-model="queryParams.workshopName" placeholder="请输入名称" clearable />
+          <el-input v-model="queryParams.lineName" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
@@ -52,25 +61,9 @@
     <el-card class="table-card" shadow="never">
       <div slot="header" class="card-header">
         <span class="header-title">
-          <i class="el-icon-office-building"></i>
-          车间管理列表
+          <i class="el-icon-s-operation"></i>
+          生产线列表
         </span>
-        <el-pagination
-          class="pagination"
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="queryParams.pageSize"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-      
-      <!-- 数据状态提示 -->
-      <div v-if="!loading" style="padding: 10px; color: #606266; font-size: 14px;">
-        <span v-if="tableData.length > 0">共 {{ tableData.length }} 条数据</span>
-        <span v-else style="color: #f56c6c;">暂无数据，请检查网络或刷新页面</span>
       </div>
       
       <el-table
@@ -83,25 +76,20 @@
         @row-dblclick="handleRowDblclick"
       >
         <el-table-column type="index" label="序号" width="80" align="center" />
-        <el-table-column prop="workshopCode" label="编码" width="120" show-overflow-tooltip />
-        <el-table-column prop="workshopName" label="名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="managerName" label="负责人" width="100" show-overflow-tooltip>
+        <el-table-column prop="lineCode" label="编码" width="120" show-overflow-tooltip />
+        <el-table-column prop="lineName" label="名称" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="workshopName" label="所属车间" width="130" show-overflow-tooltip />
+        <el-table-column prop="lineType" label="类型" width="100" align="center">
           <template slot-scope="scope">
-            <span v-if="scope.row.managerName">{{ scope.row.managerName }}</span>
-            <span v-else style="color: #909399;">-</span>
+            <el-tag v-if="scope.row.lineType === 'ASSEMBLY'" type="success" size="mini">装配线</el-tag>
+            <el-tag v-else-if="scope.row.lineType === 'PROCESSING'" type="warning" size="mini">加工线</el-tag>
+            <el-tag v-else-if="scope.row.lineType === 'PACKING'" type="info" size="mini">包装线</el-tag>
+            <span v-else>{{ scope.row.lineType || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip>
+        <el-table-column prop="capacity" label="产能" width="100" align="center">
           <template slot-scope="scope">
-            <span v-if="scope.row.remark">{{ scope.row.remark }}</span>
-            <span v-else style="color: #909399;">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="orgMode" label="模式" width="100" align="center">
-          <template slot-scope="scope">
-            <el-tag v-if="scope.row.orgMode === 'SIMPLE'" type="success" size="mini">简单模式</el-tag>
-            <el-tag v-else-if="scope.row.orgMode === 'COMPLETE'" type="warning" size="mini">完整模式</el-tag>
-            <span v-else>-</span>
+            <span>{{ scope.row.capacity ? scope.row.capacity + '/h' : '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -122,45 +110,54 @@
             <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-        
-        <template slot="empty">
-          <div style="padding: 30px; text-align: center; color: #909399;">
-            <i class="el-icon-s-grid" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
-            <span>暂无数据</span>
-          </div>
-        </template>
       </el-table>
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="queryParams.pageSize"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="650px" :modal="false" custom-class="no-mask-dialog">
-      <el-form :model="form" :rules="rules" ref="form" label-width="120px">
-        <el-form-item label="车间编码" prop="workshopCode">
-          <el-input v-model="form.workshopCode" placeholder="请输入编码" />
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" :modal="false" custom-class="no-mask-dialog">
+      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+        <el-form-item label="所属车间" prop="workshopId">
+          <el-select v-model="form.workshopId" placeholder="请选择车间" style="width: 100%" @change="handleWorkshopChange">
+            <el-option
+              v-for="item in completeModeWorkshops"
+              :key="item.workshopId"
+              :label="item.workshopName"
+              :value="item.workshopId"
+            />
+          </el-select>
+          <span v-if="completeModeWorkshops.length === 0" style="color: #f56c6c; font-size: 12px;">
+            暂无可用的完整模式车间，请先在车间管理中设置组织模式为"完整模式"
+          </span>
         </el-form-item>
-        <el-form-item label="车间名称" prop="workshopName">
-          <el-input v-model="form.workshopName" placeholder="请输入名称" />
+        <el-form-item label="生产线编码" prop="lineCode">
+          <el-input v-model="form.lineCode" placeholder="请输入生产线编码" />
         </el-form-item>
-        <el-form-item label="负责人" prop="managerName">
-          <el-input v-model="form.managerName" placeholder="请输入负责人姓名" />
+        <el-form-item label="生产线名称" prop="lineName">
+          <el-input v-model="form.lineName" placeholder="请输入生产线名称" />
         </el-form-item>
-        <el-form-item label="组织模式" prop="orgMode">
-          <el-radio-group v-model="form.orgMode">
-            <el-radio-button label="SIMPLE">
-              <i class="el-icon-s-grid"></i> 简单模式
-            </el-radio-button>
-            <el-radio-button label="COMPLETE">
-              <i class="el-icon-s-operation"></i> 完整模式
-            </el-radio-button>
-          </el-radio-group>
-          <div class="mode-tip">
-            <span v-if="form.orgMode === 'SIMPLE'" class="tip-text simple">
-              <i class="el-icon-info"></i> 简单模式：车间直接管理工作站
-            </span>
-            <span v-else class="tip-text complete">
-              <i class="el-icon-info"></i> 完整模式：车间 → 生产线 → 工作站
-            </span>
-          </div>
+        <el-form-item label="生产线类型" prop="lineType">
+          <el-select v-model="form.lineType" placeholder="请选择类型" style="width: 100%">
+            <el-option label="装配线" value="ASSEMBLY" />
+            <el-option label="加工线" value="PROCESSING" />
+            <el-option label="包装线" value="PACKING" />
+            <el-option label="检测线" value="INSPECTION" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="产能(件/小时)" prop="capacity">
+          <el-input-number v-model="form.capacity" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
@@ -168,23 +165,24 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button type="primary" @click="submitForm" :disabled="completeModeWorkshops.length === 0">确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { listWorkshop, addWorkshop, updateWorkshop, delWorkshop, delWorkshopBatch } from '@/api/md'
+import { listProductionLine, addProductionLine, updateProductionLine, delProductionLine, delProductionLineBatch, getWorkshopOptions } from '@/api/md'
 
 /**
- * 车间管理 - carels
+ * 生产线管理 - carels
  * @author carels
  * @version V9.1
  * @date 2026-03-16
+ * @description 支持车间-生产线-工作站三级架构
  */
 export default {
-  name: 'MdWorkshop',
+  name: 'MdProductionLine',
   data() {
     return {
       loading: false,
@@ -197,49 +195,61 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        workshopCode: '',
-        workshopName: ''
+        workshopId: '',
+        lineCode: '',
+        lineName: ''
       },
       tableData: [],
+      workshopList: [],
       dialogVisible: false,
-      dialogTitle: '新增',
+      dialogTitle: '',
       form: {
-        workshopId: null,
-        workshopCode: '',
+        lineId: null,
+        workshopId: '',
         workshopName: '',
-        managerName: '',
-        orgMode: 'SIMPLE',
+        lineCode: '',
+        lineName: '',
+        lineType: '',
+        capacity: 0,
         status: '0',
         remark: ''
       },
       rules: {
-        workshopCode: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        workshopName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-        orgMode: [{ required: true, message: '请选择组织模式', trigger: 'change' }]
+        workshopId: [{ required: true, message: '请选择所属车间', trigger: 'change' }],
+        lineCode: [{ required: true, message: '请输入生产线编码', trigger: 'blur' }],
+        lineName: [{ required: true, message: '请输入生产线名称', trigger: 'blur' }],
+        lineType: [{ required: true, message: '请选择生产线类型', trigger: 'change' }]
       }
+    }
+  },
+  computed: {
+    // 只显示完整模式的车间
+    completeModeWorkshops() {
+      console.log('过滤前车间列表:', this.workshopList)
+      const filtered = this.workshopList.filter(ws => {
+        console.log('检查车间:', ws.workshopName, 'orgMode:', ws.orgMode)
+        return ws.orgMode === 'COMPLETE'
+      })
+      console.log('过滤后完整模式车间:', filtered)
+      return filtered
     }
   },
   mounted() {
     this.fetchData()
+    this.fetchWorkshopList()
   },
   methods: {
     async fetchData() {
       this.loading = true
-      console.log('开始加载车间数据...')
       try {
-        const res = await listWorkshop(this.queryParams)
-        console.log('API返回数据:', res)
+        const res = await listProductionLine(this.queryParams)
         this.tableData = res.rows || []
         this.total = res.total || 0
-        console.log('表格数据:', this.tableData)
-        console.log('总条数:', this.total)
         this.updateStatistics()
       } catch (error) {
-        console.error('获取数据失败:', error)
-        this.$message.error('获取数据失败: ' + (error.message || '未知错误'))
+        this.$message.error('获取数据失败')
       } finally {
         this.loading = false
-        console.log('加载完成')
       }
     },
     
@@ -247,6 +257,18 @@ export default {
       this.stats.total = this.tableData.length
       this.stats.active = this.tableData.filter(item => item.status === '0').length
       this.stats.inactive = this.tableData.filter(item => item.status === '1').length
+    },
+    
+    async fetchWorkshopList() {
+      try {
+        const res = await getWorkshopOptions()
+        console.log('车间列表原始返回:', res)
+        this.workshopList = res.data || []
+        console.log('车间列表数据:', this.workshopList)
+        console.log('完整模式车间:', this.completeModeWorkshops)
+      } catch (error) {
+        console.error('获取车间列表失败:', error)
+      }
     },
     
     handleQuery() {
@@ -258,19 +280,23 @@ export default {
       this.queryParams = {
         pageNum: 1,
         pageSize: 10,
-        workshopCode: '',
-        workshopName: ''
+        workshopId: '',
+        lineCode: '',
+        lineName: ''
       }
       this.fetchData()
     },
     
     handleAdd() {
-      this.dialogTitle = '新增车间'
+      this.dialogTitle = '新增生产线'
       this.form = {
-        workshopId: null,
-        workshopCode: '',
+        lineId: null,
+        workshopId: '',
         workshopName: '',
-        orgMode: 'SIMPLE',
+        lineCode: '',
+        lineName: '',
+        lineType: '',
+        capacity: 0,
         status: '0',
         remark: ''
       }
@@ -278,13 +304,13 @@ export default {
     },
     
     handleEdit(row) {
-      this.dialogTitle = '编辑车间'
+      this.dialogTitle = '编辑生产线'
       this.form = { ...row }
       this.dialogVisible = true
     },
     
     handleView(row) {
-      this.$alert(`编码：${row.workshopCode}<br>名称：${row.workshopName}`, '详情', {
+      this.$alert(`编码：${row.lineCode}<br>名称：${row.lineName}<br>所属车间：${row.workshopName || '-'}<br>类型：${row.lineType || '-'}`, '生产线详情', {
         dangerouslyUseHTMLString: true,
         confirmButtonText: '确定'
       })
@@ -294,14 +320,39 @@ export default {
       this.handleView(row)
     },
     
+    handleWorkshopChange(val) {
+      const workshop = this.workshopList.find(ws => ws.workshopId === val)
+      if (workshop) {
+        this.form.workshopName = workshop.workshopName
+      }
+    },
+    
+    submitForm() {
+      this.$refs.form.validate(async valid => {
+        if (valid) {
+          try {
+            if (this.form.lineId) {
+              await updateProductionLine(this.form)
+              this.$message.success('修改成功')
+            } else {
+              await addProductionLine(this.form)
+              this.$message.success('新增成功')
+            }
+            this.dialogVisible = false
+            this.fetchData()
+          } catch (error) {
+            this.$message.error(error.message || '保存失败')
+          }
+        }
+      })
+    },
+    
     handleDelete(row) {
-      this.$confirm(`确认删除 "${row.workshopName}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定删除生产线 "${row.lineName}" 吗？`, '提示', {
         type: 'warning'
       }).then(async () => {
         try {
-          await delWorkshop(row.workshopId)
+          await delProductionLine(row.lineId)
           this.$message.success('删除成功')
           this.fetchData()
         } catch (error) {
@@ -311,13 +362,12 @@ export default {
     },
     
     async handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
+      const statusText = row.status === '0' ? '启用' : '停用'
       try {
-        await updateWorkshop(row)
-        this.$message.success(`已${status}：${row.workshopName}`)
+        await updateProductionLine({ lineId: row.lineId, status: row.status })
+        this.$message.success(`已${statusText}`)
       } catch (error) {
         this.$message.error('状态更新失败')
-        // 恢复原状态
         row.status = row.status === '0' ? '1' : '0'
       }
     },
@@ -330,26 +380,6 @@ export default {
     handleCurrentChange(val) {
       this.queryParams.pageNum = val
       this.fetchData()
-    },
-    
-    submitForm() {
-      this.$refs.form.validate(async valid => {
-        if (valid) {
-          try {
-            if (this.form.workshopId) {
-              await updateWorkshop(this.form)
-              this.$message.success('修改成功')
-            } else {
-              await addWorkshop(this.form)
-              this.$message.success('新增成功')
-            }
-            this.dialogVisible = false
-            this.fetchData()
-          } catch (error) {
-            this.$message.error(error.message || '保存失败')
-          }
-        }
-      })
     }
   }
 }
@@ -358,56 +388,42 @@ export default {
 <style lang="scss" scoped>
 .app-container {
   padding: 20px;
-  min-height: calc(100vh - 120px);
 }
 
-// 页面头部
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 0 15px 0;
-  border-bottom: 2px solid #EBEEF5;
-
+  
   .title-section {
     display: flex;
     align-items: center;
     
     i {
-      font-size: 28px;
+      font-size: 24px;
       color: #409EFF;
-      margin-right: 12px;
+      margin-right: 10px;
     }
     
     .title {
-      font-size: 22px;
-      font-weight: 600;
-      color: #303133;
+      font-size: 20px;
+      font-weight: bold;
       margin-right: 10px;
     }
     
     .subtitle {
-      font-size: 13px;
+      font-size: 14px;
       color: #909399;
-      font-weight: normal;
     }
   }
 }
 
-// 搜索栏
 .search-card {
   margin-bottom: 20px;
-  
-  .search-form {
-    .el-form-item {
-      margin-bottom: 0;
-      margin-right: 20px;
-    }
-  }
 }
 
-// 统计信息栏 - 单行展示
+// 统计信息栏
 .stats-bar {
   display: flex;
   align-items: center;
@@ -454,7 +470,6 @@ export default {
   }
 }
 
-// 表格卡片
 .table-card {
   .card-header {
     display: flex;
@@ -462,21 +477,17 @@ export default {
     align-items: center;
     
     .header-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #303133;
+      font-weight: bold;
       
       i {
-        margin-right: 8px;
-        color: #409EFF;
+        margin-right: 5px;
       }
     }
   }
   
   .el-table {
-    margin-top: 15px;
+    margin-bottom: 15px;
     
-    // 扁平行高
     ::v-deep .el-table__row {
       height: 40px;
     }
@@ -489,52 +500,12 @@ export default {
       padding: 8px 0;
     }
   }
-}
-
-// 组织模式提示样式
-.mode-tip {
-  margin-top: 8px;
   
-  .tip-text {
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 4px;
-    display: inline-block;
-    
-    i {
-      margin-right: 4px;
-    }
-    
-    &.simple {
-      color: #67c23a;
-      background-color: #f0f9eb;
-    }
-    
-    &.complete {
-      color: #e6a23c;
-      background-color: #fdf6ec;
-    }
-  }
-}
-
-// 响应式调整
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    
-    .action-section {
-      margin-top: 10px;
-    }
-  }
-  
-  .stats-bar {
-    flex-wrap: wrap;
-    gap: 10px;
-    
-    .stat-divider {
-      display: none;
-    }
+  .pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 15px;
+    border-top: 1px solid #ebeef5;
   }
   
   // 无遮罩弹框样式

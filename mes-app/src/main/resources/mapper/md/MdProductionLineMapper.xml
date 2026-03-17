@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.md.mapper.MdProductionLineMapper">
+    
+    <resultMap type="com.carels.mes.module.md.domain.MdProductionLine" id="MdProductionLineResult">
+        <id property="lineId" column="line_id"/>
+        <result property="lineCode" column="line_code"/>
+        <result property="lineName" column="line_name"/>
+        <result property="workshopId" column="workshop_id"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="lineType" column="line_type"/>
+        <result property="capacity" column="capacity"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <sql id="selectMdProductionLineVo">
+        select pl.line_id, pl.line_code, pl.line_name, pl.workshop_id, pl.workshop_name,
+               pl.line_type, pl.capacity, pl.status, pl.remark, pl.create_by, pl.create_time,
+               pl.update_by, pl.update_time
+        from md_production_line pl
+    </sql>
+    
+    <select id="selectMdProductionLineList" parameterType="com.carels.mes.module.md.domain.MdProductionLine" resultMap="MdProductionLineResult">
+        <include refid="selectMdProductionLineVo"/>
+        <where>
+            <if test="lineCode != null and lineCode != ''">
+                AND pl.line_code like concat('%', #{lineCode}, '%')
+            </if>
+            <if test="lineName != null and lineName != ''">
+                AND pl.line_name like concat('%', #{lineName}, '%')
+            </if>
+            <if test="workshopId != null">
+                AND pl.workshop_id = #{workshopId}
+            </if>
+            <if test="lineType != null and lineType != ''">
+                AND pl.line_type = #{lineType}
+            </if>
+            <if test="status != null and status != ''">
+                AND pl.status = #{status}
+            </if>
+        </where>
+        order by pl.create_time desc
+    </select>
+    
+    <select id="selectMdProductionLineById" resultMap="MdProductionLineResult">
+        <include refid="selectMdProductionLineVo"/>
+        where pl.line_id = #{lineId}
+    </select>
+    
+    <select id="selectMdProductionLineByCode" resultMap="MdProductionLineResult">
+        <include refid="selectMdProductionLineVo"/>
+        where pl.line_code = #{lineCode}
+    </select>
+    
+    <select id="selectMdProductionLineByWorkshopId" resultMap="MdProductionLineResult">
+        <include refid="selectMdProductionLineVo"/>
+        where pl.workshop_id = #{workshopId}
+        order by pl.line_name
+    </select>
+    
+    <select id="selectAllEnabledLines" resultMap="MdProductionLineResult">
+        <include refid="selectMdProductionLineVo"/>
+        where pl.status = '0'
+        order by pl.line_name
+    </select>
+    
+    <insert id="insertMdProductionLine" parameterType="com.carels.mes.module.md.domain.MdProductionLine" useGeneratedKeys="true" keyProperty="lineId">
+        insert into md_production_line (
+            line_code, line_name, workshop_id, workshop_name, line_type,
+            capacity, status, remark, create_by, create_time
+        ) values (
+            #{lineCode}, #{lineName}, #{workshopId}, #{workshopName}, #{lineType},
+            #{capacity}, #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+    
+    <update id="updateMdProductionLine" parameterType="com.carels.mes.module.md.domain.MdProductionLine">
+        update md_production_line
+        <set>
+            <if test="lineCode != null">line_code = #{lineCode},</if>
+            <if test="lineName != null">line_name = #{lineName},</if>
+            <if test="workshopId != null">workshop_id = #{workshopId},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <if test="lineType != null">line_type = #{lineType},</if>
+            <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where line_id = #{lineId}
+    </update>
+    
+    <delete id="deleteMdProductionLineById">
+        delete from md_production_line where line_id = #{lineId}
+    </delete>
+    
+    <delete id="deleteMdProductionLineByIds">
+        delete from md_production_line where line_id in
+        <foreach collection="array" item="lineId" open="(" separator="," close=")">
+            #{lineId}
+        </foreach>
+    </delete>
+    
+    <select id="countWorkstationsByLineId" resultType="int">
+        select count(*) from md_workstation where production_line_id = #{lineId}
+    </select>
+</mapper>
