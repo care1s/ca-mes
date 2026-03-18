@@ -52,13 +52,14 @@ $border-radius-xs: 6px;
 // Element UI 组件圆角覆盖
 .el-card {
   border-radius: $border-radius-md !important;
+  box-shadow: none !important;
   
   &.is-shadow {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: none !important;
   }
   
   &.is-shadow-hover:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+    box-shadow: none !important;
   }
 }
 
