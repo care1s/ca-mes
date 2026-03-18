@@ -29,42 +29,23 @@
       </el-form>
     </el-card>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总数</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
-            <i class="el-icon-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.active }}</div>
-            <div class="stat-label">启用</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-close"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.inactive }}</div>
-            <div class="stat-label">停用</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">总数</span>
+        <span class="stat-value blue">{{ stats.total }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">启用</span>
+        <span class="stat-value green">{{ stats.active }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">停用</span>
+        <span class="stat-value orange">{{ stats.inactive }}</span>
+      </div>
+    </div>
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
@@ -83,7 +64,7 @@
         highlight-current-row
         style="width: 100%"
       >
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="warehouseCode" label="仓库编码" width="150" show-overflow-tooltip />
         <el-table-column prop="warehouseName" label="仓库名称" min-width="200" show-overflow-tooltip />
         <el-table-column prop="warehouseType" label="仓库类型" width="120" align="center">
@@ -349,182 +330,6 @@ export default {
   }
 }
 </script>
-          <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              active-value="0"
-              inactive-value="1"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
-          <template slot-scope="scope">
-            <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
-
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" :append-to-body="true" :modal-append-to-body="true">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码" />
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-      </div>
-    </el-dialog>
-  </div>
-</template>
-
-<script>
-/**
- * 仓库管理 - carels
- * @author carels
- * @version V9.0
- * @date 2026-03-15
- */
-export default {
-  name: 'WmWarehouse',
-  data() {
-    return {
-      loading: false,
-      total: 50,
-      stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
-      },
-      queryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
-      },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
-      dialogVisible: false,
-      dialogTitle: '新增',
-      form: {
-        code: '',
-        name: '',
-        remark: ''
-      },
-      rules: {
-        code: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
-      }
-    }
-  },
-  mounted() {
-    this.fetchData()
-  },
-  methods: {
-    fetchData() {
-      this.loading = true
-      setTimeout(() => {
-        this.loading = false
-      }, 500)
-    },
-    handleQuery() {
-      this.queryParams.pageNum = 1
-      this.fetchData()
-    },
-    resetQuery() {
-      this.queryParams = {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
-      }
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogTitle = '新增'
-      this.form = {
-        code: '',
-        name: '',
-        remark: ''
-      }
-      this.dialogVisible = true
-    },
-    handleEdit(row) {
-      this.dialogTitle = '编辑'
-      this.form = { ...row }
-      this.dialogVisible = true
-    },
-    handleView(row) {
-      this.$alert(`编码：${row.code}<br>名称：${row.name}`, '详情', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
-      })
-    },
-    handleDelete(row) {
-      this.$confirm(`确认删除 "${row.name}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
-      })
-    },
-    handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
-      this.$message.success(`已${status}：${row.name}`)
-    },
-    handleSizeChange(val) {
-      this.queryParams.pageSize = val
-      this.fetchData()
-    },
-    handleCurrentChange(val) {
-      this.queryParams.pageNum = val
-      this.fetchData()
-    },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
-        }
-      })
-    }
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 .app-container {
@@ -578,64 +383,50 @@ export default {
   }
 }
 
-// 统计卡片
-.stat-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
+// 统计信息 - 单行展示
+.stats-bar {
   display: flex;
   align-items: center;
-  padding: 20px;
-  transition: all 0.3s;
+  justify-content: flex-start;
+  background: #fff;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+  .stat-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-right: 15px;
+    gap: 8px;
     
-    i {
-      font-size: 28px;
-      color: #fff;
+    .stat-label {
+      font-size: 13px;
+      color: #606266;
     }
     
-    &.blue {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    &.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    &.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      
+      &.blue {
+        color: #409EFF;
+      }
+      
+      &.green {
+        color: #67c23a;
+      }
+      
+      &.orange {
+        color: #e6a23c;
+      }
     }
   }
   
-  .stat-info {
-    flex: 1;
-    
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #303133;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-    
-    .stat-label {
-      font-size: 14px;
-      color: #909399;
-    }
+  .stat-divider {
+    width: 1px;
+    height: 20px;
+    background: #ebeef5;
+    margin: 0 20px;
   }
 }
 
@@ -671,12 +462,6 @@ export default {
     
     .action-section {
       margin-top: 10px;
-    }
-  }
-  
-  .stat-row {
-    .el-col {
-      margin-bottom: 15px;
     }
   }
 }

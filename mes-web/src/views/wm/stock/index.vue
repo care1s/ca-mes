@@ -29,42 +29,23 @@
       </el-form>
     </el-card>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总库存</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
-            <i class="el-icon-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.available }}</div>
-            <div class="stat-label">可用库存</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-lock"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.locked }}</div>
-            <div class="stat-label">锁定库存</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">总库存</span>
+        <span class="stat-value blue">{{ stats.total }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">可用库存</span>
+        <span class="stat-value green">{{ stats.available }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">锁定库存</span>
+        <span class="stat-value orange">{{ stats.locked }}</span>
+      </div>
+    </div>
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
@@ -83,7 +64,7 @@
         highlight-current-row
         style="width: 100%"
       >
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="warehouseName" label="仓库" width="150" show-overflow-tooltip />
         <el-table-column prop="itemCode" label="物料编码" width="150" show-overflow-tooltip />
         <el-table-column prop="itemName" label="物料名称" min-width="200" show-overflow-tooltip />
@@ -380,49 +361,43 @@ export default {
   margin-bottom: 20px;
 }
 
-.stat-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
+// 统计信息 - 单行展示
+.stats-bar {
   display: flex;
   align-items: center;
-  padding: 20px;
+  justify-content: flex-start;
+  background: #fff;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+  .stat-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    
-    i {
-      font-size: 28px;
-      color: #fff;
-    }
-    
-    &.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    &.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    &.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-  }
-  
-  .stat-info {
-    flex: 1;
-    
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #303133;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
+    gap: 8px;
     
     .stat-label {
-      font-size: 14px;
-      color: #909399;
+      font-size: 13px;
+      color: #606266;
     }
+    
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      
+      &.blue { color: #409EFF; }
+      &.green { color: #67c23a; }
+      &.orange { color: #e6a23c; }
+      &.red { color: #f56c6c; }
+    }
+  }
+  
+  .stat-divider {
+    width: 1px;
+    height: 20px;
+    background: #ebeef5;
+    margin: 0 20px;
   }
 }
 
