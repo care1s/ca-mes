@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmWarehouseMapper">
+    <resultMap type="com.carels.mes.module.wm.domain.WmWarehouse" id="WmWarehouseResult">
+        <id property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="warehouseType" column="warehouse_type"/>
+        <result property="managerId" column="manager_id"/>
+        <result property="managerName" column="manager_name"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmWarehouseVo">
+        select warehouse_id, warehouse_code, warehouse_name, warehouse_type, manager_id, manager_name,
+               phone, address, status, remark, create_by, create_time, update_by, update_time
+        from wm_warehouse
+    </sql>
+
+    <select id="selectWmWarehouseList" resultMap="WmWarehouseResult">
+        <include refid="selectWmWarehouseVo"/>
+        <where>
+            <if test="warehouseCode != null and warehouseCode != ''">
+                AND warehouse_code like concat('%', #{warehouseCode}, '%')
+            </if>
+            <if test="warehouseName != null and warehouseName != ''">
+                AND warehouse_name like concat('%', #{warehouseName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWmWarehouseById" resultMap="WmWarehouseResult">
+        <include refid="selectWmWarehouseVo"/>
+        where warehouse_id = #{warehouseId}
+    </select>
+
+    <insert id="insertWmWarehouse" useGeneratedKeys="true" keyProperty="warehouseId">
+        insert into wm_warehouse (warehouse_code, warehouse_name, warehouse_type, manager_id, manager_name,
+            phone, address, status, remark, create_by, create_time)
+        values (#{warehouseCode}, #{warehouseName}, #{warehouseType}, #{managerId}, #{managerName},
+            #{phone}, #{address}, #{status}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateWmWarehouse">
+        update wm_warehouse
+        <set>
+            <if test="warehouseCode != null">warehouse_code = #{warehouseCode},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="warehouseType != null">warehouse_type = #{warehouseType},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+            <if test="managerName != null">manager_name = #{managerName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where warehouse_id = #{warehouseId}
+    </update>
+
+    <delete id="deleteWmWarehouseById">
+        delete from wm_warehouse where warehouse_id = #{warehouseId}
+    </delete>
+
+    <update id="updateStatus">
+        update wm_warehouse set status = #{status}, update_time = sysdate() where warehouse_id = #{warehouseId}
+    </update>
+</mapper>

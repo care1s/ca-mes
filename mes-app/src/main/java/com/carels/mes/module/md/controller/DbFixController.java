@@ -1002,7 +1002,7 @@ public class DbFixController {
     }
     
     /**
-     * 创建入库记录表
+     * 创建入库记录表及明细表
      */
     @PostConstruct
     public void autoFixWmRecptTable() {
@@ -1013,13 +1013,21 @@ public class DbFixController {
                 jdbcTemplate.execute("CREATE TABLE wm_recpt (id BIGINT AUTO_INCREMENT PRIMARY KEY, recpt_no VARCHAR(50) NOT NULL, recpt_type VARCHAR(20), source_type VARCHAR(20), source_id BIGINT, source_no VARCHAR(50), warehouse_id BIGINT, warehouse_name VARCHAR(100), status VARCHAR(20) DEFAULT 'PENDING', recpt_date DATETIME, remark VARCHAR(500), create_by VARCHAR(64), create_time DATETIME DEFAULT CURRENT_TIMESTAMP, update_by VARCHAR(64), update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_recpt_no (recpt_no)) COMMENT '入库记录表'");
                 log.info("入库记录表创建成功！");
             }
+            
+            // 创建入库明细表
+            String checkItemTable = "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wm_recpt_item'";
+            Integer itemTableCount = jdbcTemplate.queryForObject(checkItemTable, Integer.class);
+            if (itemTableCount == null || itemTableCount == 0) {
+                jdbcTemplate.execute("CREATE TABLE wm_recpt_item (item_id BIGINT AUTO_INCREMENT PRIMARY KEY, recpt_id BIGINT NOT NULL, item_id2 BIGINT, item_code VARCHAR(50), item_name VARCHAR(100), batch_code VARCHAR(50), quantity DECIMAL(18,2) DEFAULT 0, unit VARCHAR(20), remark VARCHAR(500), INDEX idx_recpt_id (recpt_id)) COMMENT '入库明细表'");
+                log.info("入库明细表创建成功！");
+            }
         } catch (Exception e) {
-            log.debug("入库记录表已存在或创建失败: {}", e.getMessage());
+            log.debug("入库记录表/明细表已存在或创建失败: {}", e.getMessage());
         }
     }
     
     /**
-     * 创建出库记录表
+     * 创建出库记录表及明细表
      */
     @PostConstruct
     public void autoFixWmIssueTable() {
@@ -1030,8 +1038,16 @@ public class DbFixController {
                 jdbcTemplate.execute("CREATE TABLE wm_issue (id BIGINT AUTO_INCREMENT PRIMARY KEY, issue_no VARCHAR(50) NOT NULL, issue_type VARCHAR(20), target_type VARCHAR(20), target_id BIGINT, target_no VARCHAR(50), warehouse_id BIGINT, warehouse_name VARCHAR(100), status VARCHAR(20) DEFAULT 'PENDING', issue_date DATETIME, remark VARCHAR(500), create_by VARCHAR(64), create_time DATETIME DEFAULT CURRENT_TIMESTAMP, update_by VARCHAR(64), update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_issue_no (issue_no)) COMMENT '出库记录表'");
                 log.info("出库记录表创建成功！");
             }
+            
+            // 创建出库明细表
+            String checkItemTable = "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wm_issue_item'";
+            Integer itemTableCount = jdbcTemplate.queryForObject(checkItemTable, Integer.class);
+            if (itemTableCount == null || itemTableCount == 0) {
+                jdbcTemplate.execute("CREATE TABLE wm_issue_item (item_id BIGINT AUTO_INCREMENT PRIMARY KEY, issue_id BIGINT NOT NULL, item_id2 BIGINT, item_code VARCHAR(50), item_name VARCHAR(100), batch_code VARCHAR(50), quantity DECIMAL(18,2) DEFAULT 0, unit VARCHAR(20), remark VARCHAR(500), INDEX idx_issue_id (issue_id)) COMMENT '出库明细表'");
+                log.info("出库明细表创建成功！");
+            }
         } catch (Exception e) {
-            log.debug("出库记录表已存在或创建失败: {}", e.getMessage());
+            log.debug("出库记录表/明细表已存在或创建失败: {}", e.getMessage());
         }
     }
     

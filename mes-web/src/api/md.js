@@ -1179,3 +1179,234 @@ export function changeMenuStatus(menuId, status) {
   })
 }
 
+/**
+ * ==================== 仓库管理 API ====================
+ */
+
+// 仓库列表
+export function listWmWarehouse(params) {
+  return request({
+    url: '/mes/wm/warehouse/list',
+    method: 'get',
+    params
+  })
+}
+
+// 仓库详情
+export function getWmWarehouse(warehouseId) {
+  return request({
+    url: '/mes/wm/warehouse/' + warehouseId,
+    method: 'get'
+  })
+}
+
+// 新增仓库
+export function addWmWarehouse(data) {
+  return request({
+    url: '/mes/wm/warehouse',
+    method: 'post',
+    data
+  })
+}
+
+// 修改仓库
+export function updateWmWarehouse(data) {
+  return request({
+    url: '/mes/wm/warehouse',
+    method: 'put',
+    data
+  })
+}
+
+// 删除仓库
+export function delWmWarehouse(warehouseId) {
+  return request({
+    url: '/mes/wm/warehouse/' + warehouseId,
+    method: 'delete'
+  })
+}
+
+// 更新仓库状态
+export function updateWmWarehouseStatus(warehouseId, status) {
+  return request({
+    url: '/mes/wm/warehouse/' + warehouseId + '/status',
+    method: 'put',
+    params: { status }
+  })
+}
+
+/**
+ * ==================== 库存管理 API ====================
+ */
+
+// 库存列表
+export function listWmStock(params) {
+  return request({
+    url: '/mes/wm/stock/list',
+    method: 'get',
+    params
+  })
+}
+
+// 库存详情
+export function getWmStock(id) {
+  return request({
+    url: '/mes/wm/stock/' + id,
+    method: 'get'
+  })
+}
+
+// 新增库存
+export function addWmStock(data) {
+  return request({
+    url: '/mes/wm/stock',
+    method: 'post',
+    data
+  })
+}
+
+// 修改库存
+export function updateWmStock(data) {
+  return request({
+    url: '/mes/wm/stock',
+    method: 'put',
+    data
+  })
+}
+
+// 删除库存
+export function delWmStock(id) {
+  return request({
+    url: '/mes/wm/stock/' + id,
+    method: 'delete'
+  })
+}
+
+/**
+ * ==================== 入库管理 API ====================
+ */
+
+// 入库单列表
+export function listWmRecpt(params) {
+  return request({
+    url: '/mes/wm/recpt/list',
+    method: 'get',
+    params
+  })
+}
+
+// 入库单详情
+export function getWmRecpt(recptId) {
+  return request({
+    url: '/mes/wm/recpt/' + recptId,
+    method: 'get'
+  })
+}
+
+// 新增入库单
+export function addWmRecpt(data) {
+  return request({
+    url: '/mes/wm/recpt',
+    method: 'post',
+    data
+  })
+}
+
+// 修改入库单
+export function updateWmRecpt(data) {
+  return request({
+    url: '/mes/wm/recpt',
+    method: 'put',
+    data
+  })
+}
+
+// 删除入库单
+export function delWmRecpt(recptId) {
+  return request({
+    url: '/mes/wm/recpt/' + recptId,
+    method: 'delete'
+  })
+}
+
+// 更新入库单状态
+export function updateWmRecptStatus(recptId, status) {
+  return request({
+    url: '/mes/wm/recpt/' + recptId + '/status',
+    method: 'put',
+    params: { status }
+  })
+}
+
+// 确认入库
+export function confirmWmRecpt(recptId) {
+  return request({
+    url: '/mes/wm/recpt/' + recptId + '/confirm',
+    method: 'post'
+  })
+}
+
+/**
+ * ==================== 出库管理 API ====================
+ */
+
+// 出库单列表
+export function listWmIssue(params) {
+  return request({
+    url: '/mes/wm/issue/list',
+    method: 'get',
+    params
+  })
+}
+
+// 出库单详情
+export function getWmIssue(issueId) {
+  return request({
+    url: '/mes/wm/issue/' + issueId,
+    method: 'get'
+  })
+}
+
+// 新增出库单
+export function addWmIssue(data) {
+  return request({
+    url: '/mes/wm/issue',
+    method: 'post',
+    data
+  })
+}
+
+// 修改出库单
+export function updateWmIssue(data) {
+  return request({
+    url: '/mes/wm/issue',
+    method: 'put',
+    data
+  })
+}
+
+// 删除出库单
+export function delWmIssue(issueId) {
+  return request({
+    url: '/mes/wm/issue/' + issueId,
+    method: 'delete'
+  })
+}
+
+// 更新出库单状态
+export function updateWmIssueStatus(issueId, status) {
+  return request({
+    url: '/mes/wm/issue/' + issueId + '/status',
+    method: 'put',
+    params: { status }
+  })
+}
+
+// 确认出库
+export function confirmWmIssue(issueId) {
+  return request({
+    url: '/mes/wm/issue/' + issueId + '/confirm',
+    method: 'post'
+  })
+}
+

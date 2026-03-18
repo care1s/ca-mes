@@ -1,6 +1,7 @@
 package com.carels.mes.common.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.Date;
  * @date 2026-03-15
  */
 @Data
+@JsonIgnoreProperties(value = {"handler", "hibernateLazyInitializer"}, ignoreUnknown = true)
 public class BaseEntity implements Serializable {
     
     private static final long serialVersionUID = 1L;

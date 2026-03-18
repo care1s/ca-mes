@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmRecptMapper">
+    <resultMap type="com.carels.mes.module.wm.domain.WmRecpt" id="WmRecptResult">
+        <id property="id" column="id"/>
+        <result property="recptNo" column="recpt_no"/>
+        <result property="recptType" column="recpt_type"/>
+        <result property="sourceType" column="source_type"/>
+        <result property="sourceId" column="source_id"/>
+        <result property="sourceNo" column="source_no"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="status" column="status"/>
+        <result property="recptDate" column="recpt_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="items" column="id" ofType="com.carels.mes.module.wm.domain.WmRecptItem"
+                    select="selectWmRecptItemsByRecptId"/>
+    </resultMap>
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmRecptItem" id="WmRecptItemResult">
+        <id property="itemId" column="item_id"/>
+        <result property="recptId" column="recpt_id"/>
+        <result property="itemId2" column="item_id2"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="batchCode" column="batch_code"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unit" column="unit"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectWmRecptVo">
+        select id, recpt_no, recpt_type, source_type, source_id, source_no, warehouse_id, warehouse_name,
+               status, recpt_date, remark, create_by, create_time, update_by, update_time
+        from wm_recpt
+    </sql>
+
+    <select id="selectWmRecptList" resultMap="WmRecptResult">
+        <include refid="selectWmRecptVo"/>
+        <where>
+            <if test="recptNo != null and recptNo != ''">
+                AND recpt_no like concat('%', #{recptNo}, '%')
+            </if>
+            <if test="recptType != null and recptType != ''">
+                AND recpt_type = #{recptType}
+            </if>
+            <if test="sourceType != null and sourceType != ''">
+                AND source_type = #{sourceType}
+            </if>
+            <if test="sourceNo != null and sourceNo != ''">
+                AND source_no like concat('%', #{sourceNo}, '%')
+            </if>
+            <if test="warehouseId != null">
+                AND warehouse_id = #{warehouseId}
+            </if>
+            <if test="warehouseName != null and warehouseName != ''">
+                AND warehouse_name like concat('%', #{warehouseName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="recptDate != null">
+                AND recpt_date = #{recptDate}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWmRecptById" resultMap="WmRecptResult">
+        <include refid="selectWmRecptVo"/>
+        where id = #{recptId}
+    </select>
+
+    <insert id="insertWmRecpt" useGeneratedKeys="true" keyProperty="id">
+        insert into wm_recpt (recpt_no, recpt_type, source_type, source_id, source_no, warehouse_id, warehouse_name,
+                              status, recpt_date, remark, create_by, create_time)
+        values (#{recptNo}, #{recptType}, #{sourceType}, #{sourceId}, #{sourceNo}, #{warehouseId}, #{warehouseName},
+                #{status}, #{recptDate}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateWmRecpt">
+        update wm_recpt
+        <set>
+            <if test="recptNo != null">recpt_no = #{recptNo},</if>
+            <if test="recptType != null">recpt_type = #{recptType},</if>
+            <if test="sourceType != null">source_type = #{sourceType},</if>
+            <if test="sourceId != null">source_id = #{sourceId},</if>
+            <if test="sourceNo != null">source_no = #{sourceNo},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="recptDate != null">recpt_date = #{recptDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWmRecptById">
+        delete from wm_recpt where id = #{recptId}
+    </delete>
+
+    <update id="updateStatus">
+        update wm_recpt set status = #{status}, update_time = sysdate() where id = #{recptId}
+    </update>
+
+    <!-- 明细操作 -->
+    <select id="selectWmRecptItemsByRecptId" resultMap="WmRecptItemResult">
+        select item_id, recpt_id, item_id2, item_code, item_name, batch_code, quantity, unit, remark
+        from wm_recpt_item
+        where recpt_id = #{recptId}
+    </select>
+
+    <insert id="insertWmRecptItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into wm_recpt_item (recpt_id, item_id2, item_code, item_name, batch_code, quantity, unit, remark)
+        values (#{recptId}, #{itemId2}, #{itemCode}, #{itemName}, #{batchCode}, #{quantity}, #{unit}, #{remark})
+    </insert>
+
+    <update id="updateWmRecptItem">
+        update wm_recpt_item
+        <set>
+            <if test="itemId2 != null">item_id2 = #{itemId2},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="batchCode != null">batch_code = #{batchCode},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="remark != null">remark = #{remark}</if>
+        </set>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deleteWmRecptItemsByRecptId">
+        delete from wm_recpt_item where recpt_id = #{recptId}
+    </delete>
+
+    <delete id="deleteWmRecptItemById">
+        delete from wm_recpt_item where item_id = #{itemId}
+    </delete>
+</mapper>

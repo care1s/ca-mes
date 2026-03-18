@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmIssueMapper">
+    <resultMap type="com.carels.mes.module.wm.domain.WmIssue" id="WmIssueResult">
+        <id property="id" column="id"/>
+        <result property="issueNo" column="issue_no"/>
+        <result property="issueType" column="issue_type"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetNo" column="target_no"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="status" column="status"/>
+        <result property="issueDate" column="issue_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="items" column="id" ofType="com.carels.mes.module.wm.domain.WmIssueItem"
+                    select="selectWmIssueItemsByIssueId"/>
+    </resultMap>
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmIssueItem" id="WmIssueItemResult">
+        <id property="itemId" column="item_id"/>
+        <result property="issueId" column="issue_id"/>
+        <result property="itemId2" column="item_id2"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="batchCode" column="batch_code"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unit" column="unit"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectWmIssueVo">
+        select id, issue_no, issue_type, target_type, target_id, target_no, warehouse_id, warehouse_name,
+               status, issue_date, remark, create_by, create_time, update_by, update_time
+        from wm_issue
+    </sql>
+
+    <select id="selectWmIssueList" resultMap="WmIssueResult">
+        <include refid="selectWmIssueVo"/>
+        <where>
+            <if test="issueNo != null and issueNo != ''">
+                AND issue_no like concat('%', #{issueNo}, '%')
+            </if>
+            <if test="issueType != null and issueType != ''">
+                AND issue_type = #{issueType}
+            </if>
+            <if test="targetType != null and targetType != ''">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetNo != null and targetNo != ''">
+                AND target_no like concat('%', #{targetNo}, '%')
+            </if>
+            <if test="warehouseId != null">
+                AND warehouse_id = #{warehouseId}
+            </if>
+            <if test="warehouseName != null and warehouseName != ''">
+                AND warehouse_name like concat('%', #{warehouseName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="issueDate != null">
+                AND issue_date = #{issueDate}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWmIssueById" resultMap="WmIssueResult">
+        <include refid="selectWmIssueVo"/>
+        where id = #{issueId}
+    </select>
+
+    <insert id="insertWmIssue" useGeneratedKeys="true" keyProperty="id">
+        insert into wm_issue (issue_no, issue_type, target_type, target_id, target_no, warehouse_id, warehouse_name,
+                              status, issue_date, remark, create_by, create_time)
+        values (#{issueNo}, #{issueType}, #{targetType}, #{targetId}, #{targetNo}, #{warehouseId}, #{warehouseName},
+                #{status}, #{issueDate}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateWmIssue">
+        update wm_issue
+        <set>
+            <if test="issueNo != null">issue_no = #{issueNo},</if>
+            <if test="issueType != null">issue_type = #{issueType},</if>
+            <if test="targetType != null">target_type = #{targetType},</if>
+            <if test="targetId != null">target_id = #{targetId},</if>
+            <if test="targetNo != null">target_no = #{targetNo},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="issueDate != null">issue_date = #{issueDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWmIssueById">
+        delete from wm_issue where id = #{issueId}
+    </delete>
+
+    <update id="updateStatus">
+        update wm_issue set status = #{status}, update_time = sysdate() where id = #{issueId}
+    </update>
+
+    <!-- 明细操作 -->
+    <select id="selectWmIssueItemsByIssueId" resultMap="WmIssueItemResult">
+        select item_id, issue_id, item_id2, item_code, item_name, batch_code, quantity, unit, remark
+        from wm_issue_item
+        where issue_id = #{issueId}
+    </select>
+
+    <insert id="insertWmIssueItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into wm_issue_item (issue_id, item_id2, item_code, item_name, batch_code, quantity, unit, remark)
+        values (#{issueId}, #{itemId2}, #{itemCode}, #{itemName}, #{batchCode}, #{quantity}, #{unit}, #{remark})
+    </insert>
+
+    <update id="updateWmIssueItem">
+        update wm_issue_item
+        <set>
+            <if test="itemId2 != null">item_id2 = #{itemId2},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="batchCode != null">batch_code = #{batchCode},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="remark != null">remark = #{remark}</if>
+        </set>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deleteWmIssueItemsByIssueId">
+        delete from wm_issue_item where issue_id = #{issueId}
+    </delete>
+
+    <delete id="deleteWmIssueItemById">
+        delete from wm_issue_item where item_id = #{itemId}
+    </delete>
+</mapper>

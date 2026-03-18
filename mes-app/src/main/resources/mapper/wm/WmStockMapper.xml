@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmStockMapper">
+    <resultMap type="com.carels.mes.module.wm.domain.WmStock" id="WmStockResult">
+        <id property="id" column="id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="batchCode" column="batch_code"/>
+        <result property="quantity" column="quantity"/>
+        <result property="availableQty" column="available_qty"/>
+        <result property="lockedQty" column="locked_qty"/>
+        <result property="unit" column="unit"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmStockVo">
+        select id, warehouse_id, warehouse_name, item_id, item_code, item_name, batch_code,
+               quantity, available_qty, locked_qty, unit, create_by, create_time, update_by, update_time
+        from wm_stock
+    </sql>
+
+    <select id="selectWmStockList" resultMap="WmStockResult">
+        <include refid="selectWmStockVo"/>
+        <where>
+            <if test="warehouseId != null">
+                AND warehouse_id = #{warehouseId}
+            </if>
+            <if test="itemCode != null and itemCode != ''">
+                AND item_code like concat('%', #{itemCode}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name like concat('%', #{itemName}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWmStockById" resultMap="WmStockResult">
+        <include refid="selectWmStockVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertWmStock" useGeneratedKeys="true" keyProperty="id">
+        insert into wm_stock (warehouse_id, warehouse_name, item_id, item_code, item_name, batch_code,
+            quantity, available_qty, locked_qty, unit, create_by, create_time)
+        values (#{warehouseId}, #{warehouseName}, #{itemId}, #{itemCode}, #{itemName}, #{batchCode},
+            #{quantity}, #{availableQty}, #{lockedQty}, #{unit}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateWmStock">
+        update wm_stock
+        <set>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="batchCode != null">batch_code = #{batchCode},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="availableQty != null">available_qty = #{availableQty},</if>
+            <if test="lockedQty != null">locked_qty = #{lockedQty},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWmStockById">
+        delete from wm_stock where id = #{id}
+    </delete>
+</mapper>

@@ -131,7 +131,7 @@
     </el-card>
 
     <!-- 处理对话框 -->
-    <el-dialog title="处理预警" :visible.sync="dialogVisible" width="500px" :close-on-click-modal="false">
+    <el-dialog title="处理预警" :visible.sync="dialogVisible" width="500px" :close-on-click-modal="false" :append-to-body="true" :modal-append-to-body="true">
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="物料信息">
           <div>{{ form.itemCode }} - {{ form.itemName }}</div>
