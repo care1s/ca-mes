@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.dv.mapper.DvMachineryMapper">
+    <resultMap type="com.carels.mes.module.dv.domain.DvMachinery" id="DvMachineryResult">
+        <id property="id" column="id"/>
+        <result property="machineryCode" column="machinery_code"/>
+        <result property="machineryName" column="machinery_name"/>
+        <result property="machineryType" column="machinery_type"/>
+        <result property="brand" column="brand"/>
+        <result property="model" column="model"/>
+        <result property="serialNumber" column="serial_number"/>
+        <result property="workshopId" column="workshop_id"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="productionLineId" column="production_line_id"/>
+        <result property="productionLineName" column="production_line_name"/>
+        <result property="purchaseDate" column="purchase_date"/>
+        <result property="purchasePrice" column="purchase_price"/>
+        <result property="supplier" column="supplier"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectDvMachineryVo">
+        select id, machinery_code, machinery_name, machinery_type, brand, model, serial_number,
+               workshop_id, workshop_name, production_line_id, production_line_name, purchase_date,
+               purchase_price, supplier, status, remark, create_by, create_time, update_by, update_time
+        from dv_machinery
+    </sql>
+
+    <select id="selectDvMachineryList" resultMap="DvMachineryResult">
+        <include refid="selectDvMachineryVo"/>
+        <where>
+            <if test="machineryCode != null and machineryCode != ''">
+                AND machinery_code like concat('%', #{machineryCode}, '%')
+            </if>
+            <if test="machineryName != null and machineryName != ''">
+                AND machinery_name like concat('%', #{machineryName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectDvMachineryById" resultMap="DvMachineryResult">
+        <include refid="selectDvMachineryVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDvMachinery" useGeneratedKeys="true" keyProperty="id">
+        insert into dv_machinery (machinery_code, machinery_name, machinery_type, brand, model, serial_number,
+            workshop_id, workshop_name, production_line_id, production_line_name, purchase_date,
+            purchase_price, supplier, status, remark, create_by, create_time)
+        values (#{machineryCode}, #{machineryName}, #{machineryType}, #{brand}, #{model}, #{serialNumber},
+            #{workshopId}, #{workshopName}, #{productionLineId}, #{productionLineName}, #{purchaseDate},
+            #{purchasePrice}, #{supplier}, #{status}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateDvMachinery">
+        update dv_machinery
+        <set>
+            <if test="machineryCode != null">machinery_code = #{machineryCode},</if>
+            <if test="machineryName != null">machinery_name = #{machineryName},</if>
+            <if test="machineryType != null">machinery_type = #{machineryType},</if>
+            <if test="brand != null">brand = #{brand},</if>
+            <if test="model != null">model = #{model},</if>
+            <if test="serialNumber != null">serial_number = #{serialNumber},</if>
+            <if test="workshopId != null">workshop_id = #{workshopId},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <if test="productionLineId != null">production_line_id = #{productionLineId},</if>
+            <if test="productionLineName != null">production_line_name = #{productionLineName},</if>
+            <if test="purchaseDate != null">purchase_date = #{purchaseDate},</if>
+            <if test="purchasePrice != null">purchase_price = #{purchasePrice},</if>
+            <if test="supplier != null">supplier = #{supplier},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDvMachineryById">
+        delete from dv_machinery where id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        update dv_machinery set status = #{status}, update_time = sysdate() where id = #{id}
+    </update>
+</mapper>

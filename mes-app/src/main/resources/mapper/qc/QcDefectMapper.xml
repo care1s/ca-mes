@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.qc.mapper.QcDefectMapper">
+    <resultMap type="com.carels.mes.module.qc.domain.QcDefect" id="QcDefectResult">
+        <id property="defectId" column="defect_id"/>
+        <result property="defectCode" column="defect_code"/>
+        <result property="defectName" column="defect_name"/>
+        <result property="defectType" column="defect_type"/>
+        <result property="defectLevel" column="defect_level"/>
+        <result property="processName" column="process_name"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectQcDefectVo">
+        select defect_id, defect_code, defect_name, defect_type, defect_level, process_name,
+               status, remark, create_by, create_time, update_by, update_time
+        from qc_defect
+    </sql>
+
+    <select id="selectQcDefectList" resultMap="QcDefectResult">
+        <include refid="selectQcDefectVo"/>
+        <where>
+            <if test="defectCode != null and defectCode != ''">
+                AND defect_code like concat('%', #{defectCode}, '%')
+            </if>
+            <if test="defectName != null and defectName != ''">
+                AND defect_name like concat('%', #{defectName}, '%')
+            </if>
+            <if test="defectType != null and defectType != ''">
+                AND defect_type = #{defectType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectQcDefectById" resultMap="QcDefectResult">
+        <include refid="selectQcDefectVo"/>
+        where defect_id = #{defectId}
+    </select>
+
+    <insert id="insertQcDefect" useGeneratedKeys="true" keyProperty="defectId">
+        insert into qc_defect (defect_code, defect_name, defect_type, defect_level, process_name,
+            status, remark, create_by, create_time)
+        values (#{defectCode}, #{defectName}, #{defectType}, #{defectLevel}, #{processName},
+            #{status}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateQcDefect">
+        update qc_defect
+        <set>
+            <if test="defectCode != null">defect_code = #{defectCode},</if>
+            <if test="defectName != null">defect_name = #{defectName},</if>
+            <if test="defectType != null">defect_type = #{defectType},</if>
+            <if test="defectLevel != null">defect_level = #{defectLevel},</if>
+            <if test="processName != null">process_name = #{processName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where defect_id = #{defectId}
+    </update>
+
+    <delete id="deleteQcDefectById">
+        delete from qc_defect where defect_id = #{defectId}
+    </delete>
+
+    <update id="updateStatus">
+        update qc_defect set status = #{status}, update_time = sysdate() where defect_id = #{defectId}
+    </update>
+</mapper>

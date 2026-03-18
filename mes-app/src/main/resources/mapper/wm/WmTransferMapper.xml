@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmTransferMapper">
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmTransfer" id="WmTransferResult">
+        <id property="transferId" column="transfer_id"/>
+        <result property="transferNo" column="transfer_no"/>
+        <result property="fromWarehouseId" column="from_warehouse_id"/>
+        <result property="fromWarehouseName" column="from_warehouse_name"/>
+        <result property="toWarehouseId" column="to_warehouse_id"/>
+        <result property="toWarehouseName" column="to_warehouse_name"/>
+        <result property="transferDate" column="transfer_date"/>
+        <result property="status" column="status"/>
+        <result property="transferType" column="transfer_type"/>
+        <result property="totalQty" column="total_qty"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="applicantId" column="applicant_id"/>
+        <result property="applicantName" column="applicant_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmTransferVo">
+        select transfer_id, transfer_no, from_warehouse_id, from_warehouse_name, to_warehouse_id,
+               to_warehouse_name, transfer_date, status, transfer_type, total_qty, total_count,
+               applicant_id, applicant_name, remark, create_by, create_time, update_by, update_time
+        from wm_transfer
+    </sql>
+
+    <select id="selectWmTransferList" parameterType="com.carels.mes.module.wm.domain.WmTransfer" resultMap="WmTransferResult">
+        <include refid="selectWmTransferVo"/>
+        <where>
+            <if test="transferNo != null and transferNo != ''">
+                AND transfer_no like concat('%', #{transferNo}, '%')
+            </if>
+            <if test="fromWarehouseName != null and fromWarehouseName != ''">
+                AND from_warehouse_name like concat('%', #{fromWarehouseName}, '%')
+            </if>
+            <if test="toWarehouseName != null and toWarehouseName != ''">
+                AND to_warehouse_name like concat('%', #{toWarehouseName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="transferType != null">
+                AND transfer_type = #{transferType}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWmTransferById" resultMap="WmTransferResult">
+        <include refid="selectWmTransferVo"/>
+        where transfer_id = #{transferId}
+    </select>
+
+    <select id="selectWmTransferByNo" resultMap="WmTransferResult">
+        <include refid="selectWmTransferVo"/>
+        where transfer_no = #{transferNo}
+    </select>
+
+    <insert id="insertWmTransfer" parameterType="com.carels.mes.module.wm.domain.WmTransfer" useGeneratedKeys="true" keyProperty="transferId">
+        insert into wm_transfer (
+            transfer_no, from_warehouse_id, from_warehouse_name, to_warehouse_id, to_warehouse_name,
+            transfer_date, status, transfer_type, total_qty, total_count, applicant_id, applicant_name,
+            remark, create_by, create_time
+        ) values (
+            #{transferNo}, #{fromWarehouseId}, #{fromWarehouseName}, #{toWarehouseId}, #{toWarehouseName},
+            #{transferDate}, #{status}, #{transferType}, #{totalQty}, #{totalCount}, #{applicantId}, #{applicantName},
+            #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateWmTransfer" parameterType="com.carels.mes.module.wm.domain.WmTransfer">
+        update wm_transfer
+        <set>
+            <if test="transferNo != null">transfer_no = #{transferNo},</if>
+            <if test="fromWarehouseId != null">from_warehouse_id = #{fromWarehouseId},</if>
+            <if test="fromWarehouseName != null">from_warehouse_name = #{fromWarehouseName},</if>
+            <if test="toWarehouseId != null">to_warehouse_id = #{toWarehouseId},</if>
+            <if test="toWarehouseName != null">to_warehouse_name = #{toWarehouseName},</if>
+            <if test="transferDate != null">transfer_date = #{transferDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="transferType != null">transfer_type = #{transferType},</if>
+            <if test="totalQty != null">total_qty = #{totalQty},</if>
+            <if test="totalCount != null">total_count = #{totalCount},</if>
+            <if test="applicantId != null">applicant_id = #{applicantId},</if>
+            <if test="applicantName != null">applicant_name = #{applicantName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where transfer_id = #{transferId}
+    </update>
+
+    <delete id="deleteWmTransferById">
+        delete from wm_transfer where transfer_id = #{transferId}
+    </delete>
+
+    <delete id="deleteWmTransferByIds">
+        delete from wm_transfer where transfer_id in
+        <foreach collection="array" item="transferId" open="(" separator="," close=")">
+            #{transferId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update wm_transfer
+        set status = #{status}, update_time = sysdate()
+        where transfer_id = #{transferId}
+    </update>
+
+</mapper>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pur.mapper.PurReceiptMapper">
+
+    <resultMap type="com.carels.mes.module.pur.domain.PurReceipt" id="PurReceiptResult">
+        <id property="id" column="id"/>
+        <result property="receiptNo" column="receipt_no"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="vendorId" column="vendor_id"/>
+        <result property="vendorCode" column="vendor_code"/>
+        <result property="vendorName" column="vendor_name"/>
+        <result property="receiptDate" column="receipt_date"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="qualifiedQty" column="qualified_qty"/>
+        <result property="unqualifiedQty" column="unqualified_qty"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="status" column="status"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="stockInStatus" column="stock_in_status"/>
+        <result property="inspectorId" column="inspector_id"/>
+        <result property="inspectorName" column="inspector_name"/>
+        <result property="inspectionDate" column="inspection_date"/>
+        <result property="inspectionRemark" column="inspection_remark"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectPurReceiptVo">
+        select id, receipt_no, order_id, order_no, vendor_id, vendor_code, vendor_name,
+               receipt_date, total_amount, total_quantity, qualified_qty, unqualified_qty,
+               warehouse_id, warehouse_name, status, audit_status, stock_in_status,
+               inspector_id, inspector_name, inspection_date, inspection_remark, remark,
+               create_by, create_time, update_by, update_time
+        from pur_receipt
+    </sql>
+
+    <select id="selectPurReceiptList" parameterType="com.carels.mes.module.pur.domain.PurReceipt" resultMap="PurReceiptResult">
+        <include refid="selectPurReceiptVo"/>
+        <where>
+            <if test="receiptNo != null and receiptNo != ''">
+                AND receipt_no like concat('%', #{receiptNo}, '%')
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no like concat('%', #{orderNo}, '%')
+            </if>
+            <if test="vendorName != null and vendorName != ''">
+                AND vendor_name like concat('%', #{vendorName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="auditStatus != null">
+                AND audit_status = #{auditStatus}
+            </if>
+            <if test="stockInStatus != null">
+                AND stock_in_status = #{stockInStatus}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPurReceiptById" resultMap="PurReceiptResult">
+        <include refid="selectPurReceiptVo"/>
+        where id = #{receiptId}
+    </select>
+
+    <select id="selectPurReceiptByCode" resultMap="PurReceiptResult">
+        <include refid="selectPurReceiptVo"/>
+        where receipt_no = #{receiptCode}
+    </select>
+
+    <select id="selectReceiptsByOrder" resultMap="PurReceiptResult">
+        <include refid="selectPurReceiptVo"/>
+        where order_id = #{orderId}
+        order by receipt_date desc
+    </select>
+
+    <insert id="insertPurReceipt" parameterType="com.carels.mes.module.pur.domain.PurReceipt" useGeneratedKeys="true" keyProperty="id">
+        insert into pur_receipt (
+            receipt_no, order_id, order_no, vendor_id, vendor_code, vendor_name,
+            receipt_date, total_amount, total_quantity, qualified_qty, unqualified_qty,
+            warehouse_id, warehouse_name, status, audit_status, stock_in_status,
+            inspector_id, inspector_name, inspection_date, inspection_remark, remark, create_by, create_time
+        ) values (
+            #{receiptNo}, #{orderId}, #{orderNo}, #{vendorId}, #{vendorCode}, #{vendorName},
+            #{receiptDate}, #{totalAmount}, #{totalQuantity}, #{qualifiedQty}, #{unqualifiedQty},
+            #{warehouseId}, #{warehouseName}, #{status}, #{auditStatus}, #{stockInStatus},
+            #{inspectorId}, #{inspectorName}, #{inspectionDate}, #{inspectionRemark}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updatePurReceipt" parameterType="com.carels.mes.module.pur.domain.PurReceipt">
+        update pur_receipt
+        <set>
+            <if test="receiptNo != null">receipt_no = #{receiptNo},</if>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="vendorCode != null">vendor_code = #{vendorCode},</if>
+            <if test="vendorName != null">vendor_name = #{vendorName},</if>
+            <if test="receiptDate != null">receipt_date = #{receiptDate},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+            <if test="qualifiedQty != null">qualified_qty = #{qualifiedQty},</if>
+            <if test="unqualifiedQty != null">unqualified_qty = #{unqualifiedQty},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="stockInStatus != null">stock_in_status = #{stockInStatus},</if>
+            <if test="inspectorId != null">inspector_id = #{inspectorId},</if>
+            <if test="inspectorName != null">inspector_name = #{inspectorName},</if>
+            <if test="inspectionDate != null">inspection_date = #{inspectionDate},</if>
+            <if test="inspectionRemark != null">inspection_remark = #{inspectionRemark},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deletePurReceiptById">
+        delete from pur_receipt where id = #{receiptId}
+    </delete>
+
+    <delete id="deletePurReceiptByIds">
+        delete from pur_receipt where id in
+        <foreach collection="array" item="receiptId" open="(" separator="," close=")">
+            #{receiptId}
+        </foreach>
+    </delete>
+
+    <update id="updateReceiptStatus">
+        update pur_receipt
+        set status = #{status}, update_time = sysdate()
+        where id = #{receiptId}
+    </update>
+
+    <update id="passInspection">
+        update pur_receipt
+        set inspector_id = #{inspectorId},
+            inspector_name = #{inspectorName},
+            inspection_date = sysdate(),
+            inspection_remark = #{remark},
+            update_time = sysdate()
+        where id = #{receiptId}
+    </update>
+
+</mapper>

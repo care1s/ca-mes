@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProPlanMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProPlan" id="ProPlanResult">
+        <id property="planId" column="plan_id"/>
+        <result property="planNo" column="plan_no"/>
+        <result property="planName" column="plan_name"/>
+        <result property="planType" column="plan_type"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="planQty" column="plan_qty"/>
+        <result property="actualQty" column="actual_qty"/>
+        <result property="completionRate" column="completion_rate"/>
+        <result property="managerId" column="manager_id"/>
+        <result property="managerName" column="manager_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProPlanVo">
+        select plan_id, plan_no, plan_name, plan_type, start_date, end_date, status,
+               plan_qty, actual_qty, completion_rate, manager_id, manager_name, remark,
+               create_by, create_time, update_by, update_time
+        from pro_plan
+    </sql>
+
+    <select id="selectProPlanList" parameterType="com.carels.mes.module.pro.domain.ProPlan" resultMap="ProPlanResult">
+        <include refid="selectProPlanVo"/>
+        <where>
+            <if test="planNo != null and planNo != ''">
+                AND plan_no like concat('%', #{planNo}, '%')
+            </if>
+            <if test="planName != null and planName != ''">
+                AND plan_name like concat('%', #{planName}, '%')
+            </if>
+            <if test="planType != null">
+                AND plan_type = #{planType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="managerName != null and managerName != ''">
+                AND manager_name like concat('%', #{managerName}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectProPlanById" resultMap="ProPlanResult">
+        <include refid="selectProPlanVo"/>
+        where plan_id = #{planId}
+    </select>
+
+    <select id="selectProPlanByNo" resultMap="ProPlanResult">
+        <include refid="selectProPlanVo"/>
+        where plan_no = #{planNo}
+    </select>
+
+    <insert id="insertProPlan" parameterType="com.carels.mes.module.pro.domain.ProPlan" useGeneratedKeys="true" keyProperty="planId">
+        insert into pro_plan (
+            plan_no, plan_name, plan_type, start_date, end_date, status, plan_qty,
+            actual_qty, completion_rate, manager_id, manager_name, remark, create_by, create_time
+        ) values (
+            #{planNo}, #{planName}, #{planType}, #{startDate}, #{endDate}, #{status}, #{planQty},
+            #{actualQty}, #{completionRate}, #{managerId}, #{managerName}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateProPlan" parameterType="com.carels.mes.module.pro.domain.ProPlan">
+        update pro_plan
+        <set>
+            <if test="planNo != null">plan_no = #{planNo},</if>
+            <if test="planName != null">plan_name = #{planName},</if>
+            <if test="planType != null">plan_type = #{planType},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="planQty != null">plan_qty = #{planQty},</if>
+            <if test="actualQty != null">actual_qty = #{actualQty},</if>
+            <if test="completionRate != null">completion_rate = #{completionRate},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+            <if test="managerName != null">manager_name = #{managerName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where plan_id = #{planId}
+    </update>
+
+    <delete id="deleteProPlanById">
+        delete from pro_plan where plan_id = #{planId}
+    </delete>
+
+    <delete id="deleteProPlanByIds">
+        delete from pro_plan where plan_id in
+        <foreach collection="array" item="planId" open="(" separator="," close=")">
+            #{planId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update pro_plan
+        set status = #{status}, update_time = sysdate()
+        where plan_id = #{planId}
+    </update>
+
+</mapper>

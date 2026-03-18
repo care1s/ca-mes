@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pur.mapper.PurOrderMapper">
+
+    <resultMap type="com.carels.mes.module.pur.domain.PurOrder" id="PurOrderResult">
+        <id property="id" column="id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="requestId" column="request_id"/>
+        <result property="requestNo" column="request_no"/>
+        <result property="vendorId" column="vendor_id"/>
+        <result property="vendorCode" column="vendor_code"/>
+        <result property="vendorName" column="vendor_name"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="deliveryDate" column="delivery_date"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="currency" column="currency"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="deliveryAddress" column="delivery_address"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectPurOrderVo">
+        select id, order_no, request_id, request_no, vendor_id, vendor_code, vendor_name,
+               order_date, delivery_date, total_amount, total_quantity, currency, order_status,
+               audit_status, contact_name, contact_phone, delivery_address, remark, create_by,
+               create_time, update_by, update_time
+        from pur_order
+    </sql>
+
+    <select id="selectPurOrderList" parameterType="com.carels.mes.module.pur.domain.PurOrder" resultMap="PurOrderResult">
+        <include refid="selectPurOrderVo"/>
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no like concat('%', #{orderNo}, '%')
+            </if>
+            <if test="requestNo != null and requestNo != ''">
+                AND request_no like concat('%', #{requestNo}, '%')
+            </if>
+            <if test="vendorName != null and vendorName != ''">
+                AND vendor_name like concat('%', #{vendorName}, '%')
+            </if>
+            <if test="orderStatus != null">
+                AND order_status = #{orderStatus}
+            </if>
+            <if test="auditStatus != null">
+                AND audit_status = #{auditStatus}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPurOrderById" resultMap="PurOrderResult">
+        <include refid="selectPurOrderVo"/>
+        where id = #{orderId}
+    </select>
+
+    <select id="selectPurOrderByCode" resultMap="PurOrderResult">
+        <include refid="selectPurOrderVo"/>
+        where order_no = #{orderCode}
+    </select>
+
+    <select id="selectPendingOrdersByVendor" resultMap="PurOrderResult">
+        <include refid="selectPurOrderVo"/>
+        where vendor_id = #{vendorId} and order_status in (0, 1)
+        order by order_date desc
+    </select>
+
+    <insert id="insertPurOrder" parameterType="com.carels.mes.module.pur.domain.PurOrder" useGeneratedKeys="true" keyProperty="id">
+        insert into pur_order (
+            order_no, request_id, request_no, vendor_id, vendor_code, vendor_name,
+            order_date, delivery_date, total_amount, total_quantity, currency, order_status,
+            audit_status, contact_name, contact_phone, delivery_address, remark, create_by, create_time
+        ) values (
+            #{orderNo}, #{requestId}, #{requestNo}, #{vendorId}, #{vendorCode}, #{vendorName},
+            #{orderDate}, #{deliveryDate}, #{totalAmount}, #{totalQuantity}, #{currency}, #{orderStatus},
+            #{auditStatus}, #{contactName}, #{contactPhone}, #{deliveryAddress}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updatePurOrder" parameterType="com.carels.mes.module.pur.domain.PurOrder">
+        update pur_order
+        <set>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="requestId != null">request_id = #{requestId},</if>
+            <if test="requestNo != null">request_no = #{requestNo},</if>
+            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="vendorCode != null">vendor_code = #{vendorCode},</if>
+            <if test="vendorName != null">vendor_name = #{vendorName},</if>
+            <if test="orderDate != null">order_date = #{orderDate},</if>
+            <if test="deliveryDate != null">delivery_date = #{deliveryDate},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+            <if test="currency != null">currency = #{currency},</if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="contactName != null">contact_name = #{contactName},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="deliveryAddress != null">delivery_address = #{deliveryAddress},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deletePurOrderById">
+        delete from pur_order where id = #{orderId}
+    </delete>
+
+    <delete id="deletePurOrderByIds">
+        delete from pur_order where id in
+        <foreach collection="array" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+
+    <update id="updateOrderStatus">
+        update pur_order
+        set order_status = #{status}, update_time = sysdate()
+        where id = #{orderId}
+    </update>
+
+</mapper>

@@ -134,7 +134,7 @@
         <el-card class="table-card" shadow="never" :body-style="{ padding: '0', display: 'flex', flexDirection: 'column', height: '100%' }">
           <div class="table-scroll-wrapper">
             <el-table
-              v-loading="loading"
+              
               :data="tableData"
               border
               stripe

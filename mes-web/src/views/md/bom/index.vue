@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header md">
       <div class="title-section">
         <i class="el-icon-document-copy"></i>
         <span class="title">产品BOM</span>
@@ -87,7 +87,7 @@
       </div>
       
       <el-table
-        v-loading="loading"
+        
         :data="tableData"
         border
         stripe

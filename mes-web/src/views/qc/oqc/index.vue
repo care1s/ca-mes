@@ -87,7 +87,7 @@
       </div>
       
       <el-table
-        v-loading="loading"
+        
         :data="tableData"
         border
         stripe

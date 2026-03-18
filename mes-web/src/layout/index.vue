@@ -40,6 +40,13 @@
             <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
             <el-menu-item index="/wm/issue">出库管理</el-menu-item>
             <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+            <el-menu-item index="/wm/stocktaking">库存盘点</el-menu-item>
+            <el-menu-item index="/wm/transfer">库存调拨</el-menu-item>
+            <el-menu-item index="/wm/warning">库存预警</el-menu-item>
+            <el-menu-item index="/pur/request">采购申请</el-menu-item>
+            <el-menu-item index="/pur/order">采购订单</el-menu-item>
+            <el-menu-item index="/pur/receipt">采购入库</el-menu-item>
+            <el-menu-item index="/pur/return">采购退货</el-menu-item>
           </el-submenu>
           
           <!-- 生产执行 - 无图标 -->
@@ -47,6 +54,8 @@
             <template slot="title">
               <span>生产执行</span>
             </template>
+            <el-menu-item index="/pro/plan">生产计划</el-menu-item>
+            <el-menu-item index="/pro/materialReq">物料需求</el-menu-item>
             <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
             <el-menu-item index="/pro/task">生产任务</el-menu-item>
             <el-menu-item index="/pro/feedback">生产报工</el-menu-item>
@@ -118,6 +127,13 @@
                 <el-menu-item index="/wm/recpt">入库管理</el-menu-item>
                 <el-menu-item index="/wm/issue">出库管理</el-menu-item>
                 <el-menu-item index="/wm/batch">批次管理</el-menu-item>
+                <el-menu-item index="/wm/stocktaking">库存盘点</el-menu-item>
+                <el-menu-item index="/wm/transfer">库存调拨</el-menu-item>
+                <el-menu-item index="/wm/warning">库存预警</el-menu-item>
+                <el-menu-item index="/pur/request">采购申请</el-menu-item>
+                <el-menu-item index="/pur/order">采购订单</el-menu-item>
+                <el-menu-item index="/pur/receipt">采购入库</el-menu-item>
+                <el-menu-item index="/pur/return">采购退货</el-menu-item>
               </div>
             </div>
             
@@ -126,6 +142,8 @@
               <div class="menu-group-title">生产执行</div>
               <div class="menu-group-divider"></div>
               <div class="menu-group-content">
+                <el-menu-item index="/pro/plan">生产计划</el-menu-item>
+                <el-menu-item index="/pro/materialReq">物料需求</el-menu-item>
                 <el-menu-item index="/pro/workorder">生产工单</el-menu-item>
                 <el-menu-item index="/pro/task">生产任务</el-menu-item>
                 <el-menu-item index="/pro/feedback">生产报工</el-menu-item>

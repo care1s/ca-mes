@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.system.mapper.SysRoleMapper">
+
+    <resultMap type="com.carels.mes.module.system.domain.SysRole" id="SysRoleResult">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="dataScope" column="data_scope"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSysRoleVo">
+        select role_id, role_name, role_code, order_num, data_scope, status, remark,
+               create_by, create_time, update_by, update_time
+        from sys_role
+    </sql>
+
+    <select id="selectSysRoleList" parameterType="com.carels.mes.module.system.domain.SysRole" resultMap="SysRoleResult">
+        <include refid="selectSysRoleVo"/>
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name like concat('%', #{roleName}, '%')
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                AND role_code like concat('%', #{roleCode}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        order by order_num asc, create_time desc
+    </select>
+
+    <select id="selectSysRoleById" resultMap="SysRoleResult">
+        <include refid="selectSysRoleVo"/>
+        where role_id = #{roleId}
+    </select>
+
+    <select id="selectSysRoleByCode" resultMap="SysRoleResult">
+        <include refid="selectSysRoleVo"/>
+        where role_code = #{roleCode}
+    </select>
+
+    <select id="selectRolesByUserId" resultMap="SysRoleResult">
+        select r.* from sys_role r
+        inner join sys_user_role ur on r.role_id = ur.role_id
+        where ur.user_id = #{userId} and r.status = 0
+        order by r.order_num asc
+    </select>
+
+    <insert id="insertSysRole" parameterType="com.carels.mes.module.system.domain.SysRole" useGeneratedKeys="true" keyProperty="roleId">
+        insert into sys_role (
+            role_name, role_code, order_num, data_scope, status, remark, create_by, create_time
+        ) values (
+            #{roleName}, #{roleCode}, #{orderNum}, #{dataScope}, #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateSysRole" parameterType="com.carels.mes.module.system.domain.SysRole">
+        update sys_role
+        <set>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="roleCode != null">role_code = #{roleCode},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="dataScope != null">data_scope = #{dataScope},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where role_id = #{roleId}
+    </update>
+
+    <delete id="deleteSysRoleById">
+        delete from sys_role where role_id = #{roleId}
+    </delete>
+
+    <delete id="deleteSysRoleByIds">
+        delete from sys_role where role_id in
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update sys_role
+        set status = #{status}, update_time = sysdate()
+        where role_id = #{roleId}
+    </update>
+
+</mapper>

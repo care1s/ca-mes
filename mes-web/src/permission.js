@@ -14,7 +14,16 @@ router.beforeEach((to, from, next) => {
   if (!token) {
     token = localStorage.getItem('mes-token')
   }
-  console.log('路由跳转检查 - from:', from.path, 'to:', to.path, 'token:', token ? '存在' : 'null', 'localStorage:', localStorage.getItem('mes-token') ? '有' : '无', 'store:', store.state.user ? store.state.user.token ? '有' : '无' : '无store')
+  
+  // 详细调试日志
+  console.log('=== 路由守卫详细调试 ===')
+  console.log('from:', from.path)
+  console.log('to:', to.path)
+  console.log('store.user:', store.state.user)
+  console.log('store.user.token:', store.state.user ? store.state.user.token : 'store.user不存在')
+  console.log('localStorage mes-token:', localStorage.getItem('mes-token'))
+  console.log('最终token:', token ? token.substring(0, 30) + '...' : 'null')
+  console.log('========================')
   
   if (token) {
     // 有token，已登录

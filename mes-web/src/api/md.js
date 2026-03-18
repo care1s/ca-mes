@@ -589,5 +589,593 @@ export function delVendorBatch(vendorIds) {
   })
 }
 
+// ==================== 采购管理 API ====================
 
+/**
+ * 获取采购申请列表
+ * @param {Object} params 查询参数
+ */
+export function listPurRequest(params) {
+  return request({
+    url: '/mes/pur/request/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取采购申请
+ * @param {number} requestId 申请ID
+ */
+export function getPurRequest(requestId) {
+  return request({
+    url: '/mes/pur/request/' + requestId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增采购申请
+ * @param {Object} data 申请数据
+ */
+export function addPurRequest(data) {
+  return request({
+    url: '/mes/pur/request',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改采购申请
+ * @param {Object} data 申请数据
+ */
+export function updatePurRequest(data) {
+  return request({
+    url: '/mes/pur/request',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除采购申请
+ * @param {number} requestId 申请ID
+ */
+export function delPurRequest(requestId) {
+  return request({
+    url: '/mes/pur/request/' + requestId,
+    method: 'delete'
+  })
+}
+
+// ==================== 采购订单 API ====================
+
+/**
+ * 获取采购订单列表
+ * @param {Object} params 查询参数
+ */
+export function listPurOrder(params) {
+  return request({
+    url: '/mes/pur/order/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取采购订单
+ * @param {number} orderId 订单ID
+ */
+export function getPurOrder(orderId) {
+  return request({
+    url: '/mes/pur/order/' + orderId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增采购订单
+ * @param {Object} data 订单数据
+ */
+export function addPurOrder(data) {
+  return request({
+    url: '/mes/pur/order',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改采购订单
+ * @param {Object} data 订单数据
+ */
+export function updatePurOrder(data) {
+  return request({
+    url: '/mes/pur/order',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除采购订单
+ * @param {number} orderId 订单ID
+ */
+export function delPurOrder(orderId) {
+  return request({
+    url: '/mes/pur/order/' + orderId,
+    method: 'delete'
+  })
+}
+
+// ==================== 采购入库 API ====================
+
+/**
+ * 获取采购入库列表
+ * @param {Object} params 查询参数
+ */
+export function listPurReceipt(params) {
+  return request({
+    url: '/mes/pur/receipt/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取采购入库
+ * @param {number} receiptId 入库ID
+ */
+export function getPurReceipt(receiptId) {
+  return request({
+    url: '/mes/pur/receipt/' + receiptId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增采购入库
+ * @param {Object} data 入库数据
+ */
+export function addPurReceipt(data) {
+  return request({
+    url: '/mes/pur/receipt',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改采购入库
+ * @param {Object} data 入库数据
+ */
+export function updatePurReceipt(data) {
+  return request({
+    url: '/mes/pur/receipt',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除采购入库
+ * @param {number} receiptId 入库ID
+ */
+export function delPurReceipt(receiptId) {
+  return request({
+    url: '/mes/pur/receipt/' + receiptId,
+    method: 'delete'
+  })
+}
+
+// ==================== 采购退货 API ====================
+
+/**
+ * 获取采购退货列表
+ * @param {Object} params 查询参数
+ */
+export function listPurReturn(params) {
+  return request({
+    url: '/mes/pur/return/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取采购退货
+ * @param {number} returnId 退货ID
+ */
+export function getPurReturn(returnId) {
+  return request({
+    url: '/mes/pur/return/' + returnId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增采购退货
+ * @param {Object} data 退货数据
+ */
+export function addPurReturn(data) {
+  return request({
+    url: '/mes/pur/return',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改采购退货
+ * @param {Object} data 退货数据
+ */
+export function updatePurReturn(data) {
+  return request({
+    url: '/mes/pur/return',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除采购退货
+ * @param {number} returnId 退货ID
+ */
+export function delPurReturn(returnId) {
+  return request({
+    url: '/mes/pur/return/' + returnId,
+    method: 'delete'
+  })
+}
+
+// ==================== 生产计划 API ====================
+
+/**
+ * 获取生产计划列表
+ * @param {Object} params 查询参数
+ */
+export function listProPlan(params) {
+  return request({
+    url: '/mes/pro/plan/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取生产计划
+ * @param {number} planId 计划ID
+ */
+export function getProPlan(planId) {
+  return request({
+    url: '/mes/pro/plan/' + planId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增生产计划
+ * @param {Object} data 计划数据
+ */
+export function addProPlan(data) {
+  return request({
+    url: '/mes/pro/plan',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改生产计划
+ * @param {Object} data 计划数据
+ */
+export function updateProPlan(data) {
+  return request({
+    url: '/mes/pro/plan',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除生产计划
+ * @param {number} planId 计划ID
+ */
+export function delProPlan(planId) {
+  return request({
+    url: '/mes/pro/plan/' + planId,
+    method: 'delete'
+  })
+}
+
+/**
+ * 发布生产计划
+ * @param {number} planId 计划ID
+ */
+export function publishProPlan(planId) {
+  return request({
+    url: '/mes/pro/plan/' + planId + '/publish',
+    method: 'put'
+  })
+}
+
+/**
+ * 开始执行生产计划
+ * @param {number} planId 计划ID
+ */
+export function startProPlan(planId) {
+  return request({
+    url: '/mes/pro/plan/' + planId + '/start',
+    method: 'put'
+  })
+}
+
+/**
+ * 完成生产计划
+ * @param {number} planId 计划ID
+ */
+export function completeProPlan(planId) {
+  return request({
+    url: '/mes/pro/plan/' + planId + '/complete',
+    method: 'put'
+  })
+}
+
+// ==================== 物料需求 API ====================
+
+/**
+ * 获取物料需求列表
+ * @param {Object} params 查询参数
+ */
+export function listProMaterialReq(params) {
+  return request({
+    url: '/mes/pro/materialReq/list',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID获取物料需求
+ * @param {number} reqId 需求ID
+ */
+export function getProMaterialReq(reqId) {
+  return request({
+    url: '/mes/pro/materialReq/' + reqId,
+    method: 'get'
+  })
+}
+
+/**
+ * 新增物料需求
+ * @param {Object} data 需求数据
+ */
+export function addProMaterialReq(data) {
+  return request({
+    url: '/mes/pro/materialReq',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 修改物料需求
+ * @param {Object} data 需求数据
+ */
+export function updateProMaterialReq(data) {
+  return request({
+    url: '/mes/pro/materialReq',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除物料需求
+ * @param {number} reqId 需求ID
+ */
+export function delProMaterialReq(reqId) {
+  return request({
+    url: '/mes/pro/materialReq/' + reqId,
+    method: 'delete'
+  })
+}
+
+/**
+ * 提交物料需求审核
+ * @param {number} reqId 需求ID
+ */
+export function submitProMaterialReq(reqId) {
+  return request({
+    url: '/mes/pro/materialReq/' + reqId + '/submit',
+    method: 'put'
+  })
+}
+
+/**
+ * 审核通过物料需求
+ * @param {number} reqId 需求ID
+ */
+export function approveProMaterialReq(reqId) {
+  return request({
+    url: '/mes/pro/materialReq/' + reqId + '/approve',
+    method: 'put'
+  })
+}
+
+/**
+ * 发料确认
+ * @param {number} reqId 需求ID
+ */
+export function issueProMaterialReq(reqId) {
+  return request({
+    url: '/mes/pro/materialReq/' + reqId + '/issue',
+    method: 'put'
+  })
+}
+
+// ==================== 系统管理 API ====================
+
+// 用户管理
+export function listSysUser(params) {
+  return request({
+    url: '/mes/system/user/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getSysUser(userId) {
+  return request({
+    url: '/mes/system/user/' + userId,
+    method: 'get'
+  })
+}
+
+export function addSysUser(data) {
+  return request({
+    url: '/mes/system/user',
+    method: 'post',
+    data
+  })
+}
+
+export function updateSysUser(data) {
+  return request({
+    url: '/mes/system/user',
+    method: 'put',
+    data
+  })
+}
+
+export function delSysUser(userId) {
+  return request({
+    url: '/mes/system/user/' + userId,
+    method: 'delete'
+  })
+}
+
+export function resetSysUserPwd(userId, password) {
+  return request({
+    url: '/mes/system/user/' + userId + '/resetPwd',
+    method: 'put',
+    params: { password }
+  })
+}
+
+// 角色管理
+export function listSysRole(params) {
+  return request({
+    url: '/mes/system/role/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getSysRole(roleId) {
+  return request({
+    url: '/mes/system/role/' + roleId,
+    method: 'get'
+  })
+}
+
+export function addSysRole(data) {
+  return request({
+    url: '/mes/system/role',
+    method: 'post',
+    data
+  })
+}
+
+export function updateSysRole(data) {
+  return request({
+    url: '/mes/system/role',
+    method: 'put',
+    data
+  })
+}
+
+export function delSysRole(roleId) {
+  return request({
+    url: '/mes/system/role/' + roleId,
+    method: 'delete'
+  })
+}
+
+export function getRolesByUserId(userId) {
+  return request({
+    url: '/mes/system/role/user/' + userId,
+    method: 'get'
+  })
+}
+
+export function assignRoleMenus(roleId, menuIds) {
+  return request({
+    url: '/mes/system/role/' + roleId + '/menus',
+    method: 'put',
+    data: menuIds
+  })
+}
+
+// 菜单管理
+export function listSysMenu(params) {
+  return request({
+    url: '/mes/system/menu/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getSysMenuTree() {
+  return request({
+    url: '/mes/system/menu/tree',
+    method: 'get'
+  })
+}
+
+export function getSysMenu(menuId) {
+  return request({
+    url: '/mes/system/menu/' + menuId,
+    method: 'get'
+  })
+}
+
+export function addSysMenu(data) {
+  return request({
+    url: '/mes/system/menu',
+    method: 'post',
+    data
+  })
+}
+
+export function updateSysMenu(data) {
+  return request({
+    url: '/mes/system/menu',
+    method: 'put',
+    data
+  })
+}
+
+export function delSysMenu(menuId) {
+  return request({
+    url: '/mes/system/menu/' + menuId,
+    method: 'delete'
+  })
+}
+
+export function getMenusByRoleId(roleId) {
+  return request({
+    url: '/mes/system/menu/role/' + roleId,
+    method: 'get'
+  })
+}
+
+export function changeMenuStatus(menuId, status) {
+  return request({
+    url: '/mes/system/menu/' + menuId + '/status',
+    method: 'put',
+    params: { status }
+  })
+}
 

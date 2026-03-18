@@ -39,6 +39,8 @@ const ProTask = () => import('@/views/pro/task/index')
 const ProFeedback = () => import('@/views/pro/feedback/index')
 const ProRoute = () => import('@/views/pro/route/index')
 const ProAndon = () => import('@/views/pro/andon/index')
+const ProPlan = () => import('@/views/pro/plan/index')
+const ProMaterialReq = () => import('@/views/pro/materialReq/index')
 
 // 仓储管理页面
 const WmWarehouse = () => import('@/views/wm/warehouse/index')
@@ -46,6 +48,9 @@ const WmStock = () => import('@/views/wm/stock/index')
 const WmRecpt = () => import('@/views/wm/recpt/index')
 const WmIssue = () => import('@/views/wm/issue/index')
 const WmBatch = () => import('@/views/wm/batch/index')
+const WmStocktaking = () => import('@/views/wm/stocktaking/index')
+const WmTransfer = () => import('@/views/wm/transfer/index')
+const WmWarning = () => import('@/views/wm/warning/index')
 
 // 质量管理页面
 const QcIqc = () => import('@/views/qc/iqc/index')
@@ -58,6 +63,12 @@ const QcDefect = () => import('@/views/qc/defect/index')
 const DvMachinery = () => import('@/views/dv/machinery/index')
 const DvCheck = () => import('@/views/dv/check/index')
 const DvRepair = () => import('@/views/dv/repair/index')
+
+// 采购管理页面
+const PurRequest = () => import('@/views/pur/request/index')
+const PurOrder = () => import('@/views/pur/order/index')
+const PurReceipt = () => import('@/views/pur/receipt/index')
+const PurReturn = () => import('@/views/pur/return/index')
 
 // 报表页面
 const ReportChart = () => import('@/views/report/chart/index')
@@ -125,6 +136,8 @@ export const routes = [
     name: 'Pro',
     meta: { title: '生产执行', icon: 'el-icon-s-order' },
     children: [
+      { path: 'plan', name: 'ProPlan', component: ProPlan, meta: { title: '生产计划', icon: 'el-icon-s-order' } },
+      { path: 'materialReq', name: 'ProMaterialReq', component: ProMaterialReq, meta: { title: '物料需求', icon: 'el-icon-s-goods' } },
       { path: 'workorder', name: 'ProWorkorder', component: ProWorkorder, meta: { title: '生产工单', icon: 'el-icon-document' } },
       { path: 'task', name: 'ProTask', component: ProTask, meta: { title: '生产任务', icon: 'el-icon-s-claim' } },
       { path: 'feedback', name: 'ProFeedback', component: ProFeedback, meta: { title: '生产报工', icon: 'el-icon-check' } },
@@ -145,7 +158,10 @@ export const routes = [
       { path: 'stock', name: 'WmStock', component: WmStock, meta: { title: '库存查询', icon: 'el-icon-s-data' } },
       { path: 'recpt', name: 'WmRecpt', component: WmRecpt, meta: { title: '入库管理', icon: 'el-icon-download' } },
       { path: 'issue', name: 'WmIssue', component: WmIssue, meta: { title: '出库管理', icon: 'el-icon-upload2' } },
-      { path: 'batch', name: 'WmBatch', component: WmBatch, meta: { title: '批次管理', icon: 'el-icon-collection-tag' } }
+      { path: 'batch', name: 'WmBatch', component: WmBatch, meta: { title: '批次管理', icon: 'el-icon-collection-tag' } },
+      { path: 'stocktaking', name: 'WmStocktaking', component: WmStocktaking, meta: { title: '库存盘点', icon: 'el-icon-s-check' } },
+      { path: 'transfer', name: 'WmTransfer', component: WmTransfer, meta: { title: '库存调拨', icon: 'el-icon-s-promotion' } },
+      { path: 'warning', name: 'WmWarning', component: WmWarning, meta: { title: '库存预警', icon: 'el-icon-warning-outline' } }
     ]
   },
   
@@ -176,6 +192,21 @@ export const routes = [
       { path: 'machinery', name: 'DvMachinery', component: DvMachinery, meta: { title: '设备台账', icon: 'el-icon-cpu' } },
       { path: 'check', name: 'DvCheck', component: DvCheck, meta: { title: '点检管理', icon: 'el-icon-view' } },
       { path: 'repair', name: 'DvRepair', component: DvRepair, meta: { title: '维修管理', icon: 'el-icon-first-aid-kit' } }
+    ]
+  },
+  
+  // 采购管理
+  {
+    path: '/pur',
+    component: Layout,
+    redirect: '/pur/request',
+    name: 'Pur',
+    meta: { title: '采购管理', icon: 'el-icon-s-shop' },
+    children: [
+      { path: 'request', name: 'PurRequest', component: PurRequest, meta: { title: '采购申请', icon: 'el-icon-document' } },
+      { path: 'order', name: 'PurOrder', component: PurOrder, meta: { title: '采购订单', icon: 'el-icon-s-order' } },
+      { path: 'receipt', name: 'PurReceipt', component: PurReceipt, meta: { title: '采购入库', icon: 'el-icon-s-home' } },
+      { path: 'return', name: 'PurReturn', component: PurReturn, meta: { title: '采购退货', icon: 'el-icon-refresh-left' } }
     ]
   },
   

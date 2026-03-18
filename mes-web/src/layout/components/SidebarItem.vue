@@ -67,10 +67,21 @@ export default {
       return false
     },
     resolvePath(routePath) {
+      // 处理空路径情况
+      if (!routePath) {
+        return this.basePath || '/'
+      }
       if (routePath.charAt(0) === '/') {
         return routePath
       }
-      return path.resolve(this.basePath, routePath)
+      // 使用简单字符串拼接替代 path.resolve，避免浏览器环境问题
+      if (this.basePath === '/') {
+        return '/' + routePath
+      }
+      if (this.basePath.endsWith('/')) {
+        return this.basePath + routePath
+      }
+      return this.basePath + '/' + routePath
     }
   }
 }

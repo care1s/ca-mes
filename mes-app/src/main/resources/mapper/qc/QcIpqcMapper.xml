@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.qc.mapper.QcIpqcMapper">
+
+    <resultMap type="com.carels.mes.module.qc.domain.QcIpqc" id="QcIpqcResult">
+        <id property="id" column="id"/>
+        <result property="inspectNo" column="inspect_no"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderNo" column="workorder_no"/>
+        <result property="processId" column="process_id"/>
+        <result property="processName" column="process_name"/>
+        <result property="inspectQty" column="inspect_qty"/>
+        <result property="qualifiedQty" column="qualified_qty"/>
+        <result property="unqualifiedQty" column="unqualified_qty"/>
+        <result property="inspectResult" column="inspect_result"/>
+        <result property="status" column="status"/>
+        <result property="inspectType" column="inspect_type"/>
+        <result property="inspectorId" column="inspector_id"/>
+        <result property="inspectorName" column="inspector_name"/>
+        <result property="inspectDate" column="inspect_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectQcIpqcVo">
+        select id, inspect_no, workorder_id, workorder_no, process_id, process_name,
+               inspect_qty, qualified_qty, unqualified_qty, inspect_result,
+               status, inspect_type, inspector_id, inspector_name, inspect_date, remark,
+               create_by, create_time, update_by, update_time
+        from qc_ipqc
+    </sql>
+
+    <select id="selectQcIpqcList" parameterType="com.carels.mes.module.qc.domain.QcIpqc" resultMap="QcIpqcResult">
+        <include refid="selectQcIpqcVo"/>
+        <where>
+            <if test="inspectNo != null and inspectNo != ''">
+                AND inspect_no like concat('%', #{inspectNo}, '%')
+            </if>
+            <if test="workorderNo != null and workorderNo != ''">
+                AND workorder_no like concat('%', #{workorderNo}, '%')
+            </if>
+            <if test="inspectType != null and inspectType != ''">
+                AND inspect_type = #{inspectType}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectQcIpqcById" resultMap="QcIpqcResult">
+        <include refid="selectQcIpqcVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertQcIpqc" parameterType="com.carels.mes.module.qc.domain.QcIpqc" useGeneratedKeys="true" keyProperty="id">
+        insert into qc_ipqc (
+            inspect_no, workorder_id, workorder_no, process_id, process_name,
+            inspect_qty, qualified_qty, unqualified_qty, status, inspect_type,
+            inspector_id, inspector_name, inspect_date, remark, create_by, create_time
+        ) values (
+            #{inspectNo}, #{workorderId}, #{workorderNo}, #{processId}, #{processName},
+            #{inspectQty}, #{qualifiedQty}, #{unqualifiedQty}, #{status}, #{inspectType},
+            #{inspectorId}, #{inspectorName}, #{inspectDate}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateQcIpqc" parameterType="com.carels.mes.module.qc.domain.QcIpqc">
+        update qc_ipqc
+        <set>
+            <if test="inspectNo != null">inspect_no = #{inspectNo},</if>
+            <if test="workorderId != null">workorder_id = #{workorderId},</if>
+            <if test="workorderNo != null">workorder_no = #{workorderNo},</if>
+            <if test="processId != null">process_id = #{processId},</if>
+            <if test="processName != null">process_name = #{processName},</if>
+            <if test="inspectQty != null">inspect_qty = #{inspectQty},</if>
+            <if test="qualifiedQty != null">qualified_qty = #{qualifiedQty},</if>
+            <if test="unqualifiedQty != null">unqualified_qty = #{unqualifiedQty},</if>
+            <if test="inspectResult != null">inspect_result = #{inspectResult},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="inspectType != null">inspect_type = #{inspectType},</if>
+            <if test="inspectorId != null">inspector_id = #{inspectorId},</if>
+            <if test="inspectorName != null">inspector_name = #{inspectorName},</if>
+            <if test="inspectDate != null">inspect_date = #{inspectDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteQcIpqcById">
+        delete from qc_ipqc where id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        update qc_ipqc
+        set status = #{status}, update_time = sysdate()
+        where id = #{id}
+    </update>
+
+</mapper>

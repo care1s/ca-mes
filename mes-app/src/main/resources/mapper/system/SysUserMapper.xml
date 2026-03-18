@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.system.mapper.SysUserMapper">
+
+    <resultMap type="com.carels.mes.module.system.domain.SysUser" id="SysUserResult">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="nickname" column="nickname"/>
+        <result property="realName" column="real_name"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="avatar" column="avatar"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="post" column="post"/>
+        <result property="status" column="status"/>
+        <result property="userType" column="user_type"/>
+        <result property="loginIp" column="login_ip"/>
+        <result property="loginTime" column="login_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSysUserVo">
+        select user_id, username, password, nickname, real_name, gender, phone, email, avatar,
+               dept_id, dept_name, post, status, user_type, login_ip, login_time, remark,
+               create_by, create_time, update_by, update_time
+        from sys_user
+    </sql>
+
+    <select id="selectSysUserList" parameterType="com.carels.mes.module.system.domain.SysUser" resultMap="SysUserResult">
+        <include refid="selectSysUserVo"/>
+        <where>
+            <if test="username != null and username != ''">
+                AND username like concat('%', #{username}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND nickname like concat('%', #{nickname}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                AND real_name like concat('%', #{realName}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone like concat('%', #{phone}, '%')
+            </if>
+            <if test="deptName != null and deptName != ''">
+                AND dept_name like concat('%', #{deptName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSysUserById" resultMap="SysUserResult">
+        <include refid="selectSysUserVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectSysUserByUsername" resultMap="SysUserResult">
+        <include refid="selectSysUserVo"/>
+        where username = #{username}
+    </select>
+
+    <insert id="insertSysUser" parameterType="com.carels.mes.module.system.domain.SysUser" useGeneratedKeys="true" keyProperty="userId">
+        insert into sys_user (
+            username, password, nickname, real_name, gender, phone, email, avatar,
+            dept_id, dept_name, post, status, user_type, remark, create_by, create_time
+        ) values (
+            #{username}, #{password}, #{nickname}, #{realName}, #{gender}, #{phone}, #{email}, #{avatar},
+            #{deptId}, #{deptName}, #{post}, #{status}, #{userType}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateSysUser" parameterType="com.carels.mes.module.system.domain.SysUser">
+        update sys_user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="deptName != null">dept_name = #{deptName},</if>
+            <if test="post != null">post = #{post},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="userType != null">user_type = #{userType},</if>
+            <if test="loginIp != null">login_ip = #{loginIp},</if>
+            <if test="loginTime != null">login_time = #{loginTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteSysUserById">
+        delete from sys_user where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteSysUserByIds">
+        delete from sys_user where user_id in
+        <foreach collection="array" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update sys_user
+        set status = #{status}, update_time = sysdate()
+        where user_id = #{userId}
+    </update>
+
+    <update id="resetPassword">
+        update sys_user
+        set password = #{password}, update_time = sysdate()
+        where user_id = #{userId}
+    </update>
+
+</mapper>

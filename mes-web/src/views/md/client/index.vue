@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header md">
       <div class="title-section">
         <i class="el-icon-user"></i>
         <span class="title">客户管理</span>
@@ -57,7 +57,7 @@
       </div>
       
       <el-table
-        v-loading="loading"
+        
         :data="tableData"
         border
         stripe

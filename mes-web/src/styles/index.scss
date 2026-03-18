@@ -69,6 +69,13 @@ $border-radius-xs: 6px;
 // 按钮圆角
 .el-button {
   border-radius: $border-radius-xs !important;
+  box-shadow: none !important;
+  
+  &:hover,
+  &:focus,
+  &:active {
+    box-shadow: none !important;
+  }
   
   &.el-button--round {
     border-radius: 20px !important;
@@ -346,6 +353,43 @@ $border-radius-xs: 6px;
       justify-content: center !important;
       min-width: 120px !important;
       max-width: 140px !important;
+    }
+  }
+}
+
+// ========== 页面标题简洁样式 ==========
+.page-header {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #409EFF;
+  box-shadow: none;
+  
+  .title-section {
+    display: flex;
+    align-items: center;
+    
+    i {
+      font-size: 28px;
+      color: #409EFF;
+      margin-right: 12px;
+    }
+    
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #303133;
+    }
+    
+    .subtitle {
+      font-size: 13px;
+      color: #909399;
+      margin-left: 10px;
+      font-weight: normal;
     }
   }
 }

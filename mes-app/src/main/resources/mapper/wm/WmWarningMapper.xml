@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmWarningMapper">
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmWarning" id="WmWarningResult">
+        <id property="warningId" column="warning_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="currentQty" column="current_qty"/>
+        <result property="safetyQty" column="safety_qty"/>
+        <result property="maxQty" column="max_qty"/>
+        <result property="warningType" column="warning_type"/>
+        <result property="warningLevel" column="warning_level"/>
+        <result property="status" column="status"/>
+        <result property="warningDesc" column="warning_desc"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="handlerName" column="handler_name"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="handleRemark" column="handle_remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmWarningVo">
+        select warning_id, warehouse_id, warehouse_name, item_id, item_code, item_name, specification,
+               current_qty, safety_qty, max_qty, warning_type, warning_level, status, warning_desc,
+               handler_id, handler_name, handle_time, handle_remark, create_time, update_time
+        from wm_warning
+    </sql>
+
+    <select id="selectWmWarningList" parameterType="com.carels.mes.module.wm.domain.WmWarning" resultMap="WmWarningResult">
+        <include refid="selectWmWarningVo"/>
+        <where>
+            <if test="warehouseName != null and warehouseName != ''">
+                AND warehouse_name like concat('%', #{warehouseName}, '%')
+            </if>
+            <if test="itemCode != null and itemCode != ''">
+                AND item_code like concat('%', #{itemCode}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name like concat('%', #{itemName}, '%')
+            </if>
+            <if test="warningType != null">
+                AND warning_type = #{warningType}
+            </if>
+            <if test="warningLevel != null">
+                AND warning_level = #{warningLevel}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        order by warning_level desc, create_time desc
+    </select>
+
+    <select id="selectWmWarningById" resultMap="WmWarningResult">
+        <include refid="selectWmWarningVo"/>
+        where warning_id = #{warningId}
+    </select>
+
+    <select id="countWarning" resultType="int">
+        select count(*) from wm_warning
+        where 1=1
+        <if test="warningType != null">
+            AND warning_type = #{warningType}
+        </if>
+        <if test="warningLevel != null">
+            AND warning_level = #{warningLevel}
+        </if>
+    </select>
+
+    <insert id="insertWmWarning" parameterType="com.carels.mes.module.wm.domain.WmWarning" useGeneratedKeys="true" keyProperty="warningId">
+        insert into wm_warning (
+            warehouse_id, warehouse_name, item_id, item_code, item_name, specification,
+            current_qty, safety_qty, max_qty, warning_type, warning_level, status, warning_desc,
+            handler_id, handler_name, handle_time, handle_remark, create_time
+        ) values (
+            #{warehouseId}, #{warehouseName}, #{itemId}, #{itemCode}, #{itemName}, #{specification},
+            #{currentQty}, #{safetyQty}, #{maxQty}, #{warningType}, #{warningLevel}, #{status}, #{warningDesc},
+            #{handlerId}, #{handlerName}, #{handleTime}, #{handleRemark}, sysdate()
+        )
+    </insert>
+
+    <update id="updateWmWarning" parameterType="com.carels.mes.module.wm.domain.WmWarning">
+        update wm_warning
+        <set>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="currentQty != null">current_qty = #{currentQty},</if>
+            <if test="safetyQty != null">safety_qty = #{safetyQty},</if>
+            <if test="maxQty != null">max_qty = #{maxQty},</if>
+            <if test="warningType != null">warning_type = #{warningType},</if>
+            <if test="warningLevel != null">warning_level = #{warningLevel},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="warningDesc != null">warning_desc = #{warningDesc},</if>
+            <if test="handlerId != null">handler_id = #{handlerId},</if>
+            <if test="handlerName != null">handler_name = #{handlerName},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleRemark != null">handle_remark = #{handleRemark},</if>
+            update_time = sysdate()
+        </set>
+        where warning_id = #{warningId}
+    </update>
+
+    <delete id="deleteWmWarningById">
+        delete from wm_warning where warning_id = #{warningId}
+    </delete>
+
+    <delete id="deleteWmWarningByIds">
+        delete from wm_warning where warning_id in
+        <foreach collection="array" item="warningId" open="(" separator="," close=")">
+            #{warningId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update wm_warning
+        set status = #{status}, update_time = sysdate()
+        where warning_id = #{warningId}
+    </update>
+
+</mapper>

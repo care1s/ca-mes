@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.dv.mapper.DvCheckMapper">
+    <resultMap type="com.carels.mes.module.dv.domain.DvCheck" id="DvCheckResult">
+        <id property="id" column="id"/>
+        <result property="checkNo" column="check_no"/>
+        <result property="machineryId" column="machinery_id"/>
+        <result property="machineryCode" column="machinery_code"/>
+        <result property="machineryName" column="machinery_name"/>
+        <result property="checkType" column="check_type"/>
+        <result property="checkResult" column="check_result"/>
+        <result property="status" column="status"/>
+        <result property="checkerId" column="checker_id"/>
+        <result property="checkerName" column="checker_name"/>
+        <result property="checkDate" column="check_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectDvCheckVo">
+        select id, check_no, machinery_id, machinery_code, machinery_name, check_type,
+               check_result, status, checker_id, checker_name, check_date, remark,
+               create_by, create_time, update_by, update_time
+        from dv_check
+    </sql>
+
+    <select id="selectDvCheckList" resultMap="DvCheckResult">
+        <include refid="selectDvCheckVo"/>
+        <where>
+            <if test="checkNo != null and checkNo != ''">
+                AND check_no like concat('%', #{checkNo}, '%')
+            </if>
+            <if test="machineryCode != null and machineryCode != ''">
+                AND machinery_code like concat('%', #{machineryCode}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectDvCheckById" resultMap="DvCheckResult">
+        <include refid="selectDvCheckVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDvCheck" useGeneratedKeys="true" keyProperty="id">
+        insert into dv_check (check_no, machinery_id, machinery_code, machinery_name, check_type,
+            check_result, status, checker_id, checker_name, check_date, remark, create_by, create_time)
+        values (#{checkNo}, #{machineryId}, #{machineryCode}, #{machineryName}, #{checkType},
+            #{checkResult}, #{status}, #{checkerId}, #{checkerName}, #{checkDate}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateDvCheck">
+        update dv_check
+        <set>
+            <if test="checkNo != null">check_no = #{checkNo},</if>
+            <if test="machineryId != null">machinery_id = #{machineryId},</if>
+            <if test="machineryCode != null">machinery_code = #{machineryCode},</if>
+            <if test="machineryName != null">machinery_name = #{machineryName},</if>
+            <if test="checkType != null">check_type = #{checkType},</if>
+            <if test="checkResult != null">check_result = #{checkResult},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="checkerId != null">checker_id = #{checkerId},</if>
+            <if test="checkerName != null">checker_name = #{checkerName},</if>
+            <if test="checkDate != null">check_date = #{checkDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDvCheckById">
+        delete from dv_check where id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        update dv_check set status = #{status}, update_time = sysdate() where id = #{id}
+    </update>
+</mapper>

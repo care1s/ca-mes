@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.dv.mapper.DvRepairMapper">
+    <resultMap type="com.carels.mes.module.dv.domain.DvRepair" id="DvRepairResult">
+        <id property="id" column="id"/>
+        <result property="repairNo" column="repair_no"/>
+        <result property="machineryId" column="machinery_id"/>
+        <result property="machineryCode" column="machinery_code"/>
+        <result property="machineryName" column="machinery_name"/>
+        <result property="repairType" column="repair_type"/>
+        <result property="faultDescription" column="fault_description"/>
+        <result property="repairContent" column="repair_content"/>
+        <result property="repairCost" column="repair_cost"/>
+        <result property="status" column="status"/>
+        <result property="repairmanId" column="repairman_id"/>
+        <result property="repairmanName" column="repairman_name"/>
+        <result property="repairDate" column="repair_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectDvRepairVo">
+        select id, repair_no, machinery_id, machinery_code, machinery_name, repair_type,
+               fault_description, repair_content, repair_cost, status, repairman_id, repairman_name,
+               repair_date, remark, create_by, create_time, update_by, update_time
+        from dv_repair
+    </sql>
+
+    <select id="selectDvRepairList" resultMap="DvRepairResult">
+        <include refid="selectDvRepairVo"/>
+        <where>
+            <if test="repairNo != null and repairNo != ''">
+                AND repair_no like concat('%', #{repairNo}, '%')
+            </if>
+            <if test="machineryCode != null and machineryCode != ''">
+                AND machinery_code like concat('%', #{machineryCode}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectDvRepairById" resultMap="DvRepairResult">
+        <include refid="selectDvRepairVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDvRepair" useGeneratedKeys="true" keyProperty="id">
+        insert into dv_repair (repair_no, machinery_id, machinery_code, machinery_name, repair_type,
+            fault_description, repair_content, repair_cost, status, repairman_id, repairman_name,
+            repair_date, remark, create_by, create_time)
+        values (#{repairNo}, #{machineryId}, #{machineryCode}, #{machineryName}, #{repairType},
+            #{faultDescription}, #{repairContent}, #{repairCost}, #{status}, #{repairmanId}, #{repairmanName},
+            #{repairDate}, #{remark}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateDvRepair">
+        update dv_repair
+        <set>
+            <if test="repairNo != null">repair_no = #{repairNo},</if>
+            <if test="machineryId != null">machinery_id = #{machineryId},</if>
+            <if test="machineryCode != null">machinery_code = #{machineryCode},</if>
+            <if test="machineryName != null">machinery_name = #{machineryName},</if>
+            <if test="repairType != null">repair_type = #{repairType},</if>
+            <if test="faultDescription != null">fault_description = #{faultDescription},</if>
+            <if test="repairContent != null">repair_content = #{repairContent},</if>
+            <if test="repairCost != null">repair_cost = #{repairCost},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="repairmanId != null">repairman_id = #{repairmanId},</if>
+            <if test="repairmanName != null">repairman_name = #{repairmanName},</if>
+            <if test="repairDate != null">repair_date = #{repairDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDvRepairById">
+        delete from dv_repair where id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        update dv_repair set status = #{status}, update_time = sysdate() where id = #{id}
+    </update>
+</mapper>
