@@ -8,6 +8,7 @@
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" size="small" @click="handleAdd">新增物料</el-button>
+        <el-button type="danger" icon="el-icon-delete" size="small" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
         <el-button icon="el-icon-download" size="small">导出</el-button>
         <el-button icon="el-icon-refresh" size="small" @click="fetchData">刷新</el-button>
       </div>
@@ -134,7 +135,8 @@
         <el-card class="table-card" shadow="never" :body-style="{ padding: '0', display: 'flex', flexDirection: 'column', height: '100%' }">
           <div class="table-scroll-wrapper">
             <el-table
-              
+              ref="itemTable"
+              v-loading="loading"
               :data="tableData"
               border
               stripe
@@ -142,9 +144,11 @@
               size="small"
               style="width: 100%;"
               :height="tableHeight"
+              @selection-change="handleSelectionChange"
               @row-dblclick="handleRowDblClick"
               class="md-item-table"
             >
+              <el-table-column type="selection" width="55" align="center" fixed="left" />
               <el-table-column type="index" label="序号" width="50" align="center" fixed="left" />
               <el-table-column prop="itemCode" label="物料编码" min-width="110" show-overflow-tooltip fixed="left">
                 <template slot-scope="scope">
@@ -172,11 +176,10 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" min-width="130" align="center" fixed="right">
+              <el-table-column label="操作" min-width="100" align="center" fixed="right">
                 <template slot-scope="scope">
                   <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
                   <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-                  <el-button type="text" size="small" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -574,7 +577,7 @@ import {
   listItem, 
   addItem, 
   updateItem, 
-  delItem, 
+  batchDelItem,
   exportItem,
   getItemTypeTree,
   addItemType,
@@ -617,6 +620,7 @@ export default {
       },
       
       tableData: [],
+      selectedItems: [],
       
       dialogVisible: false,
       isEdit: false,
@@ -920,16 +924,34 @@ export default {
       this.detailDialogVisible = true
     },
     
-    handleDelete(row) {
-      this.$confirm(`删除物料 "${row.itemName}"？`, '提示', {
-        type: 'warning'
+    // 多选框选择变化
+    handleSelectionChange(selection) {
+      this.selectedItems = selection
+    },
+    
+    // 批量删除
+    handleBatchDelete() {
+      if (this.selectedItems.length === 0) {
+        this.$message.warning('请先选择要删除的物料')
+        return
+      }
+      
+      const count = this.selectedItems.length
+      const names = this.selectedItems.map(item => item.itemName).join('、')
+      
+      this.$confirm(`确定删除选中的 ${count} 个物料？\n${names.length > 50 ? names.substring(0, 50) + '...' : names}`, '提示', {
+        type: 'warning',
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消'
       }).then(async () => {
         try {
-          await delItem(row.itemId)
-          this.$message.success('删除成功')
+          const itemIds = this.selectedItems.map(item => item.itemId)
+          await batchDelItem(itemIds)
+          this.$message.success(`成功删除 ${count} 个物料`)
+          this.selectedItems = []
           this.fetchData()
         } catch (error) {
-          this.$message.error('删除失败')
+          this.$message.error('批量删除失败')
         }
       })
     },

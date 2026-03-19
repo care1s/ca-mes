@@ -139,6 +139,17 @@ export function delItem(itemId) {
 }
 
 /**
+ * 批量删除物料
+ * @param {Array} itemIds 物料ID数组
+ */
+export function batchDelItem(itemIds) {
+  return request({
+    url: '/mes/md/item/batch/' + itemIds.join(','),
+    method: 'delete'
+  })
+}
+
+/**
  * 导出物料
  * @param {Object} params 查询参数
  */
@@ -1410,3 +1421,137 @@ export function confirmWmIssue(issueId) {
   })
 }
 
+
+/**
+ * ==================== 仓区管理 API ====================
+ */
+
+// 仓区列表
+export function listWmZone(params) {
+  return request({
+    url: '/mes/wm/zone/list',
+    method: 'get',
+    params
+  })
+}
+
+// 仓区详情
+export function getWmZone(zoneId) {
+  return request({
+    url: '/mes/wm/zone/' + zoneId,
+    method: 'get'
+  })
+}
+
+// 根据仓库获取仓区
+export function getWmZoneByWarehouse(warehouseId) {
+  return request({
+    url: '/mes/wm/zone/warehouse/' + warehouseId,
+    method: 'get'
+  })
+}
+
+// 新增仓区
+export function addWmZone(data) {
+  return request({
+    url: '/mes/wm/zone',
+    method: 'post',
+    data
+  })
+}
+
+// 修改仓区
+export function updateWmZone(data) {
+  return request({
+    url: '/mes/wm/zone',
+    method: 'put',
+    data
+  })
+}
+
+// 删除仓区
+export function delWmZone(zoneId) {
+  return request({
+    url: '/mes/wm/zone/' + zoneId,
+    method: 'delete'
+  })
+}
+
+// 批量删除仓区
+export function delWmZoneBatch(zoneIds) {
+  return request({
+    url: '/mes/wm/zone/batch/' + zoneIds.join(','),
+    method: 'delete'
+  })
+}
+
+/**
+ * ==================== 仓位管理 API ====================
+ */
+
+// 仓位列表
+export function listWmLocation(params) {
+  return request({
+    url: '/mes/wm/location/list',
+    method: 'get',
+    params
+  })
+}
+
+// 仓位详情
+export function getWmLocation(locationId) {
+  return request({
+    url: '/mes/wm/location/' + locationId,
+    method: 'get'
+  })
+}
+
+// 根据仓区获取仓位
+export function getWmLocationByZone(zoneId) {
+  return request({
+    url: '/mes/wm/location/zone/' + zoneId,
+    method: 'get'
+  })
+}
+
+// 根据仓库获取仓位
+export function getWmLocationByWarehouse(warehouseId) {
+  return request({
+    url: '/mes/wm/location/warehouse/' + warehouseId,
+    method: 'get'
+  })
+}
+
+// 新增仓位
+export function addWmLocation(data) {
+  return request({
+    url: '/mes/wm/location',
+    method: 'post',
+    data
+  })
+}
+
+// 修改仓位
+export function updateWmLocation(data) {
+  return request({
+    url: '/mes/wm/location',
+    method: 'put',
+    data
+  })
+}
+
+// 删除仓位
+export function delWmLocation(locationId) {
+  return request({
+    url: '/mes/wm/location/' + locationId,
+    method: 'delete'
+  })
+}
+
+// 批量删除仓位
+export function delWmLocationBatch(locationIds) {
+  return request({
+    url: '/mes/wm/location/batch/' + locationIds.join(','),
+    method: 'delete'
+  })
+}

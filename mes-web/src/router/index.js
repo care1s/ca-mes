@@ -51,6 +51,8 @@ const WmBatch = () => import('@/views/wm/batch/index')
 const WmStocktaking = () => import('@/views/wm/stocktaking/index')
 const WmTransfer = () => import('@/views/wm/transfer/index')
 const WmWarning = () => import('@/views/wm/warning/index')
+const WmZone = () => import('@/views/wm/zone/index')
+const WmLocation = () => import('@/views/wm/location/index')
 
 // 质量管理页面
 const QcIqc = () => import('@/views/qc/iqc/index')
@@ -155,6 +157,8 @@ export const routes = [
     meta: { title: '仓储物流', icon: 'el-icon-house' },
     children: [
       { path: 'warehouse', name: 'WmWarehouse', component: WmWarehouse, meta: { title: '仓库管理', icon: 'el-icon-office-building' } },
+      { path: 'zone', name: 'WmZone', component: WmZone, meta: { title: '仓区管理', icon: 'el-icon-s-grid' } },
+      { path: 'location', name: 'WmLocation', component: WmLocation, meta: { title: '仓位管理', icon: 'el-icon-location' } },
       { path: 'stock', name: 'WmStock', component: WmStock, meta: { title: '库存查询', icon: 'el-icon-s-data' } },
       { path: 'recpt', name: 'WmRecpt', component: WmRecpt, meta: { title: '入库管理', icon: 'el-icon-download' } },
       { path: 'issue', name: 'WmIssue', component: WmIssue, meta: { title: '出库管理', icon: 'el-icon-upload2' } },

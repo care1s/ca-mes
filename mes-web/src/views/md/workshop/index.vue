@@ -9,6 +9,7 @@
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
+        <el-button type="danger" icon="el-icon-delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
         <el-button type="success" icon="el-icon-download">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
@@ -73,63 +74,66 @@
         <span v-else style="color: #f56c6c;">暂无数据，请检查网络或刷新页面</span>
       </div>
       
-      <el-table
-        
-        :data="tableData"
-        border
-        stripe
-        highlight-current-row
-        style="width: 100%"
-        @row-dblclick="handleRowDblclick"
-      >
-        <el-table-column type="index" label="序号" width="80" align="center" />
-        <el-table-column prop="workshopCode" label="编码" width="120" show-overflow-tooltip />
-        <el-table-column prop="workshopName" label="名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="managerName" label="负责人" width="100" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <span v-if="scope.row.managerName">{{ scope.row.managerName }}</span>
-            <span v-else style="color: #909399;">-</span>
+      <div class="table-scroll-wrapper">
+        <el-table
+          
+          :data="tableData"
+          border
+          stripe
+          highlight-current-row
+          style="width: 100%"
+          @row-dblclick="handleRowDblclick"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" align="center" fixed="left" />
+          <el-table-column type="index" label="序号" width="80" align="center" />
+          <el-table-column prop="workshopCode" label="编码" width="120" show-overflow-tooltip />
+          <el-table-column prop="workshopName" label="名称" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="managerName" label="负责人" width="100" show-overflow-tooltip>
+            <template slot-scope="scope">
+              <span v-if="scope.row.managerName">{{ scope.row.managerName }}</span>
+              <span v-else style="color: #909399;">-</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip>
+            <template slot-scope="scope">
+              <span v-if="scope.row.remark">{{ scope.row.remark }}</span>
+              <span v-else style="color: #909399;">-</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="orgMode" label="模式" width="100" align="center">
+            <template slot-scope="scope">
+              <el-tag v-if="scope.row.orgMode === 'SIMPLE'" type="success" size="mini">简单模式</el-tag>
+              <el-tag v-else-if="scope.row.orgMode === 'COMPLETE'" type="warning" size="mini">完整模式</el-tag>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="100" align="center">
+            <template slot-scope="scope">
+              <el-switch
+                v-model="scope.row.status"
+                active-value="0"
+                inactive-value="1"
+                @change="handleStatusChange(scope.row)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="创建时间" width="150" align="center" />
+          <el-table-column label="操作" width="120" align="center" fixed="right">
+            <template slot-scope="scope">
+              <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
+              <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
+            </template>
+          </el-table-column>
+          
+          <template slot="empty">
+            <div style="padding: 30px; text-align: center; color: #909399;">
+              <i class="el-icon-s-grid" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
+              <span>暂无数据</span>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <span v-if="scope.row.remark">{{ scope.row.remark }}</span>
-            <span v-else style="color: #909399;">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="orgMode" label="模式" width="100" align="center">
-          <template slot-scope="scope">
-            <el-tag v-if="scope.row.orgMode === 'SIMPLE'" type="success" size="mini">简单模式</el-tag>
-            <el-tag v-else-if="scope.row.orgMode === 'COMPLETE'" type="warning" size="mini">完整模式</el-tag>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="100" align="center">
-          <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              active-value="0"
-              inactive-value="1"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="150" align="center" />
-        <el-table-column label="操作" width="180" align="center" fixed="right">
-          <template slot-scope="scope">
-            <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-        
-        <template slot="empty">
-          <div style="padding: 30px; text-align: center; color: #909399;">
-            <i class="el-icon-s-grid" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
-            <span>暂无数据</span>
-          </div>
-        </template>
-      </el-table>
+        </el-table>
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -175,7 +179,7 @@
 </template>
 
 <script>
-import { listWorkshop, addWorkshop, updateWorkshop, delWorkshop, delWorkshopBatch } from '@/api/md'
+import { listWorkshop, addWorkshop, updateWorkshop, delWorkshopBatch } from '@/api/md'
 
 /**
  * 车间管理 - carels
@@ -201,6 +205,7 @@ export default {
         workshopName: ''
       },
       tableData: [],
+      selectedItems: [],
       dialogVisible: false,
       dialogTitle: '新增',
       form: {
@@ -294,22 +299,36 @@ export default {
       this.handleView(row)
     },
     
-    handleDelete(row) {
-      this.$confirm(`确认删除 "${row.workshopName}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+    handleSelectionChange(selection) {
+      this.selectedItems = selection
+    },
+
+    handleBatchDelete() {
+      if (this.selectedItems.length === 0) {
+        this.$message.warning('请先选择要删除的车间')
+        return
+      }
+
+      const count = this.selectedItems.length
+      const names = this.selectedItems.map(item => item.workshopName).join('、')
+
+      this.$confirm(`确定删除选中的 ${count} 个车间？\n${names.length > 50 ? names.substring(0, 50) + '...' : names}`, '提示', {
+        type: 'warning',
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消'
       }).then(async () => {
         try {
-          await delWorkshop(row.workshopId)
-          this.$message.success('删除成功')
+          const workshopIds = this.selectedItems.map(item => item.workshopId)
+          await delWorkshopBatch(workshopIds)
+          this.$message.success(`成功删除 ${count} 个车间`)
+          this.selectedItems = []
           this.fetchData()
         } catch (error) {
-          this.$message.error(error.message || '删除失败')
+          this.$message.error('批量删除失败')
         }
       })
     },
-    
+
     async handleStatusChange(row) {
       const status = row.status === '0' ? '启用' : '停用'
       try {
@@ -469,6 +488,29 @@ export default {
       i {
         margin-right: 8px;
         color: #409EFF;
+      }
+    }
+  }
+  
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+      border-radius: 4px;
+      
+      &:hover {
+        background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
       }
     }
   }

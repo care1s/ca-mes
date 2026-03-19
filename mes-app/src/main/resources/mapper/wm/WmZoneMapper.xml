@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmZoneMapper">
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmZone" id="WmZoneResult">
+        <id property="zoneId" column="zone_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="zoneCode" column="zone_code"/>
+        <result property="zoneName" column="zone_name"/>
+        <result property="zoneType" column="zone_type"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmZoneVo">
+        select z.zone_id, z.warehouse_id, w.warehouse_code, w.warehouse_name,
+               z.zone_code, z.zone_name, z.zone_type, z.status, z.remark,
+               z.create_by, z.create_time, z.update_by, z.update_time
+        from wm_zone z
+        left join wm_warehouse w on z.warehouse_id = w.warehouse_id
+    </sql>
+
+    <select id="selectWmZoneList" parameterType="com.carels.mes.module.wm.domain.WmZone" resultMap="WmZoneResult">
+        <include refid="selectWmZoneVo"/>
+        <where>
+            <if test="warehouseId != null">
+                AND z.warehouse_id = #{warehouseId}
+            </if>
+            <if test="zoneCode != null and zoneCode != ''">
+                AND z.zone_code like concat('%', #{zoneCode}, '%')
+            </if>
+            <if test="zoneName != null and zoneName != ''">
+                AND z.zone_name like concat('%', #{zoneName}, '%')
+            </if>
+            <if test="zoneType != null and zoneType != ''">
+                AND z.zone_type = #{zoneType}
+            </if>
+            <if test="status != null and status != ''">
+                AND z.status = #{status}
+            </if>
+        </where>
+        order by z.create_time desc
+    </select>
+
+    <select id="selectWmZoneById" parameterType="Long" resultMap="WmZoneResult">
+        <include refid="selectWmZoneVo"/>
+        where z.zone_id = #{zoneId}
+    </select>
+
+    <select id="selectWmZoneByWarehouseId" parameterType="Long" resultMap="WmZoneResult">
+        <include refid="selectWmZoneVo"/>
+        where z.warehouse_id = #{warehouseId}
+          and z.status = '0'
+        order by z.zone_code
+    </select>
+
+    <insert id="insertWmZone" parameterType="com.carels.mes.module.wm.domain.WmZone" useGeneratedKeys="true" keyProperty="zoneId">
+        insert into wm_zone
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="warehouseId != null">warehouse_id,</if>
+            <if test="zoneCode != null and zoneCode != ''">zone_code,</if>
+            <if test="zoneName != null and zoneName != ''">zone_name,</if>
+            <if test="zoneType != null and zoneType != ''">zone_type,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="warehouseId != null">#{warehouseId},</if>
+            <if test="zoneCode != null and zoneCode != ''">#{zoneCode},</if>
+            <if test="zoneName != null and zoneName != ''">#{zoneName},</if>
+            <if test="zoneType != null and zoneType != ''">#{zoneType},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateWmZone" parameterType="com.carels.mes.module.wm.domain.WmZone">
+        update wm_zone
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="zoneCode != null and zoneCode != ''">zone_code = #{zoneCode},</if>
+            <if test="zoneName != null and zoneName != ''">zone_name = #{zoneName},</if>
+            <if test="zoneType != null and zoneType != ''">zone_type = #{zoneType},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where zone_id = #{zoneId}
+    </update>
+
+    <delete id="deleteWmZoneById" parameterType="Long">
+        delete from wm_zone where zone_id = #{zoneId}
+    </delete>
+
+    <delete id="deleteWmZoneByIds">
+        delete from wm_zone where zone_id in
+        <foreach collection="array" item="zoneId" open="(" separator="," close=")">
+            #{zoneId}
+        </foreach>
+    </delete>
+
+    <select id="checkZoneCodeUnique" resultMap="WmZoneResult">
+        <include refid="selectWmZoneVo"/>
+        where z.zone_code = #{zoneCode}
+          and z.warehouse_id = #{warehouseId}
+    </select>
+
+</mapper>

@@ -3,9 +3,9 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <div class="title-section">
-        <i class="el-icon-office-building"></i>
-        <span class="title">仓库管理</span>
-        <span class="subtitle">Warehouse Management</span>
+        <i class="el-icon-map-location"></i>
+        <span class="title">仓区管理</span>
+        <span class="subtitle">Zone Management</span>
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
@@ -16,11 +16,30 @@
     <!-- 搜索栏 -->
     <el-card class="search-card" shadow="never">
       <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="仓库编码">
-          <el-input v-model="queryParams.warehouseCode" placeholder="请输入仓库编码" clearable />
+        <el-form-item label="所属仓库">
+          <el-select v-model="queryParams.warehouseId" placeholder="请选择仓库" clearable style="width: 180px">
+            <el-option
+              v-for="item in warehouseOptions"
+              :key="item.warehouseId"
+              :label="item.warehouseName"
+              :value="item.warehouseId"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="仓库名称">
-          <el-input v-model="queryParams.warehouseName" placeholder="请输入仓库名称" clearable />
+        <el-form-item label="仓区编码">
+          <el-input v-model="queryParams.zoneCode" placeholder="请输入仓区编码" clearable />
+        </el-form-item>
+        <el-form-item label="仓区名称">
+          <el-input v-model="queryParams.zoneName" placeholder="请输入仓区名称" clearable />
+        </el-form-item>
+        <el-form-item label="仓区类型">
+          <el-select v-model="queryParams.zoneType" placeholder="请选择仓区类型" clearable style="width: 150px">
+            <el-option label="收货区" value="RECEIVE" />
+            <el-option label="发货区" value="SHIP" />
+            <el-option label="存储区" value="STORAGE" />
+            <el-option label="拣货区" value="PICK" />
+            <el-option label="特殊区" value="SPECIAL" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
@@ -51,11 +70,22 @@
     <el-card class="table-card" shadow="never">
       <div slot="header" class="card-header">
         <span class="header-title">
-          <i class="el-icon-office-building"></i>
-          仓库列表
+          <i class="el-icon-map-location"></i>
+          仓区列表
         </span>
+        <div class="header-actions">
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            size="small"
+            :disabled="selectedRows.length === 0"
+            @click="handleBatchDelete"
+          >
+            批量删除
+          </el-button>
+        </div>
       </div>
-      
+
       <el-table
         v-loading="loading"
         :data="tableData"
@@ -63,19 +93,20 @@
         stripe
         highlight-current-row
         style="width: 100%"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="80" align="center" />
-        <el-table-column prop="warehouseCode" label="仓库编码" width="150" show-overflow-tooltip />
-        <el-table-column prop="warehouseName" label="仓库名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="warehouseType" label="仓库类型" width="120" align="center">
+        <el-table-column prop="warehouseName" label="所属仓库" width="150" show-overflow-tooltip />
+        <el-table-column prop="zoneCode" label="仓区编码" width="150" show-overflow-tooltip />
+        <el-table-column prop="zoneName" label="仓区名称" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="zoneType" label="仓区类型" width="120" align="center">
           <template slot-scope="scope">
-            <el-tag :type="getWarehouseTypeStyle(scope.row.warehouseType)" size="small">
-              {{ getWarehouseTypeLabel(scope.row.warehouseType) }}
+            <el-tag :type="getZoneTypeStyle(scope.row.zoneType)" size="small">
+              {{ getZoneTypeLabel(scope.row.zoneType) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="managerName" label="负责人" width="120" show-overflow-tooltip />
-        <el-table-column prop="phone" label="联系电话" width="150" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="80" align="center">
           <template slot-scope="scope">
             <el-switch
@@ -91,16 +122,15 @@
            <template slot-scope="scope">
              <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
              <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-             <el-tooltip content="新增仓区" placement="top">
-               <el-button type="text" style="color: #67C23A; font-size: 16px" @click="handleAddZone(scope.row)">
+             <el-tooltip content="新增仓位" placement="top">
+               <el-button type="text" style="color: #409EFF; font-size: 16px" @click="handleAddLocation(scope.row)">
                  <i class="el-icon-s-home"></i>
                </el-button>
              </el-tooltip>
-             <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
            </template>
          </el-table-column>
       </el-table>
-      
+
       <!-- 分页 -->
       <el-pagination
         class="pagination"
@@ -118,30 +148,38 @@
     <!-- 新增/编辑对话框 -->
     <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" :append-to-body="true" :modal-append-to-body="true">
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="仓库编码" prop="warehouseCode">
-          <el-input v-model="form.warehouseCode" placeholder="留空自动生成，或手动输入">
-            <el-button slot="append" icon="el-icon-magic-stick" @click="generateWarehouseCode">自动生成</el-button>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="仓库名称" prop="warehouseName">
-          <el-input v-model="form.warehouseName" placeholder="请输入仓库名称" />
-        </el-form-item>
-        <el-form-item label="仓库类型" prop="warehouseType">
-          <el-select v-model="form.warehouseType" placeholder="请选择仓库类型" style="width: 100%">
-            <el-option label="原材料仓" value="RAW" />
-            <el-option label="半成品仓" value="SEMI" />
-            <el-option label="成品仓" value="PRODUCT" />
-            <el-option label="备件仓" value="SPARE" />
+        <el-form-item label="所属仓库" prop="warehouseId">
+          <el-select v-model="form.warehouseId" placeholder="请选择所属仓库" style="width: 100%">
+            <el-option
+              v-for="item in warehouseOptions"
+              :key="item.warehouseId"
+              :label="item.warehouseName"
+              :value="item.warehouseId"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="负责人">
-          <el-input v-model="form.managerName" placeholder="请输入负责人姓名" />
+        <el-form-item label="仓区编码" prop="zoneCode">
+          <el-input v-model="form.zoneCode" placeholder="留空自动生成，或手动输入">
+            <el-button slot="append" icon="el-icon-magic-stick" @click="generateZoneCode">自动生成</el-button>
+          </el-input>
         </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" />
+        <el-form-item label="仓区名称" prop="zoneName">
+          <el-input v-model="form.zoneName" placeholder="请输入仓区名称" />
         </el-form-item>
-        <el-form-item label="地址">
-          <el-input v-model="form.address" placeholder="请输入仓库地址" />
+        <el-form-item label="仓区类型" prop="zoneType">
+          <el-select v-model="form.zoneType" placeholder="请选择仓区类型" style="width: 100%">
+            <el-option label="收货区" value="RECEIVE" />
+            <el-option label="发货区" value="SHIP" />
+            <el-option label="存储区" value="STORAGE" />
+            <el-option label="拣货区" value="PICK" />
+            <el-option label="特殊区" value="SPECIAL" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="form.status">
+            <el-radio label="0">启用</el-radio>
+            <el-radio label="1">停用</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
@@ -152,14 +190,46 @@
         <el-button type="primary" @click="submitForm" :loading="submitLoading">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="仓区详情" :visible.sync="viewDialogVisible" width="500px" :append-to-body="true">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="仓区编码">{{ viewData.zoneCode }}</el-descriptions-item>
+        <el-descriptions-item label="仓区名称">{{ viewData.zoneName }}</el-descriptions-item>
+        <el-descriptions-item label="所属仓库">{{ viewData.warehouseName }}</el-descriptions-item>
+        <el-descriptions-item label="仓区类型">
+          <el-tag :type="getZoneTypeStyle(viewData.zoneType)" size="small">
+            {{ getZoneTypeLabel(viewData.zoneType) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="viewData.status === '0' ? 'success' : 'info'" size="small">
+            {{ viewData.status === '0' ? '启用' : '停用' }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="备注">{{ viewData.remark || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ viewData.createTime }}</el-descriptions-item>
+      </el-descriptions>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="viewDialogVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listWmWarehouse, addWmWarehouse, updateWmWarehouse, delWmWarehouse, updateWmWarehouseStatus } from '@/api/md'
+import {
+  listWmZone,
+  getWmZone,
+  addWmZone,
+  updateWmZone,
+  delWmZone,
+  delWmZoneBatch,
+  listWmWarehouse
+} from '@/api/md'
 
 export default {
-  name: 'WmWarehouse',
+  name: 'WmZone',
   data() {
     return {
       loading: false,
@@ -173,37 +243,56 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        warehouseCode: '',
-        warehouseName: ''
+        warehouseId: '',
+        zoneCode: '',
+        zoneName: '',
+        zoneType: ''
       },
       tableData: [],
+      selectedRows: [],
+      warehouseOptions: [],
       dialogVisible: false,
-      dialogTitle: '新增仓库',
+      dialogTitle: '新增仓区',
+      viewDialogVisible: false,
+      viewData: {},
       form: {
-        warehouseId: null,
-        warehouseCode: '',
-        warehouseName: '',
-        warehouseType: '',
-        managerName: '',
-        phone: '',
-        address: '',
+        zoneId: null,
+        warehouseId: '',
+        zoneCode: '',
+        zoneName: '',
+        zoneType: '',
+        status: '0',
         remark: ''
       },
       rules: {
-        warehouseCode: [{ required: true, message: '请输入仓库编码', trigger: 'blur' }],
-        warehouseName: [{ required: true, message: '请输入仓库名称', trigger: 'blur' }],
-        warehouseType: [{ required: true, message: '请选择仓库类型', trigger: 'change' }]
+        warehouseId: [{ required: true, message: '请选择所属仓库', trigger: 'change' }],
+        zoneCode: [{ required: true, message: '请输入仓区编码', trigger: 'blur' }],
+        zoneName: [{ required: true, message: '请输入仓区名称', trigger: 'blur' }],
+        zoneType: [{ required: true, message: '请选择仓区类型', trigger: 'change' }]
       }
     }
   },
   mounted() {
+    this.fetchWarehouseOptions()
+    // 检查是否从仓库页面跳转过来
+    const { warehouseId, warehouseName } = this.$route.query
+    if (warehouseId) {
+      this.queryParams.warehouseId = parseInt(warehouseId)
+      this.$message.info(`已筛选仓库：${warehouseName || ''}`)
+    }
     this.fetchData()
   },
   methods: {
+    // 获取仓库选项
+    fetchWarehouseOptions() {
+      listWmWarehouse({ pageNum: 1, pageSize: 1000 }).then(response => {
+        this.warehouseOptions = response.rows || []
+      })
+    },
     // 获取数据
     fetchData() {
       this.loading = true
-      listWmWarehouse(this.queryParams).then(response => {
+      listWmZone(this.queryParams).then(response => {
         this.tableData = response.rows || []
         this.total = response.total || 0
         this.updateStats(this.tableData)
@@ -228,59 +317,78 @@ export default {
       this.queryParams = {
         pageNum: 1,
         pageSize: 10,
-        warehouseCode: '',
-        warehouseName: ''
+        warehouseId: '',
+        zoneCode: '',
+        zoneName: '',
+        zoneType: ''
       }
       this.fetchData()
     },
+    // 表格选择变化
+    handleSelectionChange(selection) {
+      this.selectedRows = selection
+    },
     // 新增
     handleAdd() {
-      this.dialogTitle = '新增仓库'
+      this.dialogTitle = '新增仓区'
       this.resetForm()
+      // 如果路由中有仓库ID，自动填充
+      const { warehouseId } = this.$route.query
+      if (warehouseId) {
+        this.form.warehouseId = parseInt(warehouseId)
+      }
       this.dialogVisible = true
     },
     // 编辑
     handleEdit(row) {
-      this.dialogTitle = '编辑仓库'
+      this.dialogTitle = '编辑仓区'
       this.form = { ...row }
       this.dialogVisible = true
     },
     // 查看
     handleView(row) {
-      this.$alert(`
-        <div style="padding: 10px;">
-          <p><strong>仓库编码：</strong>${row.warehouseCode}</p>
-          <p><strong>仓库名称：</strong>${row.warehouseName}</p>
-          <p><strong>仓库类型：</strong>${this.getWarehouseTypeLabel(row.warehouseType)}</p>
-          <p><strong>负责人：</strong>${row.managerName || '-'}</p>
-          <p><strong>联系电话：</strong>${row.phone || '-'}</p>
-          <p><strong>地址：</strong>${row.address || '-'}</p>
-          <p><strong>备注：</strong>${row.remark || '-'}</p>
-        </div>
-      `, '仓库详情', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
+      getWmZone(row.zoneId).then(response => {
+        this.viewData = response.data
+        this.viewDialogVisible = true
       })
     },
-    // 新增仓区
-    handleAddZone(row) {
+    // 新增仓位
+    handleAddLocation(row) {
       this.$router.push({
-        path: '/wm/zone',
+        path: '/wm/location',
         query: {
           warehouseId: row.warehouseId,
-          warehouseName: row.warehouseName
+          warehouseName: row.warehouseName,
+          zoneId: row.zoneId,
+          zoneName: row.zoneName
         }
       })
     },
     // 删除
     handleDelete(row) {
-      this.$confirm(`确认删除 "${row.warehouseName}" 吗？`, '提示', {
+      this.$confirm(`确认删除 "${row.zoneName}" 吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delWmWarehouse(row.warehouseId).then(() => {
+        delWmZone(row.zoneId).then(() => {
           this.$message.success('删除成功')
+          this.fetchData()
+        })
+      })
+    },
+    // 批量删除
+    handleBatchDelete() {
+      const zoneIds = this.selectedRows.map(row => row.zoneId)
+      const zoneNames = this.selectedRows.map(row => row.zoneName).join(', ')
+      this.$confirm(`确认删除选中的 ${this.selectedRows.length} 个仓区吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        delWmZoneBatch(zoneIds).then(() => {
+          this.$message.success('批量删除成功')
+          this.selectedRows = []
           this.fetchData()
         })
       })
@@ -288,12 +396,12 @@ export default {
     // 状态变更
     handleStatusChange(row) {
       const text = row.status === '0' ? '启用' : '停用'
-      this.$confirm(`确认要"${text}""${row.warehouseName}"吗？`, '警告', {
+      this.$confirm(`确认要"${text}""${row.zoneName}"吗？`, '警告', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        updateWmWarehouseStatus(row.warehouseId, row.status).then(() => {
+        updateWmZone(row).then(() => {
           this.$message.success(text + '成功')
         }).catch(() => {
           row.status = row.status === '0' ? '1' : '0'
@@ -315,13 +423,11 @@ export default {
     // 重置表单
     resetForm() {
       this.form = {
-        warehouseId: null,
-        warehouseCode: '',
-        warehouseName: '',
-        warehouseType: '',
-        managerName: '',
-        phone: '',
-        address: '',
+        zoneId: null,
+        warehouseId: '',
+        zoneCode: '',
+        zoneName: '',
+        zoneType: '',
         status: '0',
         remark: ''
       }
@@ -331,8 +437,8 @@ export default {
       this.$refs.form.validate(valid => {
         if (valid) {
           this.submitLoading = true
-          if (this.form.warehouseId) {
-            updateWmWarehouse(this.form).then(() => {
+          if (this.form.zoneId) {
+            updateWmZone(this.form).then(() => {
               this.$message.success('修改成功')
               this.dialogVisible = false
               this.fetchData()
@@ -341,7 +447,7 @@ export default {
               this.submitLoading = false
             })
           } else {
-            addWmWarehouse(this.form).then(() => {
+            addWmZone(this.form).then(() => {
               this.$message.success('新增成功')
               this.dialogVisible = false
               this.fetchData()
@@ -353,22 +459,33 @@ export default {
         }
       })
     },
-    // 自动生成仓库编码
-    generateWarehouseCode() {
-      const prefix = 'WH'
-      const timestamp = new Date().getTime().toString().slice(-6)
-      const random = Math.floor(Math.random() * 100).toString().padStart(2, '0')
-      this.form.warehouseCode = `${prefix}${timestamp}${random}`
-      this.$message.success('已生成仓库编码')
+    // 生成仓区编码
+    generateZoneCode() {
+      const prefix = 'ZONE'
+      const timestamp = Date.now().toString().slice(-6)
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+      this.form.zoneCode = `${prefix}${timestamp}${random}`
     },
-    // 获取仓库类型标签
-    getWarehouseTypeLabel(type) {
-      const map = { RAW: '原材料仓', SEMI: '半成品仓', PRODUCT: '成品仓', SPARE: '备件仓' }
+    // 获取仓区类型标签
+    getZoneTypeLabel(type) {
+      const map = {
+        RECEIVE: '收货区',
+        SHIP: '发货区',
+        STORAGE: '存储区',
+        PICK: '拣货区',
+        SPECIAL: '特殊区'
+      }
       return map[type] || type
     },
-    // 获取仓库类型样式
-    getWarehouseTypeStyle(type) {
-      const map = { RAW: 'primary', SEMI: 'warning', PRODUCT: 'success', SPARE: 'info' }
+    // 获取仓区类型样式
+    getZoneTypeStyle(type) {
+      const map = {
+        RECEIVE: 'success',
+        SHIP: 'warning',
+        STORAGE: 'primary',
+        PICK: 'info',
+        SPECIAL: 'danger'
+      }
       return map[type] || ''
     }
   }
@@ -393,20 +510,20 @@ export default {
   .title-section {
     display: flex;
     align-items: center;
-    
+
     i {
       font-size: 28px;
       color: #409EFF;
       margin-right: 12px;
     }
-    
+
     .title {
       font-size: 22px;
       font-weight: 600;
       color: #303133;
       margin-right: 10px;
     }
-    
+
     .subtitle {
       font-size: 13px;
       color: #909399;
@@ -418,7 +535,7 @@ export default {
 // 搜索栏
 .search-card {
   margin-bottom: 20px;
-  
+
   .search-form {
     .el-form-item {
       margin-bottom: 0;
@@ -437,35 +554,35 @@ export default {
   margin-bottom: 15px;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  
+
   .stat-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    
+
     .stat-label {
       font-size: 13px;
       color: #606266;
     }
-    
+
     .stat-value {
       font-size: 16px;
       font-weight: 600;
-      
+
       &.blue {
         color: #409EFF;
       }
-      
+
       &.green {
         color: #67c23a;
       }
-      
+
       &.orange {
         color: #e6a23c;
       }
     }
   }
-  
+
   .stat-divider {
     width: 1px;
     height: 20px;
@@ -480,22 +597,33 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .header-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
-      
+
       i {
         margin-right: 8px;
         color: #409EFF;
       }
     }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
   }
-  
+
   .el-table {
     margin-top: 15px;
   }
+}
+
+// 分页
+.pagination {
+  margin-top: 20px;
+  text-align: right;
 }
 
 // 响应式调整
@@ -503,7 +631,7 @@ export default {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    
+
     .action-section {
       margin-top: 10px;
     }

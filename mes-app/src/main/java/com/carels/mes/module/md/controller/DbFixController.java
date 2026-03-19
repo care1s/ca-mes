@@ -976,8 +976,29 @@ public class DbFixController {
             String checkTable = "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wm_warehouse'";
             Integer tableCount = jdbcTemplate.queryForObject(checkTable, Integer.class);
             if (tableCount == null || tableCount == 0) {
-                jdbcTemplate.execute("CREATE TABLE wm_warehouse (warehouse_id BIGINT AUTO_INCREMENT PRIMARY KEY, warehouse_code VARCHAR(50) NOT NULL, warehouse_name VARCHAR(100) NOT NULL, warehouse_type VARCHAR(20), location VARCHAR(200), manager_id BIGINT, manager_name VARCHAR(50), status INT DEFAULT 0, remark VARCHAR(500), create_by VARCHAR(64), create_time DATETIME DEFAULT CURRENT_TIMESTAMP, update_by VARCHAR(64), update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_warehouse_code (warehouse_code)) COMMENT '仓库管理表'");
+                jdbcTemplate.execute("CREATE TABLE wm_warehouse (warehouse_id BIGINT AUTO_INCREMENT PRIMARY KEY, warehouse_code VARCHAR(50) NOT NULL, warehouse_name VARCHAR(100) NOT NULL, warehouse_type VARCHAR(20), manager_id BIGINT, manager_name VARCHAR(50), phone VARCHAR(20), address VARCHAR(200), status VARCHAR(1) DEFAULT '0', remark VARCHAR(500), create_by VARCHAR(64), create_time DATETIME DEFAULT CURRENT_TIMESTAMP, update_by VARCHAR(64), update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_warehouse_code (warehouse_code)) COMMENT '仓库管理表'");
                 log.info("仓库管理表创建成功！");
+            } else {
+                // 检查并添加缺失的字段
+                try {
+                    jdbcTemplate.execute("ALTER TABLE wm_warehouse ADD COLUMN phone VARCHAR(20)");
+                    log.info("添加字段: phone");
+                } catch (Exception e) {
+                    log.debug("字段phone已存在: {}", e.getMessage());
+                }
+                try {
+                    jdbcTemplate.execute("ALTER TABLE wm_warehouse ADD COLUMN address VARCHAR(200)");
+                    log.info("添加字段: address");
+                } catch (Exception e) {
+                    log.debug("字段address已存在: {}", e.getMessage());
+                }
+                // 修改status字段类型
+                try {
+                    jdbcTemplate.execute("ALTER TABLE wm_warehouse MODIFY COLUMN status VARCHAR(1) DEFAULT '0'");
+                    log.info("修改字段status类型为VARCHAR(1)");
+                } catch (Exception e) {
+                    log.debug("字段status修改失败: {}", e.getMessage());
+                }
             }
         } catch (Exception e) {
             log.debug("仓库管理表已存在或创建失败: {}", e.getMessage());
@@ -1255,6 +1276,106 @@ public class DbFixController {
             }
         } catch (Exception e) {
             log.error("自动修复缺陷管理表失败: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 自动修复仓区表
+     */
+    @PostConstruct
+    public void autoFixWmZoneTable() {
+        try {
+            log.info("检查并修复仓区表结构...");
+            
+            String checkTable = "SELECT COUNT(*) FROM information_schema.TABLES " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wm_zone'";
+            Integer tableCount = jdbcTemplate.queryForObject(checkTable, Integer.class);
+            
+            if (tableCount == null || tableCount == 0) {
+                log.info("仓区表不存在，正在创建...");
+                String createTable = "CREATE TABLE wm_zone (" +
+                        "zone_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '仓区ID', " +
+                        "warehouse_id BIGINT NOT NULL COMMENT '仓库ID', " +
+                        "warehouse_code VARCHAR(50) NULL COMMENT '仓库编码', " +
+                        "warehouse_name VARCHAR(100) NULL COMMENT '仓库名称', " +
+                        "zone_code VARCHAR(50) NOT NULL COMMENT '仓区编码', " +
+                        "zone_name VARCHAR(100) NOT NULL COMMENT '仓区名称', " +
+                        "zone_type VARCHAR(20) DEFAULT 'STORAGE' COMMENT '仓区类型: RECEIVE-收货区, SHIP-发货区, STORAGE-存储区, PICK-拣货区, SPECIAL-特殊区', " +
+                        "status VARCHAR(1) DEFAULT '0' COMMENT '状态: 0-启用, 1-停用', " +
+                        "remark VARCHAR(500) NULL COMMENT '备注', " +
+                        "create_by VARCHAR(64) NULL COMMENT '创建者', " +
+                        "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', " +
+                        "update_by VARCHAR(64) NULL COMMENT '更新者', " +
+                        "update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间', " +
+                        "UNIQUE KEY uk_zone_code_warehouse (zone_code, warehouse_id)" +
+                        ") COMMENT '仓区表'";
+                jdbcTemplate.execute(createTable);
+                
+                jdbcTemplate.execute("CREATE INDEX idx_warehouse_id ON wm_zone(warehouse_id)");
+                jdbcTemplate.execute("CREATE INDEX idx_zone_type ON wm_zone(zone_type)");
+                jdbcTemplate.execute("CREATE INDEX idx_status ON wm_zone(status)");
+                
+                log.info("仓区表创建成功！");
+            } else {
+                log.info("仓区表已存在");
+            }
+        } catch (Exception e) {
+            log.error("自动修复仓区表失败: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 自动修复仓位表
+     */
+    @PostConstruct
+    public void autoFixWmLocationTable() {
+        try {
+            log.info("检查并修复仓位表结构...");
+            
+            String checkTable = "SELECT COUNT(*) FROM information_schema.TABLES " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wm_location'";
+            Integer tableCount = jdbcTemplate.queryForObject(checkTable, Integer.class);
+            
+            if (tableCount == null || tableCount == 0) {
+                log.info("仓位表不存在，正在创建...");
+                String createTable = "CREATE TABLE wm_location (" +
+                        "location_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '仓位ID', " +
+                        "warehouse_id BIGINT NOT NULL COMMENT '仓库ID', " +
+                        "warehouse_code VARCHAR(50) NULL COMMENT '仓库编码', " +
+                        "warehouse_name VARCHAR(100) NULL COMMENT '仓库名称', " +
+                        "zone_id BIGINT NOT NULL COMMENT '仓区ID', " +
+                        "zone_code VARCHAR(50) NULL COMMENT '仓区编码', " +
+                        "zone_name VARCHAR(100) NULL COMMENT '仓区名称', " +
+                        "location_code VARCHAR(50) NOT NULL COMMENT '仓位编码', " +
+                        "location_name VARCHAR(100) NOT NULL COMMENT '仓位名称', " +
+                        "aisle_no VARCHAR(20) NULL COMMENT '巷道号', " +
+                        "shelf_no VARCHAR(20) NULL COMMENT '货架号', " +
+                        "layer_no VARCHAR(20) NULL COMMENT '层号', " +
+                        "position_no VARCHAR(20) NULL COMMENT '位号', " +
+                        "capacity INT DEFAULT 1 COMMENT '容量(托盘数)', " +
+                        "used_capacity INT DEFAULT 0 COMMENT '已用容量', " +
+                        "status VARCHAR(1) DEFAULT '0' COMMENT '状态: 0-启用, 1-停用, 2-占用', " +
+                        "remark VARCHAR(500) NULL COMMENT '备注', " +
+                        "create_by VARCHAR(64) NULL COMMENT '创建者', " +
+                        "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', " +
+                        "update_by VARCHAR(64) NULL COMMENT '更新者', " +
+                        "update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间', " +
+                        "UNIQUE KEY uk_location_code_zone (location_code, zone_id)" +
+                        ") COMMENT '仓位表'";
+                jdbcTemplate.execute(createTable);
+                
+                jdbcTemplate.execute("CREATE INDEX idx_warehouse_id ON wm_location(warehouse_id)");
+                jdbcTemplate.execute("CREATE INDEX idx_zone_id ON wm_location(zone_id)");
+                jdbcTemplate.execute("CREATE INDEX idx_location_code ON wm_location(location_code)");
+                jdbcTemplate.execute("CREATE INDEX idx_aisle_shelf_layer ON wm_location(aisle_no, shelf_no, layer_no)");
+                jdbcTemplate.execute("CREATE INDEX idx_status ON wm_location(status)");
+                
+                log.info("仓位表创建成功！");
+            } else {
+                log.info("仓位表已存在");
+            }
+        } catch (Exception e) {
+            log.error("自动修复仓位表失败: {}", e.getMessage(), e);
         }
     }
 }

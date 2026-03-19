@@ -179,9 +179,16 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="入库仓库" prop="warehouseId">
-              <el-input v-model="form.warehouseName" placeholder="请选择仓库" />
-            </el-form-item>
+             <el-form-item label="入库仓库" prop="warehouseId">
+               <el-select v-model="form.warehouseId" placeholder="请选择仓库" style="width: 100%" @change="handleWarehouseChange">
+                 <el-option
+                   v-for="item in warehouseOptions"
+                   :key="item.warehouseId"
+                   :label="item.warehouseName"
+                   :value="item.warehouseId"
+                 />
+               </el-select>
+             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="入库日期" prop="recptDate">
@@ -285,7 +292,7 @@
 </template>
 
 <script>
-import { listWmRecpt, getWmRecpt, addWmRecpt, updateWmRecpt, delWmRecpt, confirmWmRecpt } from '@/api/md'
+import { listWmRecpt, getWmRecpt, addWmRecpt, updateWmRecpt, delWmRecpt, confirmWmRecpt, listWmWarehouse } from '@/api/md'
 
 /**
  * 入库管理 - carels
@@ -315,6 +322,7 @@ export default {
         status: ''
       },
       tableData: [],
+      warehouseOptions: [],
       dialogVisible: false,
       viewDialogVisible: false,
       dialogTitle: '新增',
@@ -344,12 +352,13 @@ export default {
       },
       rules: {
         recptType: [{ required: true, message: '请选择入库类型', trigger: 'change' }],
-        warehouseName: [{ required: true, message: '请输入入库仓库', trigger: 'blur' }]
+        warehouseId: [{ required: true, message: '请选择入库仓库', trigger: 'change' }]
       }
     }
   },
   mounted() {
     this.fetchData()
+    this.fetchWarehouseOptions()
   },
   methods: {
     async fetchData() {
@@ -367,6 +376,16 @@ export default {
         this.$message.error('获取数据失败: ' + error.message)
       } finally {
         this.loading = false
+      }
+    },
+    async fetchWarehouseOptions() {
+      try {
+        const res = await listWmWarehouse({ pageNum: 1, pageSize: 1000 })
+        if (res.code === 200) {
+          this.warehouseOptions = res.rows || []
+        }
+      } catch (error) {
+        console.error('获取仓库列表失败:', error)
       }
     },
     calculateStats() {
@@ -389,6 +408,12 @@ export default {
         status: ''
       }
       this.fetchData()
+    },
+    handleWarehouseChange(val) {
+      const warehouse = this.warehouseOptions.find(item => item.warehouseId === val)
+      if (warehouse) {
+        this.form.warehouseName = warehouse.warehouseName
+      }
     },
     handleAdd() {
       this.dialogTitle = '新增入库单'

@@ -14,6 +14,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/mes/pur/request")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class PurRequestController extends BaseController {
     
     @Autowired

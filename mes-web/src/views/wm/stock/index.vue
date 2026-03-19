@@ -196,15 +196,15 @@ export default {
     // 获取仓库列表
     fetchWarehouseList() {
       listWmWarehouse({ pageNum: 1, pageSize: 100 }).then(response => {
-        this.warehouseList = response.data.rows || []
+        this.warehouseList = response.rows || []
       })
     },
     // 获取数据
     fetchData() {
       this.loading = true
       listWmStock(this.queryParams).then(response => {
-        this.tableData = response.data.rows || []
-        this.total = response.data.total || 0
+        this.tableData = response.rows || []
+        this.total = response.total || 0
         this.updateStats(this.tableData)
         this.loading = false
       }).catch(() => {

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.wm.mapper.WmLocationMapper">
+
+    <resultMap type="com.carels.mes.module.wm.domain.WmLocation" id="WmLocationResult">
+        <id property="locationId" column="location_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="zoneId" column="zone_id"/>
+        <result property="zoneCode" column="zone_code"/>
+        <result property="zoneName" column="zone_name"/>
+        <result property="locationCode" column="location_code"/>
+        <result property="locationName" column="location_name"/>
+        <result property="aisleNo" column="aisle_no"/>
+        <result property="shelfNo" column="shelf_no"/>
+        <result property="layerNo" column="layer_no"/>
+        <result property="positionNo" column="position_no"/>
+        <result property="capacity" column="capacity"/>
+        <result property="usedCapacity" column="used_capacity"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWmLocationVo">
+        select l.location_id, l.warehouse_id, w.warehouse_code, w.warehouse_name,
+               l.zone_id, z.zone_code, z.zone_name, l.location_code, l.location_name,
+               l.aisle_no, l.shelf_no, l.layer_no, l.position_no,
+               l.capacity, l.used_capacity, l.status, l.remark,
+               l.create_by, l.create_time, l.update_by, l.update_time
+        from wm_location l
+        left join wm_warehouse w on l.warehouse_id = w.warehouse_id
+        left join wm_zone z on l.zone_id = z.zone_id
+    </sql>
+
+    <select id="selectWmLocationList" parameterType="com.carels.mes.module.wm.domain.WmLocation" resultMap="WmLocationResult">
+        <include refid="selectWmLocationVo"/>
+        <where>
+            <if test="warehouseId != null">
+                AND l.warehouse_id = #{warehouseId}
+            </if>
+            <if test="zoneId != null">
+                AND l.zone_id = #{zoneId}
+            </if>
+            <if test="locationCode != null and locationCode != ''">
+                AND l.location_code like concat('%', #{locationCode}, '%')
+            </if>
+            <if test="locationName != null and locationName != ''">
+                AND l.location_name like concat('%', #{locationName}, '%')
+            </if>
+            <if test="aisleNo != null and aisleNo != ''">
+                AND l.aisle_no = #{aisleNo}
+            </if>
+            <if test="shelfNo != null and shelfNo != ''">
+                AND l.shelf_no = #{shelfNo}
+            </if>
+            <if test="status != null and status != ''">
+                AND l.status = #{status}
+            </if>
+        </where>
+        order by l.warehouse_id, l.zone_id, l.location_code
+    </select>
+
+    <select id="selectWmLocationById" parameterType="Long" resultMap="WmLocationResult">
+        <include refid="selectWmLocationVo"/>
+        where l.location_id = #{locationId}
+    </select>
+
+    <select id="selectWmLocationByZoneId" parameterType="Long" resultMap="WmLocationResult">
+        <include refid="selectWmLocationVo"/>
+        where l.zone_id = #{zoneId}
+          and l.status = '0'
+        order by l.location_code
+    </select>
+
+    <select id="selectWmLocationByWarehouseId" parameterType="Long" resultMap="WmLocationResult">
+        <include refid="selectWmLocationVo"/>
+        where l.warehouse_id = #{warehouseId}
+          and l.status = '0'
+        order by l.zone_id, l.location_code
+    </select>
+
+    <insert id="insertWmLocation" parameterType="com.carels.mes.module.wm.domain.WmLocation" useGeneratedKeys="true" keyProperty="locationId">
+        insert into wm_location
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="warehouseId != null">warehouse_id,</if>
+            <if test="zoneId != null">zone_id,</if>
+            <if test="locationCode != null and locationCode != ''">location_code,</if>
+            <if test="locationName != null and locationName != ''">location_name,</if>
+            <if test="aisleNo != null and aisleNo != ''">aisle_no,</if>
+            <if test="shelfNo != null and shelfNo != ''">shelf_no,</if>
+            <if test="layerNo != null and layerNo != ''">layer_no,</if>
+            <if test="positionNo != null and positionNo != ''">position_no,</if>
+            <if test="capacity != null">capacity,</if>
+            <if test="usedCapacity != null">used_capacity,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="warehouseId != null">#{warehouseId},</if>
+            <if test="zoneId != null">#{zoneId},</if>
+            <if test="locationCode != null and locationCode != ''">#{locationCode},</if>
+            <if test="locationName != null and locationName != ''">#{locationName},</if>
+            <if test="aisleNo != null and aisleNo != ''">#{aisleNo},</if>
+            <if test="shelfNo != null and shelfNo != ''">#{shelfNo},</if>
+            <if test="layerNo != null and layerNo != ''">#{layerNo},</if>
+            <if test="positionNo != null and positionNo != ''">#{positionNo},</if>
+            <if test="capacity != null">#{capacity},</if>
+            <if test="usedCapacity != null">#{usedCapacity},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateWmLocation" parameterType="com.carels.mes.module.wm.domain.WmLocation">
+        update wm_location
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="zoneId != null">zone_id = #{zoneId},</if>
+            <if test="locationCode != null and locationCode != ''">location_code = #{locationCode},</if>
+            <if test="locationName != null and locationName != ''">location_name = #{locationName},</if>
+            <if test="aisleNo != null and aisleNo != ''">aisle_no = #{aisleNo},</if>
+            <if test="shelfNo != null and shelfNo != ''">shelf_no = #{shelfNo},</if>
+            <if test="layerNo != null and layerNo != ''">layer_no = #{layerNo},</if>
+            <if test="positionNo != null and positionNo != ''">position_no = #{positionNo},</if>
+            <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="usedCapacity != null">used_capacity = #{usedCapacity},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where location_id = #{locationId}
+    </update>
+
+    <delete id="deleteWmLocationById" parameterType="Long">
+        delete from wm_location where location_id = #{locationId}
+    </delete>
+
+    <delete id="deleteWmLocationByIds">
+        delete from wm_location where location_id in
+        <foreach collection="array" item="locationId" open="(" separator="," close=")">
+            #{locationId}
+        </foreach>
+    </delete>
+
+    <select id="checkLocationCodeUnique" resultMap="WmLocationResult">
+        <include refid="selectWmLocationVo"/>
+        where l.location_code = #{locationCode}
+          and l.zone_id = #{zoneId}
+    </select>
+
+</mapper>
