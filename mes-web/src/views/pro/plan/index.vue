@@ -70,7 +70,7 @@
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
-      <el-table  :data="tableData" stripe>
+      <el-table :data="tableData" stripe>
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="planNo" label="计划单号" width="140" />
         <el-table-column prop="planName" label="计划名称" min-width="150" show-overflow-tooltip />
@@ -532,4 +532,6 @@ export default {
 .el-card__body {
   pointer-events: auto;
 }
+
+
 </style>

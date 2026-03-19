@@ -9,7 +9,7 @@
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" size="small" @click="handleAdd">新增物料</el-button>
         <el-button type="danger" icon="el-icon-delete" size="small" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
-        <el-button icon="el-icon-download" size="small">导出</el-button>
+        <el-button icon="el-icon-download" size="small" @click="handleExport">导出</el-button>
         <el-button icon="el-icon-refresh" size="small" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -573,6 +573,7 @@
 </template>
 
 <script>
+import XLSX from 'xlsx'
 import { 
   listItem, 
   addItem, 
@@ -738,6 +739,38 @@ export default {
   },
   
   methods: {
+    getTypeTagType(attr) {
+      const map = { 'RAW': '原材料', 'SEMI': '半成品', 'PRODUCT': '产成品' }
+      return map[attr] || attr
+    },
+    handleExport() {
+      if (this.tableData.length === 0) {
+        this.$message.warning('暂无数据可导出')
+        return
+      }
+      
+      const headers = ['序号', '物料编码', '物料名称', '所属类型', '规格型号', '单位', '安全库存', '状态']
+      const data = this.tableData.map((row, index) => [
+        index + 1,
+        row.itemCode,
+        row.itemName,
+        row.itemTypeName,
+        row.specification || '-',
+        row.unitName,
+        row.safetyStock,
+        row.status === '0' ? '启用' : '停用'
+      ])
+      
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '物料信息')
+      
+      const now = new Date()
+      const filename = `物料信息_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+      
+      XLSX.writeFile(wb, filename)
+      this.$message.success('导出成功')
+    },
     calcTableHeight() {
       this.tableHeight = window.innerHeight - 340
     },

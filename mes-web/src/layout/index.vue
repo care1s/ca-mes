@@ -100,7 +100,6 @@
             <template slot="title">
               <span>更多</span>
               <el-badge :value="hiddenMenus.length" class="more-badge" type="primary"></el-badge>
-              <i class="el-icon-arrow-down more-arrow"></i>
             </template>
             
             <!-- 主数据 -->

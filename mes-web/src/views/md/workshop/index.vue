@@ -10,7 +10,7 @@
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
         <el-button type="danger" icon="el-icon-delete" :disabled="selectedItems.length === 0" @click="handleBatchDelete">批量删除</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
+        <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -179,6 +179,7 @@
 </template>
 
 <script>
+import XLSX from 'xlsx'
 import { listWorkshop, addWorkshop, updateWorkshop, delWorkshopBatch } from '@/api/md'
 
 /**
@@ -228,6 +229,35 @@ export default {
     this.fetchData()
   },
   methods: {
+    handleExport() {
+      if (this.tableData.length === 0) {
+        this.$message.warning('暂无数据可导出')
+        return
+      }
+      
+      const headers = ['序号', '编码', '名称', '负责人', '备注', '模式', '状态', '创建时间']
+      const data = this.tableData.map((row, index) => [
+        index + 1,
+        row.workshopCode,
+        row.workshopName,
+        row.managerName || '-',
+        row.remark || '-',
+        row.orgMode === 'SIMPLE' ? '简单模式' : '完整模式',
+        row.status === '0' ? '启用' : '停用',
+        row.createTime
+      ])
+      
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '车间管理')
+      
+      const now = new Date()
+      const filename = `车间管理_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+      
+      XLSX.writeFile(wb, filename)
+      this.$message.success('导出成功')
+    },
+
     async fetchData() {
       this.loading = true
       console.log('开始加载车间数据...')

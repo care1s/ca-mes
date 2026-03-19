@@ -9,7 +9,7 @@
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
+        <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -207,44 +207,52 @@
         
         <!-- 明细表格 -->
         <el-divider content-position="left">入库明细</el-divider>
-        <el-table :data="form.items" border size="small" style="margin-bottom: 10px">
-          <el-table-column type="index" label="序号" width="50" align="center" />
-          <el-table-column label="物料编码" width="120">
-            <template slot-scope="scope">
-              <el-input v-model="scope.row.itemCode" placeholder="物料编码" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="物料名称" width="150">
-            <template slot-scope="scope">
-              <el-input v-model="scope.row.itemName" placeholder="物料名称" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="批次" width="100">
-            <template slot-scope="scope">
-              <el-input v-model="scope.row.batchCode" placeholder="批次" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="数量" width="100">
-            <template slot-scope="scope">
-              <el-input-number v-model="scope.row.quantity" :min="0" :precision="2" size="small" style="width: 100%" />
-            </template>
-          </el-table-column>
-          <el-table-column label="单位" width="80">
-            <template slot-scope="scope">
-              <el-input v-model="scope.row.unit" placeholder="单位" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="备注" min-width="100">
-            <template slot-scope="scope">
-              <el-input v-model="scope.row.remark" placeholder="备注" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="80" align="center">
-            <template slot-scope="scope">
-              <el-button type="text" style="color: #f56c6c" @click="removeItem(scope.$index)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+         <el-table :data="form.items" border size="small" style="margin-bottom: 10px">
+           <el-table-column type="index" label="序号" width="90" align="center" fixed="left" />
+           <el-table-column label="物料编码" width="160" fixed="left">
+             <template slot-scope="scope">
+               <div style="display: flex; align-items: center;">
+                 <el-input v-model="scope.row.itemCode" placeholder="点击选择物料" size="small" style="flex: 1;" readonly />
+                 <el-button type="text" icon="el-icon-search" size="small" @click="openItemSelect(scope.$index)" style="margin-left: 5px; padding: 0;" />
+               </div>
+             </template>
+           </el-table-column>
+           <el-table-column label="物料名称" min-width="200" show-overflow-tooltip>
+             <template slot-scope="scope">
+               <el-input v-model="scope.row.itemName" placeholder="自动填充" size="small" readonly />
+             </template>
+           </el-table-column>
+           <el-table-column label="规格型号" width="120" show-overflow-tooltip>
+             <template slot-scope="scope">
+               <el-input v-model="scope.row.specification" placeholder="规格" size="small" />
+             </template>
+           </el-table-column>
+           <el-table-column label="批次号" width="120">
+             <template slot-scope="scope">
+               <el-input v-model="scope.row.batchCode" placeholder="请输入批次号" size="small" />
+             </template>
+           </el-table-column>
+           <el-table-column label="入库数量" width="140" align="center">
+             <template slot-scope="scope">
+               <el-input-number v-model="scope.row.quantity" :min="0" :precision="2" :step="1" controls-position="right" size="small" style="width: 100%" />
+             </template>
+           </el-table-column>
+           <el-table-column label="单位" width="80" align="center">
+             <template slot-scope="scope">
+               <el-input v-model="scope.row.unit" placeholder="单位" size="small" readonly />
+             </template>
+           </el-table-column>
+           <el-table-column label="备注说明" min-width="150" show-overflow-tooltip>
+             <template slot-scope="scope">
+               <el-input v-model="scope.row.remark" placeholder="请输入备注" size="small" />
+             </template>
+           </el-table-column>
+           <el-table-column label="操作" width="80" align="center" fixed="right">
+             <template slot-scope="scope">
+               <el-button type="danger" icon="el-icon-delete" circle size="mini" @click="removeItem(scope.$index)" />
+             </template>
+           </el-table-column>
+         </el-table>
         <el-button type="primary" icon="el-icon-plus" size="small" @click="addItem">添加明细</el-button>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -288,11 +296,49 @@
         <el-button @click="viewDialogVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
+
+    <!-- 物料选择弹窗 -->
+    <el-dialog title="选择物料" :visible.sync="itemDialogVisible" width="700px" :append-to-body="true">
+      <el-form :inline="true" :model="itemQueryParams" class="search-form">
+        <el-form-item label="物料编码/名称">
+          <el-input v-model="itemQueryParams.keyword" placeholder="请输入物料编码或名称" clearable />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-search" @click="handleItemQuery">查询</el-button>
+        </el-form-item>
+      </el-form>
+      
+      <el-table :data="itemTableData" border highlight-current-row style="margin-top: 10px">
+        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column prop="itemCode" label="物料编码" width="120" />
+        <el-table-column prop="itemName" label="物料名称" min-width="150" />
+        <el-table-column prop="specification" label="规格" width="100" />
+        <el-table-column prop="unitName" label="单位" width="80" align="center" />
+        <el-table-column label="操作" width="80" align="center">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click="selectItem(scope.row)">选择</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      
+      <el-pagination
+        class="pagination"
+        background
+        layout="total, prev, pager, next"
+        :total="itemTotal"
+        :page-size="itemQueryParams.pageSize"
+        :current-page="itemQueryParams.pageNum"
+        @size-change="handleItemSizeChange"
+        @current-change="handleItemCurrentChange"
+        style="margin-top: 15px;"
+      />
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listWmRecpt, getWmRecpt, addWmRecpt, updateWmRecpt, delWmRecpt, confirmWmRecpt, listWmWarehouse } from '@/api/md'
+import { listWmRecpt, getWmRecpt, addWmRecpt, updateWmRecpt, delWmRecpt, confirmWmRecpt, listWmWarehouse, listItem } from '@/api/md'
+import XLSX from 'xlsx'
 
 /**
  * 入库管理 - carels
@@ -323,6 +369,16 @@ export default {
       },
       tableData: [],
       warehouseOptions: [],
+      // 物料选择弹窗
+      itemDialogVisible: false,
+      itemQueryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        keyword: ''
+      },
+      itemTableData: [],
+      itemTotal: 0,
+      currentRowIndex: null,
       dialogVisible: false,
       viewDialogVisible: false,
       dialogTitle: '新增',
@@ -387,6 +443,36 @@ export default {
       } catch (error) {
         console.error('获取仓库列表失败:', error)
       }
+    },
+    
+    // 导出Excel
+    handleExport() {
+      if (this.tableData.length === 0) {
+        this.$message.warning('暂无数据可导出')
+        return
+      }
+      
+      const headers = ['入库单号', '入库类型', '来源单号', '仓库', '入库日期', '状态', '备注', '创建时间']
+      const data = this.tableData.map(row => [
+        row.recptNo,
+        this.getRecptTypeText(row.recptType),
+        row.sourceNo || '-',
+        row.warehouseName,
+        row.recptDate,
+        this.getStatusText(row.status),
+        row.remark || '-',
+        row.createTime
+      ])
+      
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '入库单')
+      
+      const now = new Date()
+      const filename = `入库单_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+      
+      XLSX.writeFile(wb, filename)
+      this.$message.success('导出成功')
     },
     calculateStats() {
       this.stats.total = this.total
@@ -534,6 +620,69 @@ export default {
           }
         }
       })
+    },
+    // 打开物料选择弹窗
+    openItemSelect(index) {
+      this.currentRowIndex = index
+      this.itemDialogVisible = true
+      this.itemQueryParams.keyword = ''
+      this.fetchItemList()
+    },
+    // 查询物料列表
+    async fetchItemList() {
+      try {
+        const res = await listItem(this.itemQueryParams)
+        if (res.code === 200) {
+          this.itemTableData = res.rows || []
+          this.itemTotal = res.total || 0
+        }
+      } catch (error) {
+        this.$message.error('获取物料列表失败')
+      }
+    },
+    // 搜索物料
+    handleItemQuery() {
+      this.itemQueryParams.pageNum = 1
+      this.fetchItemList()
+    },
+    // 选择物料
+    selectItem(row) {
+      const item = this.form.items[this.currentRowIndex]
+      item.itemId2 = row.itemId
+      item.itemCode = row.itemCode
+      item.itemName = row.itemName
+      item.unit = row.unitName
+      this.itemDialogVisible = false
+      this.$message.success('已选择物料：' + row.itemName)
+    },
+    // 物料分页
+    handleItemSizeChange(val) {
+      this.itemQueryParams.pageSize = val
+      this.fetchItemList()
+    },
+    handleItemCurrentChange(val) {
+      this.itemQueryParams.pageNum = val
+      this.fetchItemList()
+    },
+    
+    // 辅助方法
+    getRecptTypeText(type) {
+      const types = {
+        'PURCHASE': '采购入库',
+        'PRODUCTION': '生产入库',
+        'RETURN': '退货入库',
+        'OTHER': '其他入库'
+      }
+      return types[type] || type
+    },
+    getStatusText(status) {
+      const statuses = {
+        'PENDING': '待处理',
+        'CONFIRMED': '已确认',
+        'COMPLETED': '已完成',
+        'CANCELLED': '已取消'
+      }
+      return statuses[status] || status
     }
   }
 }
@@ -665,7 +814,5 @@ export default {
       margin-top: 10px;
     }
   }
-  
-
 }
 </style>

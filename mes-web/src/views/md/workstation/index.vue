@@ -9,7 +9,7 @@
       </div>
       <div class="action-section">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
+        <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -169,6 +169,7 @@
 </template>
 
 <script>
+import XLSX from 'xlsx'
 import { 
   listWorkstation, 
   addWorkstation, 
@@ -240,6 +241,34 @@ export default {
     this.fetchWorkshopList()
   },
   methods: {
+    handleExport() {
+      if (this.tableData.length === 0) {
+        this.$message.warning('暂无数据可导出')
+        return
+      }
+      
+      const headers = ['序号', '编码', '名称', '所属车间', '所属生产线', '状态', '创建时间']
+      const data = this.tableData.map((row, index) => [
+        index + 1,
+        row.workstationCode,
+        row.workstationName,
+        row.workshopName,
+        row.productionLineName || '-',
+        row.status === '0' ? '启用' : '停用',
+        row.createTime
+      ])
+      
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '工作站管理')
+      
+      const now = new Date()
+      const filename = `工作站管理_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+      
+      XLSX.writeFile(wb, filename)
+      this.$message.success('导出成功')
+    },
+
     // 自定义验证：完整模式车间必须选择生产线
     validateProductionLine(rule, value, callback) {
       if (this.selectedWorkshop && this.selectedWorkshop.orgMode === 'COMPLETE') {
