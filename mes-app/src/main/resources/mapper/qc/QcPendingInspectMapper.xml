@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.qc.mapper.QcPendingInspectMapper">
+
+    <!-- 待检任务统计 -->
+    <select id="selectPendingStats" resultType="java.util.HashMap">
+        select
+            (select count(*) from qc_iqc where status in ('PENDING', 'INSPECTING')) as iqc,
+            (select count(*) from qc_ipqc where status in ('PENDING', 'INSPECTING')) as ipqc,
+            (select count(*) from qc_oqc where status in ('PENDING', 'INSPECTING')) as oqc,
+            (select count(*) from qc_rqc where status in ('PENDING', 'INSPECTING')) as rqc,
+            (select
+                (select count(*) from qc_iqc where status in ('PENDING', 'INSPECTING')) +
+                (select count(*) from qc_ipqc where status in ('PENDING', 'INSPECTING')) +
+                (select count(*) from qc_oqc where status in ('PENDING', 'INSPECTING')) +
+                (select count(*) from qc_rqc where status in ('PENDING', 'INSPECTING'))
+            ) as total,
+            (select
+                (select count(*) from qc_iqc where status = 'PENDING' and timestampdiff(hour, create_time, now()) > 4) +
+                (select count(*) from qc_ipqc where status = 'PENDING' and timestampdiff(hour, create_time, now()) > 2) +
+                (select count(*) from qc_oqc where status = 'PENDING' and timestampdiff(hour, create_time, now()) > 4)
+            ) as urgent
+        from dual
+    </select>
+
+    <!-- 待检任务列表 -->
+    <select id="selectPendingList" resultType="java.util.HashMap">
+        select * from (
+            -- IQC待检任务
+            select
+                'IQC' as inspectType,
+                i.iqc_id as inspectId,
+                i.iqc_code as inspectCode,
+                i.item_name as itemName,
+                i.item_code as itemCode,
+                i.batch_code as batchCode,
+                i.vendor_name as supplierName,
+                i.inspect_quantity as inspectQuantity,
+                i.status,
+                i.create_time as createTime,
+                timestampdiff(hour, i.create_time, now()) as waitHours,
+                case
+                    when timestampdiff(hour, i.create_time, now()) > 8 then 'HIGH'
+                    when timestampdiff(hour, i.create_time, now()) > 4 then 'MEDIUM'
+                    else 'LOW'
+                end as urgency,
+                '来料检验' as inspectTypeName
+            from qc_iqc i
+            where i.status in ('PENDING', 'INSPECTING')
+
+            union all
+
+            -- IPQC待检任务
+            select
+                'IPQC' as inspectType,
+                p.ipqc_id as inspectId,
+                p.ipqc_code as inspectCode,
+                p.item_name as itemName,
+                p.item_code as itemCode,
+                null as batchCode,
+                p.workorder_code as supplierName,
+                p.inspect_quantity as inspectQuantity,
+                p.status,
+                p.create_time as createTime,
+                timestampdiff(hour, p.create_time, now()) as waitHours,
+                case
+                    when timestampdiff(hour, p.create_time, now()) > 4 then 'HIGH'
+                    when timestampdiff(hour, p.create_time, now()) > 2 then 'MEDIUM'
+                    else 'LOW'
+                end as urgency,
+                concat('过程检验-', case p.inspect_type
+                    when 'FIRST' then '首检'
+                    when 'PATROL' then '巡检'
+                    when 'FINAL' then '完工检'
+                    else p.inspect_type
+                end) as inspectTypeName
+            from qc_ipqc p
+            where p.status in ('PENDING', 'INSPECTING')
+
+            union all
+
+            -- OQC待检任务
+            select
+                'OQC' as inspectType,
+                o.oqc_id as inspectId,
+                o.oqc_code as inspectCode,
+                o.item_name as itemName,
+                o.item_code as itemCode,
+                o.batch_code as batchCode,
+                o.customer_name as supplierName,
+                o.inspect_quantity as inspectQuantity,
+                o.status,
+                o.create_time as createTime,
+                timestampdiff(hour, o.create_time, now()) as waitHours,
+                case
+                    when timestampdiff(hour, o.create_time, now()) > 8 then 'HIGH'
+                    when timestampdiff(hour, o.create_time, now()) > 4 then 'MEDIUM'
+                    else 'LOW'
+                end as urgency,
+                '出货检验' as inspectTypeName
+            from qc_oqc o
+            where o.status in ('PENDING', 'INSPECTING')
+        ) t
+        where 1=1
+        <if test="inspectType != null and inspectType != ''">
+            and t.inspectType = #{inspectType}
+        </if>
+        order by
+            case t.urgency
+                when 'HIGH' then 1
+                when 'MEDIUM' then 2
+                else 3
+            end,
+            t.waitHours desc
+    </select>
+
+</mapper>

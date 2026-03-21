@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.report.mapper.ReportChartMapper">
+
+    <!-- 获取生产统计（最近7天） -->
+    <select id="selectProductionDailyStats" resultType="java.util.HashMap">
+        select
+            date_format(create_time, '%Y-%m-%d') as date,
+            count(*) as workorderCount,
+            sum(plan_quantity) as planQuantity,
+            sum(completed_quantity) as completedQuantity,
+            round(sum(completed_quantity) / sum(plan_quantity) * 100, 1) as completionRate
+        from pro_workorder
+        where create_time &gt;= date_sub(now(), interval 7 day)
+        group by date_format(create_time, '%Y-%m-%d')
+        order by date
+    </select>
+
+    <!-- 获取工单状态分布 -->
+    <select id="selectWorkorderStatusDistribution" resultType="java.util.HashMap">
+        select
+            sum(case when status = 'PENDING' then 1 else 0 end) as pending,
+            sum(case when status = 'RELEASED' then 1 else 0 end) as released,
+            sum(case when status = 'PRODUCING' then 1 else 0 end) as producing,
+            sum(case when status = 'COMPLETED' then 1 else 0 end) as completed,
+            sum(case when status = 'CLOSED' then 1 else 0 end) as closed,
+            count(*) as total
+        from pro_workorder
+        where create_time &gt;= date_sub(now(), interval 30 day)
+    </select>
+
+    <!-- 获取工单月度趋势 -->
+    <select id="selectWorkorderMonthlyTrend" resultType="java.util.HashMap">
+        select
+            date_format(create_time, '%Y-%m') as month,
+            count(*) as total,
+            sum(case when status = 'COMPLETED' then 1 else 0 end) as completed,
+            sum(case when status = 'CLOSED' then 1 else 0 end) as closed
+        from pro_workorder
+        where create_time &gt;= date_sub(now(), interval 12 month)
+        group by date_format(create_time, '%Y-%m')
+        order by month
+    </select>
+
+    <!-- 获取质量检验统计 -->
+    <select id="selectQualityInspectStats" resultType="java.util.HashMap">
+        select
+            (select count(*) from qc_iqc where inspect_date &gt;= date_sub(now(), interval 30 day)) as iqcCount,
+            (select count(*) from qc_iqc where inspect_result = 'PASSED' and inspect_date &gt;= date_sub(now(), interval 30 day)) as iqcPassed,
+            (select count(*) from qc_ipqc where inspect_date &gt;= date_sub(now(), interval 30 day)) as ipqcCount,
+            (select count(*) from qc_ipqc where inspect_result = 'PASSED' and inspect_date &gt;= date_sub(now(), interval 30 day)) as ipqcPassed,
+            (select count(*) from qc_oqc where inspect_date &gt;= date_sub(now(), interval 30 day)) as oqcCount,
+            (select count(*) from qc_oqc where inspect_result = 'PASSED' and inspect_date &gt;= date_sub(now(), interval 30 day)) as oqcPassed,
+            (select count(*) from qc_defect_record where create_time &gt;= date_sub(now(), interval 30 day)) as defectCount
+        from dual
+    </select>
+
+    <!-- 获取缺陷类型分布 -->
+    <select id="selectDefectTypeDistribution" resultType="java.util.HashMap">
+        select
+            d.defect_name as defectName,
+            count(*) as count
+        from qc_defect_record r
+        left join qc_defect d on r.defect_id = d.defect_id
+        where r.create_time &gt;= date_sub(now(), interval 30 day)
+        group by d.defect_name
+        order by count desc
+        limit 10
+    </select>
+
+    <!-- 获取车间产量排行 -->
+    <select id="selectWorkshopOutputRanking" resultType="java.util.HashMap">
+        select
+            workshop_name as workshopName,
+            count(*) as workorderCount,
+            sum(completed_quantity) as totalOutput,
+            round(sum(completed_quantity) / sum(plan_quantity) * 100, 1) as completionRate
+        from pro_workorder
+        where status in ('COMPLETED', 'CLOSED')
+          and create_time &gt;= date_sub(now(), interval 30 day)
+        group by workshop_name
+        order by totalOutput desc
+        limit 10
+    </select>
+
+</mapper>

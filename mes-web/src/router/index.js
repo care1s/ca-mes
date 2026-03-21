@@ -77,6 +77,10 @@ const ReportChart = () => import('@/views/report/chart/index')
 const ReportWorkorderBoard = () => import('@/views/report/workorder-board/index')
 const ReportQualityBoard = () => import('@/views/report/quality-board/index')
 
+// 移动端页面
+const MobileFeedback = () => import('@/views/mobile/feedback')
+const MobileInspect = () => import('@/views/mobile/inspect')
+
 // 系统管理页面
 const SysUser = () => import('@/views/system/user/index')
 const SysRole = () => import('@/views/system/role/index')
@@ -246,7 +250,20 @@ export const routes = [
     ]
   },
   
-  // 404页面
+  // 移动端页面
+  {
+    path: '/m',
+    component: Layout,
+    redirect: '/m/feedback',
+    name: 'Mobile',
+    meta: { title: '移动端', icon: 'el-icon-mobile' },
+    children: [
+      { path: 'feedback', name: 'MobileFeedback', component: MobileFeedback, meta: { title: '扫码报工', icon: 'el-icon-full-screen' } },
+      { path: 'inspect', name: 'MobileInspect', component: MobileInspect, meta: { title: '移动检验', icon: 'el-icon-check' } }
+    ]
+  },
+
+  // 404页面（必须放在最后）
   { path: '*', redirect: '/404', hidden: true }
 ]
 

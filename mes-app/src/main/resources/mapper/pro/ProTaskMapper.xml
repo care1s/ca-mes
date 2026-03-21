@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProTaskMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProTask" id="ProTaskResult">
+        <id property="taskId" column="task_id"/>
+        <result property="taskCode" column="task_code"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderCode" column="workorder_code"/>
+        <result property="processId" column="process_id"/>
+        <result property="processCode" column="process_code"/>
+        <result property="processName" column="process_name"/>
+        <result property="workstationId" column="workstation_id"/>
+        <result property="workstationName" column="workstation_name"/>
+        <result property="planQuantity" column="plan_quantity"/>
+        <result property="completedQuantity" column="completed_quantity"/>
+        <result property="qualifiedQuantity" column="qualified_quantity"/>
+        <result property="defectiveQuantity" column="defective_quantity"/>
+        <result property="status" column="status"/>
+        <result property="planStartTime" column="plan_start_time"/>
+        <result property="planEndTime" column="plan_end_time"/>
+        <result property="actualStartTime" column="actual_start_time"/>
+        <result property="actualEndTime" column="actual_end_time"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProTaskVo">
+        select task_id, task_code, workorder_id, workorder_code, process_id, process_code, process_name,
+               workstation_id, workstation_name, plan_quantity, completed_quantity, qualified_quantity,
+               defective_quantity, status, plan_start_time, plan_end_time, actual_start_time, actual_end_time,
+               operator_id, operator_name, remark, create_by, create_time, update_by, update_time
+        from pro_task
+    </sql>
+
+    <select id="selectProTaskList" parameterType="com.carels.mes.module.pro.domain.ProTask" resultMap="ProTaskResult">
+        <include refid="selectProTaskVo"/>
+        <where>
+            <if test="taskCode != null and taskCode != ''">
+                AND task_code like concat('%', #{taskCode}, '%')
+            </if>
+            <if test="workorderCode != null and workorderCode != ''">
+                AND workorder_code like concat('%', #{workorderCode}, '%')
+            </if>
+            <if test="processName != null and processName != ''">
+                AND process_name like concat('%', #{processName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="workstationId != null">
+                AND workstation_id = #{workstationId}
+            </if>
+            <if test="operatorId != null">
+                AND operator_id = #{operatorId}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectProTaskById" resultMap="ProTaskResult">
+        <include refid="selectProTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <select id="selectProTaskByCode" resultMap="ProTaskResult">
+        <include refid="selectProTaskVo"/>
+        where task_code = #{taskCode}
+    </select>
+
+    <insert id="insertProTask" parameterType="com.carels.mes.module.pro.domain.ProTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into pro_task (
+            task_code, workorder_id, workorder_code, process_id, process_code, process_name,
+            workstation_id, workstation_name, plan_quantity, status,
+            plan_start_time, plan_end_time, operator_id, operator_name, remark, create_by, create_time
+        ) values (
+            #{taskCode}, #{workorderId}, #{workorderCode}, #{processId}, #{processCode}, #{processName},
+            #{workstationId}, #{workstationName}, #{planQuantity}, 'PENDING',
+            #{planStartTime}, #{planEndTime}, #{operatorId}, #{operatorName}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateProTask" parameterType="com.carels.mes.module.pro.domain.ProTask">
+        update pro_task
+        <set>
+            <if test="taskCode != null">task_code = #{taskCode},</if>
+            <if test="workorderId != null">workorder_id = #{workorderId},</if>
+            <if test="workorderCode != null">workorder_code = #{workorderCode},</if>
+            <if test="processId != null">process_id = #{processId},</if>
+            <if test="processCode != null">process_code = #{processCode},</if>
+            <if test="processName != null">process_name = #{processName},</if>
+            <if test="workstationId != null">workstation_id = #{workstationId},</if>
+            <if test="workstationName != null">workstation_name = #{workstationName},</if>
+            <if test="planQuantity != null">plan_quantity = #{planQuantity},</if>
+            <if test="planStartTime != null">plan_start_time = #{planStartTime},</if>
+            <if test="planEndTime != null">plan_end_time = #{planEndTime},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteProTaskById">
+        delete from pro_task where task_id = #{taskId}
+    </delete>
+
+    <update id="updateStatus">
+        update pro_task
+        set status = #{status},
+            <choose>
+                <when test="status == 'PROCESSING'">
+                    actual_start_time = sysdate(),
+                </when>
+                <when test="status == 'COMPLETED'">
+                    actual_end_time = sysdate(),
+                </when>
+            </choose>
+            update_time = sysdate()
+        where task_id = #{taskId}
+    </update>
+
+    <update id="updateCompletedQty">
+        update pro_task
+        set completed_quantity = completed_quantity + #{qty},
+            status = case when completed_quantity + #{qty} >= plan_quantity then 'COMPLETED' else status end,
+            update_time = sysdate()
+        where task_id = #{taskId}
+    </update>
+
+    <!-- 扫码查询任务（支持工单码、任务码、工序码） -->
+    <select id="selectTaskByBarcode" resultType="java.util.HashMap">
+        select
+            t.task_id as taskId,
+            t.task_code as taskCode,
+            t.workorder_id as workorderId,
+            t.workorder_code as workorderCode,
+            t.process_id as processId,
+            t.process_code as processCode,
+            t.process_name as processName,
+            t.workstation_id as workstationId,
+            t.workstation_name as workstationName,
+            t.plan_quantity as planQuantity,
+            t.completed_quantity as completedQuantity,
+            t.qualified_quantity as qualifiedQuantity,
+            t.defective_quantity as defectiveQuantity,
+            t.status,
+            t.operator_id as operatorId,
+            t.operator_name as operatorName,
+            w.item_name as itemName,
+            w.specification as specification,
+            round(ifnull(t.completed_quantity / t.plan_quantity * 100, 0), 1) as progress
+        from pro_task t
+        left join pro_workorder w on t.workorder_id = w.workorder_id
+        where (t.task_code = #{barcode}
+           or t.workorder_code = #{barcode}
+           or t.process_code = #{barcode})
+          and t.status in ('PENDING', 'PROCESSING')
+        limit 1
+    </select>
+
+    <!-- 获取待执行的任务列表（移动端） -->
+    <select id="selectPendingTaskList" resultType="java.util.HashMap">
+        select
+            t.task_id as taskId,
+            t.task_code as taskCode,
+            t.workorder_code as workorderCode,
+            t.process_name as processName,
+            t.workstation_name as workstationName,
+            t.plan_quantity as planQuantity,
+            t.completed_quantity as completedQuantity,
+            t.status,
+            w.item_name as itemName,
+            round(ifnull(t.completed_quantity / t.plan_quantity * 100, 0), 1) as progress,
+            timestampdiff(hour, t.plan_start_time, now()) as waitHours
+        from pro_task t
+        left join pro_workorder w on t.workorder_id = w.workorder_id
+        where t.status in ('PENDING', 'PROCESSING')
+        <if test="workstationId != null">
+            and t.workstation_id = #{workstationId}
+        </if>
+        order by t.status = 'PROCESSING' desc, t.plan_start_time asc
+    </select>
+
+    <!-- 获取我的任务列表（移动端） -->
+    <select id="selectMyTaskList" resultType="java.util.HashMap">
+        select
+            t.task_id as taskId,
+            t.task_code as taskCode,
+            t.workorder_code as workorderCode,
+            t.process_name as processName,
+            t.workstation_name as workstationName,
+            t.plan_quantity as planQuantity,
+            t.completed_quantity as completedQuantity,
+            t.status,
+            w.item_name as itemName,
+            round(ifnull(t.completed_quantity / t.plan_quantity * 100, 0), 1) as progress
+        from pro_task t
+        left join pro_workorder w on t.workorder_id = w.workorder_id
+        where t.operator_id = #{operatorId}
+          and t.status in ('PENDING', 'PROCESSING')
+        order by t.status = 'PROCESSING' desc, t.plan_start_time asc
+    </select>
+
+</mapper>

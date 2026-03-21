@@ -1,149 +1,210 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header qc">
       <div class="title-section">
         <i class="el-icon-data-analysis"></i>
-        <span class="title">质量看板</span>
-        <span class="subtitle">Quality Dashboard</span>
+        <span class="title">待检任务看板</span>
+        <span class="subtitle">Pending Inspection Dashboard</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
+        <el-button icon="el-icon-refresh" @click="fetchData" :loading="loading">刷新</el-button>
         <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
-        <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
 
-    <!-- 搜索栏 -->
-    <el-card class="search-card" shadow="never">
-      <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="编码">
-          <el-input v-model="queryParams.code" placeholder="请输入编码" clearable />
-        </el-form-item>
-        <el-form-item label="名称">
-          <el-input v-model="queryParams.name" placeholder="请输入名称" clearable />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
-          <el-button icon="el-icon-refresh-right" @click="resetQuery">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card iqc" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-box"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.iqc || 0 }}</div>
+            <div class="stat-label">来料待检</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card ipqc" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-s-check"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.ipqc || 0 }}</div>
+            <div class="stat-label">过程待检</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card oqc" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-sold-out"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.oqc || 0 }}</div>
+            <div class="stat-label">出货物检</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card rqc" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-refresh-left"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.rqc || 0 }}</div>
+            <div class="stat-label">退货待检</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card total" shadow="hover">
+          <div class="stat-icon">
             <i class="el-icon-s-grid"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总数</div>
+            <div class="stat-value">{{ summary.total || 0 }}</div>
+            <div class="stat-label">总待检</div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
-            <i class="el-icon-check"></i>
+      <el-col :span="4" :xs="12">
+        <el-card class="stat-card urgent" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-warning"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.active }}</div>
-            <div class="stat-label">启用</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-close"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.inactive }}</div>
-            <div class="stat-label">停用</div>
+            <div class="stat-value">{{ summary.urgent || 0 }}</div>
+            <div class="stat-label">紧急待检</div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 数据表格 -->
+    <!-- 检验类型筛选 -->
+    <el-card class="filter-card" shadow="never">
+      <div class="filter-tags">
+        <span class="filter-label">检验类型：</span>
+        <el-radio-group v-model="filterType" size="small" @change="handleFilterChange">
+          <el-radio-button label="">全部</el-radio-button>
+          <el-radio-button label="IQC">来料检验</el-radio-button>
+          <el-radio-button label="IPQC">过程检验</el-radio-button>
+          <el-radio-button label="OQC">出货检验</el-radio-button>
+          <el-radio-button label="URGENT">紧急优先</el-radio-button>
+        </el-radio-group>
+      </div>
+    </el-card>
+
+    <!-- 待检任务列表 -->
     <el-card class="table-card" shadow="never">
       <div slot="header" class="card-header">
         <span class="header-title">
-          <i class="el-icon-data-analysis"></i>
-          质量看板列表
+          <i class="el-icon-s-claim"></i>
+          待检任务列表
         </span>
-        <el-pagination
-          class="pagination"
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="queryParams.pageSize"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+        <span class="header-subtitle">共 {{ filteredList.length }} 条待检记录</span>
       </div>
-      
-      <el-table
-        
-        :data="tableData"
-        border
-        stripe
-        highlight-current-row
-        style="width: 100%"
-      >
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
-        <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80" align="center">
-          <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              active-value="0"
-              inactive-value="1"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
-          <template slot-scope="scope">
-            <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码" />
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+      <div v-loading="loading" class="inspect-list">
+        <!-- 空数据提示 -->
+        <el-empty v-if="filteredList.length === 0" description="暂无待检任务" />
+
+        <!-- 待检任务卡片列表 -->
+        <div v-else class="inspect-cards">
+          <div
+            v-for="(item, index) in filteredList"
+            :key="index"
+            class="inspect-item"
+            :class="[item.inspectType.toLowerCase(), item.urgency.toLowerCase()]"
+          >
+            <!-- 任务头部 -->
+            <div class="item-header">
+              <div class="header-left">
+                <el-tag :type="getInspectTypeType(item.inspectType)" size="small" effect="dark">
+                  {{ item.inspectType }}
+                </el-tag>
+                <span class="inspect-code">{{ item.inspectCode }}</span>
+                <el-tag
+                  :type="getUrgencyType(item.urgency)"
+                  size="small"
+                  effect="plain"
+                  class="urgency-tag"
+                >
+                  <i :class="getUrgencyIcon(item.urgency)"></i>
+                  {{ getUrgencyText(item.urgency) }}
+                </el-tag>
+              </div>
+              <div class="header-right">
+                <span class="wait-time" :class="{ 'urgent': item.waitHours > 4 }">
+                  <i class="el-icon-time"></i>
+                  等待 {{ item.waitHours }} 小时
+                </span>
+              </div>
+            </div>
+
+            <!-- 任务内容 -->
+            <div class="item-body">
+              <div class="material-info">
+                <div class="material-name">{{ item.itemName }}</div>
+                <div class="material-code">编码: {{ item.itemCode }}</div>
+              </div>
+
+              <div class="inspect-details">
+                <div class="detail-row">
+                  <span class="detail-label">检验类型:</span>
+                  <span class="detail-value">{{ item.inspectTypeName }}</span>
+                </div>
+                <div v-if="item.batchCode" class="detail-row">
+                  <span class="detail-label">批次号:</span>
+                  <span class="detail-value">{{ item.batchCode }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">送检数量:</span>
+                  <span class="detail-value highlight">{{ item.inspectQuantity }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">{{ getSupplierLabel(item.inspectType) }}:</span>
+                  <span class="detail-value">{{ item.supplierName || '未知' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 任务底部 -->
+            <div class="item-footer">
+              <div class="footer-left">
+                <span class="create-time">
+                  <i class="el-icon-date"></i>
+                  创建时间: {{ formatDateTime(item.createTime) }}
+                </span>
+              </div>
+              <div class="footer-right">
+                <el-button
+                  type="primary"
+                  size="small"
+                  icon="el-icon-edit"
+                  @click="handleInspect(item)"
+                >
+                  开始检验
+                </el-button>
+                <el-button type="text" size="small" @click="handleView(item)">
+                  <i class="el-icon-view"></i> 查看
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </el-dialog>
+    </el-card>
   </div>
 </template>
 
-import XLSX from 'xlsx'
-
 <script>
+import request from '@/api/request'
+
 /**
- * 质量看板 - carels
+ * 待检任务看板 - carels
  * @author carels
  * @version V9.0
  * @date 2026-03-15
@@ -153,150 +214,174 @@ export default {
   data() {
     return {
       loading: false,
-      total: 50,
-      stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
+      summary: {
+        iqc: 0,
+        ipqc: 0,
+        oqc: 0,
+        rqc: 0,
+        total: 0,
+        urgent: 0
       },
-      queryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
-      },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
-      dialogVisible: false,
-      dialogTitle: '新增',
-      form: {
-        code: '',
-        name: '',
-        remark: ''
-      },
-      rules: {
-        code: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
+      inspectList: [],
+      filterType: ''
+    }
+  },
+  computed: {
+    filteredList() {
+      if (!this.filterType) {
+        return this.inspectList
       }
+      if (this.filterType === 'URGENT') {
+        return this.inspectList.filter(item => item.urgency === 'HIGH')
+      }
+      return this.inspectList.filter(item => item.inspectType === this.filterType)
     }
   },
   mounted() {
     this.fetchData()
+    // 自动刷新，每30秒更新一次
+    this.refreshTimer = setInterval(() => {
+      this.fetchData()
+    }, 30000)
+  },
+  beforeDestroy() {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer)
+    }
   },
   methods: {
+    async fetchData() {
+      this.loading = true
+      try {
+        const res = await request({
+          url: '/mes/qc/pending/dashboard',
+          method: 'get'
+        })
+        if (res.code === 200) {
+          this.summary = res.data.summary || {}
+          this.inspectList = res.data.list || []
+        }
+      } catch (error) {
+        console.error('获取待检任务数据失败:', error)
+        this.$message.error('获取数据失败')
+      } finally {
+        this.loading = false
+      }
+    },
+    handleFilterChange() {
+      // 筛选类型改变，不需要重新请求数据
+    },
     handleExport() {
-      if (this.tableData.length === 0) {
+      if (this.filteredList.length === 0) {
         this.$message.warning('暂无数据可导出')
         return
       }
-      
-      const headers = ['序号', '编码', '名称', '状态', '创建时间']
-      const data = this.tableData.map((row, index) => [
-        index + 1,
-        row.code,
-        row.name,
-        row.status === '0' ? '启用' : '停用',
-        row.createTime
+
+      const headers = ['检验类型', '检验单号', '物料名称', '物料编码', '批次号', '送检数量', '供应商/工单', '紧急程度', '等待时长', '创建时间']
+      const data = this.filteredList.map(item => [
+        item.inspectType,
+        item.inspectCode,
+        item.itemName,
+        item.itemCode,
+        item.batchCode || '',
+        item.inspectQuantity,
+        item.supplierName || '',
+        this.getUrgencyText(item.urgency),
+        item.waitHours + '小时',
+        this.formatDateTime(item.createTime)
       ])
-      
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, '质量看板')
-      
-      const now = new Date()
-      const filename = `质量看板_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
-      
-      XLSX.writeFile(wb, filename)
-      this.$message.success('导出成功')
+
+      import('xlsx').then(XLSX => {
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, '待检任务')
+
+        const now = new Date()
+        const filename = `待检任务_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+
+        XLSX.writeFile(wb, filename)
+        this.$message.success('导出成功')
+      })
     },
-    fetchData() {
-      this.loading = true
-      setTimeout(() => {
-        this.loading = false
-      }, 500)
-    },
-    handleQuery() {
-      this.queryParams.pageNum = 1
-      this.fetchData()
-    },
-    resetQuery() {
-      this.queryParams = {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
+    handleInspect(item) {
+      this.$message.info(`开始检验: ${item.inspectCode}`)
+      // TODO: 跳转到检验页面
+      const routeMap = {
+        'IQC': '/qc/iqc',
+        'IPQC': '/qc/ipqc',
+        'OQC': '/qc/oqc'
       }
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogTitle = '新增'
-      this.form = {
-        code: '',
-        name: '',
-        remark: ''
+      const route = routeMap[item.inspectType]
+      if (route) {
+        this.$router.push(route)
       }
-      this.dialogVisible = true
     },
-    handleEdit(row) {
-      this.dialogTitle = '编辑'
-      this.form = { ...row }
-      this.dialogVisible = true
-    },
-    handleView(row) {
-      this.$alert(`编码：${row.code}<br>名称：${row.name}`, '详情', {
+    handleView(item) {
+      this.$alert(`
+        <div style="line-height: 2;">
+          <p><strong>检验类型：</strong>${item.inspectTypeName}</p>
+          <p><strong>检验单号：</strong>${item.inspectCode}</p>
+          <p><strong>物料名称：</strong>${item.itemName}</p>
+          <p><strong>物料编码：</strong>${item.itemCode}</p>
+          <p><strong>批次号：</strong>${item.batchCode || '无'}</p>
+          <p><strong>送检数量：</strong>${item.inspectQuantity}</p>
+          <p><strong>${this.getSupplierLabel(item.inspectType)}：</strong>${item.supplierName || '未知'}</p>
+          <p><strong>紧急程度：</strong>${this.getUrgencyText(item.urgency)}</p>
+          <p><strong>等待时长：</strong>${item.waitHours} 小时</p>
+          <p><strong>创建时间：</strong>${this.formatDateTime(item.createTime)}</p>
+        </div>
+      `, '检验任务详情', {
         dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
-      })
-    },
-    handleDelete(row) {
-      this.$confirm(`确认删除 "${row.name}" 吗？`, '提示', {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
+        width: '500px'
       })
     },
-    handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
-      this.$message.success(`已${status}：${row.name}`)
+    getInspectTypeType(type) {
+      const map = {
+        'IQC': 'warning',
+        'IPQC': 'success',
+        'OQC': 'primary',
+        'RQC': 'danger'
+      }
+      return map[type] || 'info'
     },
-    handleSizeChange(val) {
-      this.queryParams.pageSize = val
-      this.fetchData()
+    getUrgencyType(urgency) {
+      const map = {
+        'HIGH': 'danger',
+        'MEDIUM': 'warning',
+        'LOW': 'info'
+      }
+      return map[urgency] || 'info'
     },
-    handleCurrentChange(val) {
-      this.queryParams.pageNum = val
-      this.fetchData()
+    getUrgencyText(urgency) {
+      const map = {
+        'HIGH': '紧急',
+        'MEDIUM': '一般',
+        'LOW': '普通'
+      }
+      return map[urgency] || urgency
     },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
-        }
-      })
+    getUrgencyIcon(urgency) {
+      const map = {
+        'HIGH': 'el-icon-warning',
+        'MEDIUM': 'el-icon-time',
+        'LOW': 'el-icon-check'
+      }
+      return map[urgency] || ''
+    },
+    getSupplierLabel(type) {
+      const map = {
+        'IQC': '供应商',
+        'IPQC': '工单号',
+        'OQC': '客户',
+        'RQC': '退货来源'
+      }
+      return map[type] || '来源'
+    },
+    formatDateTime(date) {
+      if (!date) return '-'
+      const d = new Date(date)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     }
   }
 }
@@ -306,6 +391,7 @@ export default {
 .app-container {
   padding: 20px;
   min-height: calc(100vh - 120px);
+  background: #f5f7fa;
 }
 
 // 页面头部
@@ -317,39 +403,34 @@ export default {
   padding: 0 0 15px 0;
   border-bottom: 2px solid #EBEEF5;
 
+  &.qc {
+    border-bottom-color: #67c23a;
+
+    .title-section i {
+      color: #67c23a;
+    }
+  }
+
   .title-section {
     display: flex;
     align-items: center;
-    
+
     i {
       font-size: 28px;
-      color: #409EFF;
       margin-right: 12px;
     }
-    
+
     .title {
       font-size: 22px;
       font-weight: 600;
       color: #303133;
       margin-right: 10px;
     }
-    
+
     .subtitle {
       font-size: 13px;
       color: #909399;
       font-weight: normal;
-    }
-  }
-}
-
-// 搜索栏
-.search-card {
-  margin-bottom: 20px;
-  
-  .search-form {
-    .el-form-item {
-      margin-bottom: 0;
-      margin-right: 20px;
     }
   }
 }
@@ -363,54 +444,95 @@ export default {
   display: flex;
   align-items: center;
   padding: 20px;
+  border-radius: 12px;
   transition: all 0.3s;
-  
+
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
   }
-  
+
   .stat-icon {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 15px;
-    
+
     i {
-      font-size: 28px;
+      font-size: 24px;
       color: #fff;
     }
-    
-    &.blue {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    &.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    &.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
   }
-  
+
   .stat-info {
     flex: 1;
-    
+
     .stat-value {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
-      color: #303133;
       line-height: 1;
       margin-bottom: 8px;
     }
-    
+
     .stat-label {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+  }
+
+  // 不同检验类型的颜色
+  &.iqc {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.ipqc {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.oqc {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.rqc {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.urgent {
+    background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+}
+
+// 筛选标签
+.filter-card {
+  margin-bottom: 20px;
+
+  .filter-tags {
+    display: flex;
+    align-items: center;
+
+    .filter-label {
       font-size: 14px;
-      color: #909399;
+      color: #606266;
+      margin-right: 15px;
     }
   }
 }
@@ -421,21 +543,180 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .header-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
-      
+
       i {
         margin-right: 8px;
-        color: #409EFF;
+        color: #67c23a;
+      }
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: #909399;
+    }
+  }
+}
+
+// 检验任务列表
+.inspect-list {
+  padding: 10px 0;
+}
+
+.inspect-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.inspect-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transition: all 0.3s;
+  border-left: 4px solid #dcdfe6;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  // 不同检验类型左边框颜色
+  &.iqc { border-left-color: #f5576c; }
+  &.ipqc { border-left-color: #00f2fe; }
+  &.oqc { border-left-color: #43e97b; }
+  &.rqc { border-left-color: #fee140; }
+
+  // 紧急程度样式
+  &.high {
+    background: linear-gradient(to right, #fff5f5, #fff);
+  }
+
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ebeef5;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      .inspect-code {
+        font-size: 15px;
+        font-weight: 600;
+        color: #303133;
+      }
+
+      .urgency-tag {
+        i {
+          margin-right: 4px;
+        }
+      }
+    }
+
+    .header-right {
+      .wait-time {
+        font-size: 13px;
+        color: #909399;
+        background: #f5f7fa;
+        padding: 4px 10px;
+        border-radius: 4px;
+
+        i {
+          margin-right: 4px;
+        }
+
+        &.urgent {
+          background: #fef0f0;
+          color: #f56c6c;
+        }
       }
     }
   }
-  
-  .el-table {
+
+  .item-body {
+    .material-info {
+      margin-bottom: 15px;
+
+      .material-name {
+        font-size: 15px;
+        font-weight: 500;
+        color: #303133;
+        margin-bottom: 5px;
+      }
+
+      .material-code {
+        font-size: 13px;
+        color: #909399;
+      }
+    }
+
+    .inspect-details {
+      background: #f5f7fa;
+      border-radius: 8px;
+      padding: 15px;
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .detail-label {
+          font-size: 13px;
+          color: #909399;
+        }
+
+        .detail-value {
+          font-size: 13px;
+          color: #606266;
+
+          &.highlight {
+            font-weight: 600;
+            color: #409eff;
+          }
+        }
+      }
+    }
+  }
+
+  .item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ebeef5;
+
+    .footer-left {
+      .create-time {
+        font-size: 12px;
+        color: #909399;
+
+        i {
+          margin-right: 5px;
+        }
+      }
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
   }
 }
 
@@ -444,15 +725,42 @@ export default {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    
+
     .action-section {
       margin-top: 10px;
     }
   }
-  
+
   .stat-row {
     .el-col {
       margin-bottom: 15px;
+    }
+  }
+
+  .inspect-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .inspect-item {
+    .item-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+
+      .header-right {
+        width: 100%;
+      }
+    }
+
+    .item-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+
+      .footer-right {
+        width: 100%;
+        justify-content: flex-end;
+      }
     }
   }
 }

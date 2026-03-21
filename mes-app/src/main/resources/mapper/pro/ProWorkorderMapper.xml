@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProWorkorderMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProWorkorder" id="ProWorkorderResult">
+        <id property="workorderId" column="workorder_id"/>
+        <result property="workorderCode" column="workorder_code"/>
+        <result property="workorderType" column="workorder_type"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="bomId" column="bom_id"/>
+        <result property="routeId" column="route_id"/>
+        <result property="routeName" column="route_name"/>
+        <result property="planQuantity" column="plan_quantity"/>
+        <result property="completedQuantity" column="completed_quantity"/>
+        <result property="qualifiedQuantity" column="qualified_quantity"/>
+        <result property="defectiveQuantity" column="defective_quantity"/>
+        <result property="scrapQuantity" column="scrap_quantity"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="planStartTime" column="plan_start_time"/>
+        <result property="planEndTime" column="plan_end_time"/>
+        <result property="actualStartTime" column="actual_start_time"/>
+        <result property="actualEndTime" column="actual_end_time"/>
+        <result property="workshopId" column="workshop_id"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="teamId" column="team_id"/>
+        <result property="teamName" column="team_name"/>
+        <result property="estimatedHours" column="estimated_hours"/>
+        <result property="actualHours" column="actual_hours"/>
+        <result property="clientId" column="client_id"/>
+        <result property="clientName" column="client_name"/>
+        <result property="salesOrderNo" column="sales_order_no"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProWorkorderVo">
+        select workorder_id, workorder_code, workorder_type, item_id, item_code, item_name,
+               specification, bom_id, route_id, route_name, plan_quantity, completed_quantity,
+               qualified_quantity, defective_quantity, scrap_quantity, status, priority,
+               plan_start_time, plan_end_time, actual_start_time, actual_end_time,
+               workshop_id, workshop_name, team_id, team_name, estimated_hours, actual_hours,
+               client_id, client_name, sales_order_no, remark,
+               create_by, create_time, update_by, update_time
+        from pro_workorder
+    </sql>
+
+    <select id="selectProWorkorderList" parameterType="com.carels.mes.module.pro.domain.ProWorkorder" resultMap="ProWorkorderResult">
+        <include refid="selectProWorkorderVo"/>
+        <where>
+            <if test="workorderCode != null and workorderCode != ''">
+                AND workorder_code like concat('%', #{workorderCode}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name like concat('%', #{itemName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="workshopId != null">
+                AND workshop_id = #{workshopId}
+            </if>
+            <if test="priority != null and priority != ''">
+                AND priority = #{priority}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND plan_start_time &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND plan_end_time &lt;= #{params.endTime}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectProWorkorderById" resultMap="ProWorkorderResult">
+        <include refid="selectProWorkorderVo"/>
+        where workorder_id = #{workorderId}
+    </select>
+
+    <insert id="insertProWorkorder" parameterType="com.carels.mes.module.pro.domain.ProWorkorder" useGeneratedKeys="true" keyProperty="workorderId">
+        insert into pro_workorder (
+            workorder_code, workorder_type, item_id, item_code, item_name, specification,
+            bom_id, route_id, route_name, plan_quantity, priority,
+            plan_start_time, plan_end_time, workshop_id, workshop_name,
+            team_id, team_name, estimated_hours, client_id, client_name,
+            sales_order_no, remark, create_by, create_time, status
+        ) values (
+            #{workorderCode}, #{workorderType}, #{itemId}, #{itemCode}, #{itemName}, #{specification},
+            #{bomId}, #{routeId}, #{routeName}, #{planQuantity}, #{priority},
+            #{planStartTime}, #{planEndTime}, #{workshopId}, #{workshopName},
+            #{teamId}, #{teamName}, #{estimatedHours}, #{clientId}, #{clientName},
+            #{salesOrderNo}, #{remark}, #{createBy}, sysdate(), 'PENDING'
+        )
+    </insert>
+
+    <update id="updateProWorkorder" parameterType="com.carels.mes.module.pro.domain.ProWorkorder">
+        update pro_workorder
+        <set>
+            <if test="workorderCode != null">workorder_code = #{workorderCode},</if>
+            <if test="workorderType != null">workorder_type = #{workorderType},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="bomId != null">bom_id = #{bomId},</if>
+            <if test="routeId != null">route_id = #{routeId},</if>
+            <if test="routeName != null">route_name = #{routeName},</if>
+            <if test="planQuantity != null">plan_quantity = #{planQuantity},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="planStartTime != null">plan_start_time = #{planStartTime},</if>
+            <if test="planEndTime != null">plan_end_time = #{planEndTime},</if>
+            <if test="workshopId != null">workshop_id = #{workshopId},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <if test="teamId != null">team_id = #{teamId},</if>
+            <if test="teamName != null">team_name = #{teamName},</if>
+            <if test="estimatedHours != null">estimated_hours = #{estimatedHours},</if>
+            <if test="clientId != null">client_id = #{clientId},</if>
+            <if test="clientName != null">client_name = #{clientName},</if>
+            <if test="salesOrderNo != null">sales_order_no = #{salesOrderNo},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where workorder_id = #{workorderId}
+    </update>
+
+    <delete id="deleteProWorkorderById">
+        delete from pro_workorder where workorder_id = #{workorderId}
+    </delete>
+
+    <delete id="deleteProWorkorderByIds">
+        delete from pro_workorder where workorder_id in
+        <foreach collection="array" item="workorderId" open="(" separator="," close=")">
+            #{workorderId}
+        </foreach>
+    </delete>
+
+    <update id="updateStatus">
+        update pro_workorder
+        set status = #{status},
+            <choose>
+                <when test="status == 'PRODUCING'">
+                    actual_start_time = sysdate(),
+                </when>
+                <when test="status == 'COMPLETED' or status == 'CLOSED'">
+                    actual_end_time = sysdate(),
+                </when>
+            </choose>
+            update_time = sysdate()
+        where workorder_id = #{workorderId}
+    </update>
+
+    <!-- 工单看板统计 -->
+    <select id="selectWorkorderStatusStats" resultType="java.util.HashMap">
+        select
+            sum(case when status = 'PENDING' then 1 else 0 end) as pending,
+            sum(case when status = 'RELEASED' then 1 else 0 end) as released,
+            sum(case when status = 'PRODUCING' then 1 else 0 end) as producing,
+            sum(case when status = 'COMPLETED' then 1 else 0 end) as completed,
+            sum(case when status = 'CLOSED' then 1 else 0 end) as closed,
+            count(*) as total,
+            sum(case when status in ('PENDING', 'RELEASED', 'PRODUCING')
+                     and plan_end_time &lt; date_add(now(), interval 1 day) then 1 else 0 end) as delayed
+        from pro_workorder
+        where status != 'CLOSED'
+           or (status = 'CLOSED' and update_time &gt; date_sub(now(), interval 30 day))
+    </select>
+
+    <!-- 工单看板列表 -->
+    <select id="selectWorkorderDashboardList" resultType="java.util.HashMap">
+        select
+            w.workorder_id as workorderId,
+            w.workorder_code as workorderCode,
+            w.item_name as itemName,
+            w.specification,
+            w.plan_quantity as planQuantity,
+            w.completed_quantity as completedQuantity,
+            w.qualified_quantity as qualifiedQuantity,
+            w.defective_quantity as defectiveQuantity,
+            w.status,
+            w.priority,
+            w.plan_start_time as planStartTime,
+            w.plan_end_time as planEndTime,
+            w.actual_start_time as actualStartTime,
+            w.actual_end_time as actualEndTime,
+            w.workshop_name as workshopName,
+            w.team_name as teamName,
+            round(ifnull(w.completed_quantity / w.plan_quantity * 100, 0), 1) as progress,
+            case
+                when w.status in ('PENDING', 'RELEASED', 'PRODUCING')
+                     and w.plan_end_time &lt; date_add(now(), interval 1 day)
+                then timestampdiff(day, w.plan_end_time, now())
+                else 0
+            end as delayDays
+        from pro_workorder w
+        where w.status != 'CLOSED'
+           or (w.status = 'CLOSED' and w.update_time &gt; date_sub(now(), interval 7 day))
+        order by
+            case w.status
+                when 'PRODUCING' then 1
+                when 'RELEASED' then 2
+                when 'PENDING' then 3
+                when 'COMPLETED' then 4
+                else 5
+            end,
+            w.priority = 'HIGH' desc,
+            w.plan_end_time asc
+    </select>
+
+    <!-- 延期工单列表 -->
+    <select id="selectDelayedWorkorderList" resultType="java.util.HashMap">
+        select
+            w.workorder_id as workorderId,
+            w.workorder_code as workorderCode,
+            w.item_name as itemName,
+            w.plan_end_time as planEndTime,
+            timestampdiff(day, w.plan_end_time, now()) as delayDays
+        from pro_workorder w
+        where w.status in ('PENDING', 'RELEASED', 'PRODUCING')
+          and w.plan_end_time &lt; date_add(now(), interval 1 day)
+        order by w.plan_end_time asc
+    </select>
+
+</mapper>

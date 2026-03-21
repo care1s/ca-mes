@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.qc.mapper.QcRecordMapper">
+
+    <resultMap type="com.carels.mes.module.qc.domain.QcRecord" id="QcRecordResult">
+        <id property="recordId" column="record_id"/>
+        <result property="recordCode" column="record_code"/>
+        <result property="qcType" column="qc_type"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderCode" column="workorder_code"/>
+        <result property="taskId" column="task_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="inspectQuantity" column="inspect_quantity"/>
+        <result property="checkedQuantity" column="checked_quantity"/>
+        <result property="qualifiedQuantity" column="qualified_quantity"/>
+        <result property="defectiveQuantity" column="defective_quantity"/>
+        <result property="result" column="result"/>
+        <result property="status" column="status"/>
+        <result property="standardId" column="standard_id"/>
+        <result property="defectDesc" column="defect_desc"/>
+        <result property="defectReason" column="defect_reason"/>
+        <result property="handleMethod" column="handle_method"/>
+        <result property="inspectTime" column="inspect_time"/>
+        <result property="inspectorId" column="inspector_id"/>
+        <result property="inspectorName" column="inspector_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectQcRecordVo">
+        select record_id, record_code, qc_type, workorder_id, workorder_code, task_id,
+               item_id, item_code, item_name, specification, supplier_id, supplier_name,
+               inspect_quantity, checked_quantity, qualified_quantity, defective_quantity,
+               result, status, standard_id, defect_desc, defect_reason, handle_method,
+               inspect_time, inspector_id, inspector_name, remark,
+               create_by, create_time, update_by, update_time
+        from qc_record
+    </sql>
+
+    <select id="selectQcRecordList" parameterType="com.carels.mes.module.qc.domain.QcRecord" resultMap="QcRecordResult">
+        <include refid="selectQcRecordVo"/>
+        <where>
+            <if test="recordCode != null and recordCode != ''">
+                AND record_code like concat('%', #{recordCode}, '%')
+            </if>
+            <if test="qcType != null and qcType != ''">
+                AND qc_type = #{qcType}
+            </if>
+            <if test="workorderCode != null and workorderCode != ''">
+                AND workorder_code like concat('%', #{workorderCode}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name like concat('%', #{itemName}, '%')
+            </if>
+            <if test="result != null and result != ''">
+                AND result = #{result}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="inspectorId != null">
+                AND inspector_id = #{inspectorId}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectQcRecordById" resultMap="QcRecordResult">
+        <include refid="selectQcRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertQcRecord" parameterType="com.carels.mes.module.qc.domain.QcRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into qc_record (
+            record_code, qc_type, workorder_id, workorder_code, task_id,
+            item_id, item_code, item_name, specification, supplier_id, supplier_name,
+            inspect_quantity, status, standard_id, inspector_id, inspector_name,
+            remark, create_by, create_time
+        ) values (
+            #{recordCode}, #{qcType}, #{workorderId}, #{workorderCode}, #{taskId},
+            #{itemId}, #{itemCode}, #{itemName}, #{specification}, #{supplierId}, #{supplierName},
+            #{inspectQuantity}, 'PENDING', #{standardId}, #{inspectorId}, #{inspectorName},
+            #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateQcRecord" parameterType="com.carels.mes.module.qc.domain.QcRecord">
+        update qc_record
+        <set>
+            <if test="recordCode != null">record_code = #{recordCode},</if>
+            <if test="checkedQuantity != null">checked_quantity = #{checkedQuantity},</if>
+            <if test="qualifiedQuantity != null">qualified_quantity = #{qualifiedQuantity},</if>
+            <if test="defectiveQuantity != null">defective_quantity = #{defectiveQuantity},</if>
+            <if test="result != null">result = #{result},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="defectDesc != null">defect_desc = #{defectDesc},</if>
+            <if test="defectReason != null">defect_reason = #{defectReason},</if>
+            <if test="handleMethod != null">handle_method = #{handleMethod},</if>
+            <if test="inspectTime != null">inspect_time = #{inspectTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteQcRecordById">
+        delete from qc_record where record_id = #{recordId}
+    </delete>
+
+    <update id="updateStatus">
+        update qc_record
+        set status = #{status},
+            <if test="status == 'PROCESSING'">
+                inspect_time = sysdate(),
+            </if>
+            update_time = sysdate()
+        where record_id = #{recordId}
+    </update>
+
+    <update id="updateResult">
+        update qc_record
+        set result = #{result},
+            qualified_quantity = #{qualifiedQty},
+            defective_quantity = #{defectiveQty},
+            checked_quantity = #{qualifiedQty} + #{defectiveQty},
+            status = 'COMPLETED',
+            update_time = sysdate()
+        where record_id = #{recordId}
+    </update>
+
+    <!-- 扫码查询检验任务（支持工单码、物料码） -->
+    <select id="selectQcTaskByBarcode" resultType="java.util.HashMap">
+        select
+            w.workorder_id as workorderId,
+            w.workorder_code as workorderCode,
+            w.item_id as itemId,
+            w.item_code as itemCode,
+            w.item_name as itemName,
+            w.specification as specification,
+            w.quantity as planQuantity,
+            w.supplier_id as supplierId,
+            w.supplier_name as supplierName,
+            t.task_id as taskId,
+            t.process_name as processName
+        from pro_workorder w
+        left join pro_task t on w.workorder_id = t.workorder_id
+        where (w.workorder_code = #{barcode} or w.item_code = #{barcode})
+        <if test="qcType == 'IQC'">
+            and w.status in ('PENDING', 'PROCESSING')
+        </if>
+        <if test="qcType == 'IPQC'">
+            and t.status = 'PROCESSING'
+        </if>
+        <if test="qcType == 'OQC'">
+            and w.status = 'COMPLETED'
+        </if>
+        limit 1
+    </select>
+
+    <!-- 获取待检验列表（移动端） -->
+    <select id="selectPendingQcList" resultType="java.util.HashMap">
+        select
+            r.record_id as recordId,
+            r.record_code as recordCode,
+            r.qc_type as qcType,
+            r.workorder_code as workorderCode,
+            r.item_name as itemName,
+            r.specification as specification,
+            r.inspect_quantity as inspectQuantity,
+            r.status,
+            r.result,
+            r.inspector_name as inspectorName,
+            timestampdiff(hour, r.create_time, now()) as waitHours
+        from qc_record r
+        where r.status in ('PENDING', 'PROCESSING')
+        <if test="qcType != null and qcType != ''">
+            and r.qc_type = #{qcType}
+        </if>
+        <if test="inspectorId != null">
+            and (r.inspector_id = #{inspectorId} or r.inspector_id is null)
+        </if>
+        order by r.status = 'PROCESSING' desc, r.create_time asc
+    </select>
+
+    <!-- 获取我的检验列表（移动端） -->
+    <select id="selectMyQcList" resultType="java.util.HashMap">
+        select
+            r.record_id as recordId,
+            r.record_code as recordCode,
+            r.qc_type as qcType,
+            r.workorder_code as workorderCode,
+            r.item_name as itemName,
+            r.specification as specification,
+            r.inspect_quantity as inspectQuantity,
+            r.checked_quantity as checkedQuantity,
+            r.qualified_quantity as qualifiedQuantity,
+            r.defective_quantity as defectiveQuantity,
+            r.status,
+            r.result,
+            r.inspect_time as inspectTime
+        from qc_record r
+        where r.inspector_id = #{inspectorId}
+        order by r.inspect_time desc
+        limit 50
+    </select>
+
+</mapper>

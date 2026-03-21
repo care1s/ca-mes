@@ -95,6 +95,15 @@
             <el-menu-item index="/report/quality-board">质量看板</el-menu-item>
           </el-submenu>
           
+          <!-- 移动端 - 无图标 -->
+          <el-submenu index="/m" v-if="!hiddenMenus.includes('/m')">
+            <template slot="title">
+              <span>移动端</span>
+            </template>
+            <el-menu-item index="/m/feedback">扫码报工</el-menu-item>
+            <el-menu-item index="/m/inspect">移动检验</el-menu-item>
+          </el-submenu>
+
           <!-- 更多菜单 - 隐藏的菜单项 -->
           <el-submenu index="/more" v-if="hiddenMenus.length > 0" class="more-menu">
             <template slot="title">
@@ -183,6 +192,16 @@
                 <el-menu-item index="/report/chart">生产报表</el-menu-item>
                 <el-menu-item index="/report/workorder-board">工单看板</el-menu-item>
                 <el-menu-item index="/report/quality-board">质量看板</el-menu-item>
+              </div>
+            </div>
+
+            <!-- 移动端 -->
+            <div v-if="hiddenMenus.includes('/m')" class="menu-group">
+              <div class="menu-group-title">移动端</div>
+              <div class="menu-group-divider"></div>
+              <div class="menu-group-content">
+                <el-menu-item index="/m/feedback">扫码报工</el-menu-item>
+                <el-menu-item index="/m/inspect">移动检验</el-menu-item>
               </div>
             </div>
           </el-submenu>

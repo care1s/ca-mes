@@ -1,145 +1,115 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header report">
       <div class="title-section">
         <i class="el-icon-pie-chart"></i>
         <span class="title">生产报表</span>
         <span class="subtitle">Production Report</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download">导出</el-button>
-        <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
+        <el-button icon="el-icon-refresh" @click="fetchData" :loading="loading">刷新</el-button>
+        <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
       </div>
     </div>
 
-    <!-- 搜索栏 -->
-    <el-card class="search-card" shadow="never">
-      <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="编码">
-          <el-input v-model="queryParams.code" placeholder="请输入编码" clearable />
-        </el-form-item>
-        <el-form-item label="名称">
-          <el-input v-model="queryParams.name" placeholder="请输入名称" clearable />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
-          <el-button icon="el-icon-refresh-right" @click="resetQuery">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
-            <i class="el-icon-s-grid"></i>
+      <el-col :span="6" :xs="12">
+        <el-card class="stat-card total" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-s-order"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总数</div>
+            <div class="stat-value">{{ workorderStats.total || 0 }}</div>
+            <div class="stat-label">本月工单总数</div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
+      <el-col :span="6" :xs="12">
+        <el-card class="stat-card producing" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-loading"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ workorderStats.producing || 0 }}</div>
+            <div class="stat-label">生产中</div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6" :xs="12">
+        <el-card class="stat-card completed" shadow="hover">
+          <div class="stat-icon">
             <i class="el-icon-check"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.active }}</div>
-            <div class="stat-label">启用</div>
+            <div class="stat-value">{{ (workorderStats.completed || 0) + (workorderStats.closed || 0) }}</div>
+            <div class="stat-label">已完成</div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-close"></i>
+      <el-col :span="6" :xs="12">
+        <el-card class="stat-card rate" shadow="hover">
+          <div class="stat-icon">
+            <i class="el-icon-s-data"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ stats.inactive }}</div>
-            <div class="stat-label">停用</div>
+            <div class="stat-value">{{ completionRate }}%</div>
+            <div class="stat-label">完成率</div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 数据表格 -->
-    <el-card class="table-card" shadow="never">
-      <div slot="header" class="card-header">
-        <span class="header-title">
-          <i class="el-icon-pie-chart"></i>
-          生产报表列表
-        </span>
-        <el-pagination
-          class="pagination"
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="queryParams.pageSize"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-      
-      <el-table
-        
-        :data="tableData"
-        border
-        stripe
-        highlight-current-row
-        style="width: 100%"
-      >
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
-        <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80" align="center">
-          <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              active-value="0"
-              inactive-value="1"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
-          <template slot-scope="scope">
-            <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+    <!-- 图表区域 -->
+    <el-row :gutter="20" class="chart-row">
+      <!-- 工单状态分布饼图 -->
+      <el-col :span="12" :xs="24">
+        <el-card class="chart-card" shadow="never">
+          <div slot="header" class="card-header">
+            <span class="header-title">
+              <i class="el-icon-pie-chart"></i>
+              工单状态分布
+            </span>
+          </div>
+          <div ref="statusChart" class="chart-container"></div>
+        </el-card>
+      </el-col>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码" />
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-      </div>
-    </el-dialog>
+      <!-- 最近7天生产趋势 -->
+      <el-col :span="12" :xs="24">
+        <el-card class="chart-card" shadow="never">
+          <div slot="header" class="card-header">
+            <span class="header-title">
+              <i class="el-icon-s-marketing"></i>
+              最近7天生产趋势
+            </span>
+          </div>
+          <div ref="trendChart" class="chart-container"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 车间产量排行 -->
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="24">
+        <el-card class="chart-card" shadow="never">
+          <div slot="header" class="card-header">
+            <span class="header-title">
+              <i class="el-icon-s-flag"></i>
+              车间产量排行（最近30天）
+            </span>
+          </div>
+          <div ref="workshopChart" class="chart-container-bar"></div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
+import request from '@/api/request'
+
 /**
  * 生产报表 - carels
  * @author carels
@@ -151,124 +121,228 @@ export default {
   data() {
     return {
       loading: false,
-      total: 50,
-      stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
-      },
-      queryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
-      },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
-      dialogVisible: false,
-      dialogTitle: '新增',
-      form: {
-        code: '',
-        name: '',
-        remark: ''
-      },
-      rules: {
-        code: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
-      }
+      workorderStats: {},
+      dailyStats: [],
+      workshopRanking: [],
+      charts: {}
+    }
+  },
+  computed: {
+    completionRate() {
+      const total = this.workorderStats.total || 0
+      const completed = (this.workorderStats.completed || 0) + (this.workorderStats.closed || 0)
+      return total > 0 ? Math.round(completed * 100 / total) : 0
     }
   },
   mounted() {
     this.fetchData()
+    window.addEventListener('resize', this.handleResize)
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize)
+    Object.values(this.charts).forEach(chart => chart && chart.dispose())
   },
   methods: {
-    fetchData() {
+    async fetchData() {
       this.loading = true
-      setTimeout(() => {
-        this.loading = false
-      }, 500)
-    },
-    handleQuery() {
-      this.queryParams.pageNum = 1
-      this.fetchData()
-    },
-    resetQuery() {
-      this.queryParams = {
-        pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
-      }
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogTitle = '新增'
-      this.form = {
-        code: '',
-        name: '',
-        remark: ''
-      }
-      this.dialogVisible = true
-    },
-    handleEdit(row) {
-      this.dialogTitle = '编辑'
-      this.form = { ...row }
-      this.dialogVisible = true
-    },
-    handleView(row) {
-      this.$alert(`编码：${row.code}<br>名称：${row.name}`, '详情', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
-      })
-    },
-    handleDelete(row) {
-      this.$confirm(`确认删除 "${row.name}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
-      })
-    },
-    handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
-      this.$message.success(`已${status}：${row.name}`)
-    },
-    handleSizeChange(val) {
-      this.queryParams.pageSize = val
-      this.fetchData()
-    },
-    handleCurrentChange(val) {
-      this.queryParams.pageNum = val
-      this.fetchData()
-    },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
+      try {
+        const res = await request({
+          url: '/mes/report/chart',
+          method: 'get'
+        })
+        if (res.code === 200) {
+          this.workorderStats = res.data.statusDistribution || {}
+          this.dailyStats = res.data.dailyStats || []
+          this.workshopRanking = res.data.workshopRanking || []
+          this.$nextTick(() => {
+            this.initCharts()
+          })
         }
+      } catch (error) {
+        console.error('获取报表数据失败:', error)
+        this.$message.error('获取数据失败')
+      } finally {
+        this.loading = false
+      }
+    },
+    initCharts() {
+      this.initStatusChart()
+      this.initTrendChart()
+      this.initWorkshopChart()
+    },
+    initStatusChart() {
+      const chart = this.$echarts.init(this.$refs.statusChart)
+      this.charts.status = chart
+
+      const data = [
+        { value: this.workorderStats.pending || 0, name: '待下达' },
+        { value: this.workorderStats.released || 0, name: '已下达' },
+        { value: this.workorderStats.producing || 0, name: '生产中' },
+        { value: this.workorderStats.completed || 0, name: '已完成' },
+        { value: this.workorderStats.closed || 0, name: '已关闭' }
+      ].filter(item => item.value > 0)
+
+      chart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: 20,
+          top: 'center'
+        },
+        color: ['#909399', '#e6a23c', '#409eff', '#67c23a', '#dcdfe6'],
+        series: [{
+          name: '工单状态',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['40%', '50%'],
+          avoidLabelOverlap: false,
+          label: {
+            show: false,
+            position: 'center'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 20,
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: { show: false },
+          data: data
+        }]
+      })
+    },
+    initTrendChart() {
+      const chart = this.$echarts.init(this.$refs.trendChart)
+      this.charts.trend = chart
+
+      const dates = this.dailyStats.map(item => item.date ? item.date.substring(5) : '')
+      const planQty = this.dailyStats.map(item => item.planQuantity || 0)
+      const completedQty = this.dailyStats.map(item => item.completedQuantity || 0)
+
+      chart.setOption({
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'cross' }
+        },
+        legend: {
+          data: ['计划数量', '完工数量']
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: dates,
+          axisLabel: { rotate: 30 }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '计划数量',
+            type: 'line',
+            data: planQty,
+            smooth: true,
+            areaStyle: {
+              color: 'rgba(64, 158, 255, 0.1)'
+            },
+            itemStyle: { color: '#409eff' }
+          },
+          {
+            name: '完工数量',
+            type: 'line',
+            data: completedQty,
+            smooth: true,
+            areaStyle: {
+              color: 'rgba(103, 194, 58, 0.1)'
+            },
+            itemStyle: { color: '#67c23a' }
+          }
+        ]
+      })
+    },
+    initWorkshopChart() {
+      const chart = this.$echarts.init(this.$refs.workshopChart)
+      this.charts.workshop = chart
+
+      const names = this.workshopRanking.map(item => item.workshopName || '未知车间')
+      const outputs = this.workshopRanking.map(item => item.totalOutput || 0)
+
+      chart.setOption({
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: names,
+          axisLabel: { rotate: 30 }
+        },
+        yAxis: {
+          type: 'value',
+          name: '产量'
+        },
+        series: [{
+          name: '产量',
+          type: 'bar',
+          data: outputs,
+          itemStyle: {
+            color: new this.$echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#83bff6' },
+              { offset: 0.5, color: '#188df0' },
+              { offset: 1, color: '#188df0' }
+            ])
+          },
+          emphasis: {
+            itemStyle: {
+              color: new this.$echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#2378f7' },
+                { offset: 0.7, color: '#2378f7' },
+                { offset: 1, color: '#83bff6' }
+              ])
+            }
+          }
+        }]
+      })
+    },
+    handleResize() {
+      Object.values(this.charts).forEach(chart => chart && chart.resize())
+    },
+    handleExport() {
+      const data = [
+        ['统计项', '数值'],
+        ['工单总数', this.workorderStats.total || 0],
+        ['待下达', this.workorderStats.pending || 0],
+        ['已下达', this.workorderStats.released || 0],
+        ['生产中', this.workorderStats.producing || 0],
+        ['已完成', (this.workorderStats.completed || 0) + (this.workorderStats.closed || 0)],
+        ['完成率', this.completionRate + '%']
+      ]
+
+      import('xlsx').then(XLSX => {
+        const ws = XLSX.utils.aoa_to_sheet(data)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, '生产报表')
+
+        const now = new Date()
+        const filename = `生产报表_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
+
+        XLSX.writeFile(wb, filename)
+        this.$message.success('导出成功')
       })
     }
   }
@@ -279,6 +353,7 @@ export default {
 .app-container {
   padding: 20px;
   min-height: calc(100vh - 120px);
+  background: #f5f7fa;
 }
 
 // 页面头部
@@ -290,39 +365,34 @@ export default {
   padding: 0 0 15px 0;
   border-bottom: 2px solid #EBEEF5;
 
+  &.report {
+    border-bottom-color: #909399;
+
+    .title-section i {
+      color: #909399;
+    }
+  }
+
   .title-section {
     display: flex;
     align-items: center;
-    
+
     i {
       font-size: 28px;
-      color: #409EFF;
       margin-right: 12px;
     }
-    
+
     .title {
       font-size: 22px;
       font-weight: 600;
       color: #303133;
       margin-right: 10px;
     }
-    
+
     .subtitle {
       font-size: 13px;
       color: #909399;
       font-weight: normal;
-    }
-  }
-}
-
-// 搜索栏
-.search-card {
-  margin-bottom: 20px;
-  
-  .search-form {
-    .el-form-item {
-      margin-bottom: 0;
-      margin-right: 20px;
     }
   }
 }
@@ -336,79 +406,102 @@ export default {
   display: flex;
   align-items: center;
   padding: 20px;
+  border-radius: 12px;
   transition: all 0.3s;
-  
+
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
   }
-  
+
   .stat-icon {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 15px;
-    
+
     i {
-      font-size: 28px;
+      font-size: 24px;
       color: #fff;
     }
-    
-    &.blue {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    &.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    &.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
   }
-  
+
   .stat-info {
     flex: 1;
-    
+
     .stat-value {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
-      color: #303133;
       line-height: 1;
       margin-bottom: 8px;
     }
-    
+
     .stat-label {
-      font-size: 14px;
-      color: #909399;
+      font-size: 13px;
+      opacity: 0.8;
     }
+  }
+
+  // 不同统计项的颜色
+  &.total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.producing {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.completed {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
+  }
+
+  &.rate {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #fff;
+    .stat-icon { background: rgba(255,255,255,0.2); }
   }
 }
 
-// 表格卡片
-.table-card {
+// 图表区域
+.chart-row {
+  margin-bottom: 20px;
+}
+
+.chart-card {
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .header-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
-      
+
       i {
         margin-right: 8px;
         color: #409EFF;
       }
     }
   }
-  
-  .el-table {
-    margin-top: 15px;
+
+  .chart-container {
+    height: 350px;
+    margin-top: 10px;
+  }
+
+  .chart-container-bar {
+    height: 300px;
+    margin-top: 10px;
   }
 }
 
@@ -417,15 +510,28 @@ export default {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    
+
     .action-section {
       margin-top: 10px;
     }
   }
-  
+
   .stat-row {
     .el-col {
       margin-bottom: 15px;
+    }
+  }
+
+  .chart-row {
+    .el-col {
+      margin-bottom: 20px;
+    }
+  }
+
+  .chart-card {
+    .chart-container,
+    .chart-container-bar {
+      height: 250px;
     }
   }
 }
