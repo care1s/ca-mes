@@ -55,6 +55,7 @@ public class LoginService {
         result.setUserName(username);
         result.setNickName("管理员");
         result.setAvatar("");
+        result.setDeptName("采购部"); // 设置默认部门
         
         // 设置角色和权限
         Set<String> roles = new HashSet<>();
@@ -79,12 +80,18 @@ public class LoginService {
     private String generateToken(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
-        
+
+        // 确保密钥长度足够（HS256需要至少256位）
+        String secret = jwtSecret;
+        if (secret.length() < 32) {
+            secret = secret + "-carels-mes-padding-to-32chars";
+        }
+
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
     
@@ -96,8 +103,13 @@ public class LoginService {
      */
     public String getUserNameFromToken(String token) {
         try {
+            // 确保密钥长度足够（HS256需要至少256位）
+            String secret = jwtSecret;
+            if (secret.length() < 32) {
+                secret = secret + "-carels-mes-padding-to-32chars";
+            }
             return Jwts.parser()
-                    .setSigningKey(jwtSecret)
+                    .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();

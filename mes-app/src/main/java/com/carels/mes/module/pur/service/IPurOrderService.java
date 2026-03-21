@@ -15,4 +15,11 @@ public interface IPurOrderService {
     int updatePurOrder(PurOrder purOrder);
     
     int deletePurOrderById(Long orderId);
+
+    /**
+     * 根据采购申请生成采购订单
+     * @param requestId 采购申请ID
+     * @return 生成的订单ID
+     */
+    Long createOrderFromRequest(Long requestId);
 }

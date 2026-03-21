@@ -8,7 +8,6 @@
         <span class="subtitle">Purchase Receipt</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增入库</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -21,13 +20,13 @@
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-label">待质检</span>
-        <span class="stat-value orange">{{ stats.inspecting }}</span>
+        <span class="stat-label">待处理</span>
+        <span class="stat-value orange">{{ stats.pending }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-label">已入库</span>
-        <span class="stat-value green">{{ stats.stockIn }}</span>
+        <span class="stat-label">已确认</span>
+        <span class="stat-value green">{{ stats.confirmed }}</span>
       </div>
     </div>
 
@@ -43,10 +42,11 @@
         <el-form-item label="供应商">
           <el-input v-model="queryParams.vendorName" placeholder="请输入供应商" clearable />
         </el-form-item>
-        <el-form-item label="入库状态">
-          <el-select v-model="queryParams.stockInStatus" placeholder="请选择状态" clearable>
-            <el-option label="未入库" :value="0" />
-            <el-option label="已入库" :value="1" />
+        <el-form-item label="状态">
+          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+            <el-option label="待处理" value="PENDING" />
+            <el-option label="已确认" value="CONFIRMED" />
+            <el-option label="已完成" value="COMPLETED" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -58,8 +58,8 @@
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
-      <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table :data="tableData" stripe style="width: 100%">
+        <el-table-column type="index" label="序号" width="80" align="center" fixed />
         <el-table-column prop="receiptNo" label="入库单号" width="140" />
         <el-table-column prop="orderNo" label="订单编号" width="140" />
         <el-table-column prop="vendorName" label="供应商" min-width="120" />
@@ -67,18 +67,20 @@
         <el-table-column prop="warehouseName" label="仓库" width="100" />
         <el-table-column prop="totalQuantity" label="数量" width="80" align="right" />
         <el-table-column prop="qualifiedQty" label="合格数" width="80" align="right" />
-        <el-table-column prop="stockInStatus" label="入库状态" width="90" align="center">
+        <el-table-column prop="status" label="状态" width="90" align="center">
           <template slot-scope="scope">
-            <el-tag :type="scope.row.stockInStatus === 1 ? 'success' : 'info'" size="small">
-              {{ scope.row.stockInStatus === 1 ? '已入库' : '未入库' }}
-            </el-tag>
+            <el-tag v-if="scope.row.status === 'PENDING'" type="info" size="small">待处理</el-tag>
+            <el-tag v-else-if="scope.row.status === 'CONFIRMED'" type="success" size="small">已确认</el-tag>
+            <el-tag v-else-if="scope.row.status === 'COMPLETED'" type="success" size="small">已完成</el-tag>
+            <el-tag v-else type="info" size="small">{{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-if="scope.row.status === 'PENDING'" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-if="scope.row.status === 'PENDING'" type="text" size="small" style="color: #67c23a" @click="handleConfirm(scope.row)">确认入库</el-button>
             <el-button type="text" size="small" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -151,7 +153,7 @@
 </template>
 
 <script>
-import { listPurReceipt, addPurReceipt, updatePurReceipt, delPurReceipt, getPurReceipt } from '@/api/md'
+import { listPurReceipt, addPurReceipt, updatePurReceipt, delPurReceipt, getPurReceipt, confirmPurReceipt } from '@/api/md'
 
 export default {
   name: 'PurReceipt',
@@ -166,12 +168,12 @@ export default {
         receiptNo: '',
         orderNo: '',
         vendorName: '',
-        stockInStatus: null
+        status: ''
       },
       stats: {
         total: 0,
-        inspecting: 0,
-        stockIn: 0
+        pending: 0,
+        confirmed: 0
       },
       dialogVisible: false,
       dialogTitle: '',
@@ -189,9 +191,9 @@ export default {
         unqualifiedQty: 0,
         warehouseId: null,
         warehouseName: '',
-        status: 0,
-        auditStatus: 0,
-        stockInStatus: 0,
+        status: 'PENDING',
+        auditStatus: 'PENDING',
+        stockInStatus: 'PENDING',
         remark: ''
       },
       rules: {
@@ -217,8 +219,8 @@ export default {
     },
     calculateStats() {
       this.stats.total = this.total
-      this.stats.inspecting = this.tableData.filter(item => item.status === 1).length
-      this.stats.stockIn = this.tableData.filter(item => item.stockInStatus === 1).length
+      this.stats.pending = this.tableData.filter(item => item.status === 'PENDING').length
+      this.stats.confirmed = this.tableData.filter(item => item.status === 'CONFIRMED' || item.status === 'COMPLETED').length
     },
     handleQuery() {
       this.queryParams.pageNum = 1
@@ -231,7 +233,7 @@ export default {
         receiptNo: '',
         orderNo: '',
         vendorName: '',
-        stockInStatus: null
+        status: ''
       }
       this.fetchData()
     },
@@ -259,9 +261,9 @@ export default {
         unqualifiedQty: 0,
         warehouseId: null,
         warehouseName: '',
-        status: 0,
-        auditStatus: 0,
-        stockInStatus: 0,
+        status: 'PENDING',
+        auditStatus: 'PENDING',
+        stockInStatus: 'PENDING',
         remark: ''
       }
       this.dialogVisible = true
@@ -284,6 +286,18 @@ export default {
       }).then(() => {
         delPurReceipt(row.id).then(() => {
           this.$message.success('删除成功')
+          this.fetchData()
+        })
+      }).catch(() => {})
+    },
+    handleConfirm(row) {
+      this.$confirm('确认入库后将会更新库存，是否继续？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        confirmPurReceipt(row.id).then(() => {
+          this.$message.success('入库确认成功')
           this.fetchData()
         })
       }).catch(() => {})

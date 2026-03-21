@@ -13,75 +13,38 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card pending" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-time"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.pending || 0 }}</div>
-            <div class="stat-label">待下达</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card released" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-document-checked"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.released || 0 }}</div>
-            <div class="stat-label">已下达</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card producing" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-loading"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.producing || 0 }}</div>
-            <div class="stat-label">生产中</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card completed" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.completed || 0 }}</div>
-            <div class="stat-label">已完成</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card total" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.total || 0 }}</div>
-            <div class="stat-label">总工单</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card delayed" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-warning"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.delayed || 0 }}</div>
-            <div class="stat-label">延期预警</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">待下达</span>
+        <span class="stat-value orange">{{ summary.pending || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">已下达</span>
+        <span class="stat-value blue">{{ summary.released || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">生产中</span>
+        <span class="stat-value blue">{{ summary.producing || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">已完成</span>
+        <span class="stat-value green">{{ summary.completed || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">总工单</span>
+        <span class="stat-value blue">{{ summary.total || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">延期预警</span>
+        <span class="stat-value red">{{ summary.delayed || 0 }}</span>
+      </div>
+    </div>
 
     <!-- 状态筛选标签 -->
     <el-card class="filter-card" shadow="never">

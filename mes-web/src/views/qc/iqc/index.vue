@@ -30,42 +30,23 @@
       </el-form>
     </el-card>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon blue">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总数</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon green">
-            <i class="el-icon-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.active }}</div>
-            <div class="stat-label">启用</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-icon orange">
-            <i class="el-icon-close"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.inactive }}</div>
-            <div class="stat-label">停用</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">总数</span>
+        <span class="stat-value blue">{{ stats.total }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">启用</span>
+        <span class="stat-value green">{{ stats.active }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">停用</span>
+        <span class="stat-value orange">{{ stats.inactive }}</span>
+      </div>
+    </div>
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">

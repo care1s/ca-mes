@@ -14,7 +14,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/mes/pur/request")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class PurRequestController extends BaseController {
     
     @Autowired
@@ -47,5 +46,29 @@ public class PurRequestController extends BaseController {
     @DeleteMapping("/{requestId}")
     public AjaxResult remove(@PathVariable Long requestId) {
         return toAjax(purRequestService.deletePurRequestById(requestId));
+    }
+
+    /**
+     * 提交审批
+     */
+    @PutMapping("/{requestId}/submit")
+    public AjaxResult submit(@PathVariable Long requestId) {
+        return toAjax(purRequestService.submitPurRequest(requestId));
+    }
+
+    /**
+     * 审批通过
+     */
+    @PutMapping("/{requestId}/approve")
+    public AjaxResult approve(@PathVariable Long requestId, @RequestParam(required = false) String auditOpinion) {
+        return toAjax(purRequestService.approvePurRequest(requestId, auditOpinion));
+    }
+
+    /**
+     * 审批拒绝
+     */
+    @PutMapping("/{requestId}/reject")
+    public AjaxResult reject(@PathVariable Long requestId, @RequestParam(required = false) String auditOpinion) {
+        return toAjax(purRequestService.rejectPurRequest(requestId, auditOpinion));
     }
 }

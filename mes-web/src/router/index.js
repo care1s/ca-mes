@@ -69,7 +69,6 @@ const DvRepair = () => import('@/views/dv/repair/index')
 // 采购管理页面
 const PurRequest = () => import('@/views/pur/request/index')
 const PurOrder = () => import('@/views/pur/order/index')
-const PurReceipt = () => import('@/views/pur/receipt/index')
 const PurReturn = () => import('@/views/pur/return/index')
 
 // 报表页面
@@ -213,7 +212,6 @@ export const routes = [
     children: [
       { path: 'request', name: 'PurRequest', component: PurRequest, meta: { title: '采购申请', icon: 'el-icon-document' } },
       { path: 'order', name: 'PurOrder', component: PurOrder, meta: { title: '采购订单', icon: 'el-icon-s-order' } },
-      { path: 'receipt', name: 'PurReceipt', component: PurReceipt, meta: { title: '采购入库', icon: 'el-icon-s-home' } },
       { path: 'return', name: 'PurReturn', component: PurReturn, meta: { title: '采购退货', icon: 'el-icon-refresh-left' } }
     ]
   },

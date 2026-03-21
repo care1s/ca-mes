@@ -34,16 +34,6 @@ public class WmRecptController extends BaseController {
         return AjaxResult.success(recptService.selectWmRecptById(recptId));
     }
 
-    @PostMapping
-    public AjaxResult add(@RequestBody WmRecpt recpt) {
-        return toAjax(recptService.insertWmRecpt(recpt));
-    }
-
-    @PutMapping
-    public AjaxResult edit(@RequestBody WmRecpt recpt) {
-        return toAjax(recptService.updateWmRecpt(recpt));
-    }
-
     @DeleteMapping("/{recptId}")
     public AjaxResult remove(@PathVariable Long recptId) {
         return toAjax(recptService.deleteWmRecptById(recptId));

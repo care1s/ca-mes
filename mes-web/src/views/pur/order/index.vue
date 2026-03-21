@@ -8,7 +8,6 @@
         <span class="subtitle">Purchase Order</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增订单</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -63,9 +62,15 @@
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
-      <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table :data="tableData" stripe style="width: 100%">
+        <el-table-column type="index" label="序号" width="80" align="center" fixed />
         <el-table-column prop="orderNo" label="订单编号" width="140" />
+        <el-table-column prop="requestNo" label="关联申请" width="140" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.requestNo" type="info" size="mini">{{ scope.row.requestNo }}</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="vendorName" label="供应商" min-width="120" />
         <el-table-column prop="orderDate" label="订单日期" width="100" />
         <el-table-column prop="deliveryDate" label="交货日期" width="100" />
@@ -90,7 +95,6 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button type="text" size="small" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -110,79 +114,11 @@
         />
       </div>
     </el-card>
-
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="900px" :close-on-click-modal="false">
-      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="订单编号" prop="orderNo">
-              <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="申请单号" prop="requestNo">
-              <el-input v-model="form.requestNo" placeholder="关联申请单号" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="供应商" prop="vendorName">
-              <el-input v-model="form.vendorName" placeholder="请选择供应商" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="订单日期" prop="orderDate">
-              <el-date-picker v-model="form.orderDate" type="date" placeholder="选择日期" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="交货日期" prop="deliveryDate">
-              <el-date-picker v-model="form.deliveryDate" type="date" placeholder="选择日期" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="币种" prop="currency">
-              <el-select v-model="form.currency" placeholder="请选择币种" style="width: 100%">
-                <el-option label="人民币 (CNY)" value="CNY" />
-                <el-option label="美元 (USD)" value="USD" />
-                <el-option label="欧元 (EUR)" value="EUR" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="联系人" prop="contactName">
-              <el-input v-model="form.contactName" placeholder="请输入联系人" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="联系电话" prop="contactPhone">
-              <el-input v-model="form.contactPhone" placeholder="请输入联系电话" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="送货地址" prop="deliveryAddress">
-          <el-input v-model="form.deliveryAddress" type="textarea" :rows="2" placeholder="请输入送货地址" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">确定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listPurOrder, addPurOrder, updatePurOrder, delPurOrder, getPurOrder } from '@/api/md'
+import { listPurOrder, delPurOrder } from '@/api/md'
 
 export default {
   name: 'PurOrder',
@@ -203,30 +139,6 @@ export default {
         draft: 0,
         confirmed: 0,
         completed: 0
-      },
-      dialogVisible: false,
-      dialogTitle: '',
-      form: {
-        orderNo: '',
-        requestNo: '',
-        vendorId: null,
-        vendorCode: '',
-        vendorName: '',
-        orderDate: null,
-        deliveryDate: null,
-        totalAmount: 0,
-        totalQuantity: 0,
-        currency: 'CNY',
-        orderStatus: 0,
-        auditStatus: 0,
-        contactName: '',
-        contactPhone: '',
-        deliveryAddress: '',
-        remark: ''
-      },
-      rules: {
-        vendorName: [{ required: true, message: '请选择供应商', trigger: 'blur' }],
-        orderDate: [{ required: true, message: '请选择订单日期', trigger: 'change' }]
       }
     }
   },
@@ -273,37 +185,8 @@ export default {
       this.queryParams.pageNum = val
       this.fetchData()
     },
-    handleAdd() {
-      this.dialogTitle = '新增采购订单'
-      this.form = {
-        orderNo: '',
-        requestNo: '',
-        vendorId: null,
-        vendorCode: '',
-        vendorName: '',
-        orderDate: new Date(),
-        deliveryDate: null,
-        totalAmount: 0,
-        totalQuantity: 0,
-        currency: 'CNY',
-        orderStatus: 0,
-        auditStatus: 0,
-        contactName: '',
-        contactPhone: '',
-        deliveryAddress: '',
-        remark: ''
-      }
-      this.dialogVisible = true
-    },
     handleView(row) {
       this.$message.info('查看功能开发中')
-    },
-    handleEdit(row) {
-      this.dialogTitle = '编辑采购订单'
-      getPurOrder(row.id).then(response => {
-        this.form = { ...response.data }
-        this.dialogVisible = true
-      })
     },
     handleDelete(row) {
       this.$confirm('确认删除该采购订单吗？', '提示', {
@@ -316,25 +199,6 @@ export default {
           this.fetchData()
         })
       }).catch(() => {})
-    },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          if (this.form.id) {
-            updatePurOrder(this.form).then(() => {
-              this.$message.success('修改成功')
-              this.dialogVisible = false
-              this.fetchData()
-            })
-          } else {
-            addPurOrder(this.form).then(() => {
-              this.$message.success('新增成功')
-              this.dialogVisible = false
-              this.fetchData()
-            })
-          }
-        }
-      })
     },
     formatMoney(value) {
       if (!value) return '¥0.00'

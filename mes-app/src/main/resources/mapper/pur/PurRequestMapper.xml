@@ -110,9 +110,13 @@
     </delete>
 
     <update id="updateRequestStatus">
-        update pur_request 
-        set status = #{status}, update_time = sysdate() 
+        update pur_request
+        set status = #{status}, update_time = sysdate()
         where request_id = #{requestId}
     </update>
+
+    <select id="selectMaxRequestCodeByDate" resultType="java.lang.String">
+        SELECT MAX(request_code) FROM pur_request WHERE request_code LIKE CONCAT('PRQ', #{dateStr}, '%')
+    </select>
 
 </mapper>

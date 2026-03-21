@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pur.mapper.PurRequestItemMapper">
+
+    <resultMap type="com.carels.mes.module.pur.domain.PurRequestItem" id="PurRequestItemResult">
+        <id property="itemId" column="item_id"/>
+        <result property="requestId" column="request_id"/>
+        <result property="itemIdRef" column="item_id_ref"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="itemSpec" column="item_spec"/>
+        <result property="unit" column="unit"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+        <result property="amount" column="amount"/>
+        <result property="requiredDate" column="required_date"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectPurRequestItemVo">
+        select item_id, request_id, item_id_ref, item_code, item_name, item_spec, unit,
+               quantity, price, amount, required_date, remark, create_by, create_time,
+               update_by, update_time
+        from pur_request_item
+    </sql>
+
+    <select id="selectPurRequestItemsByRequestId" resultMap="PurRequestItemResult">
+        <include refid="selectPurRequestItemVo"/>
+        where request_id = #{requestId}
+        order by item_id
+    </select>
+
+    <insert id="insertPurRequestItem" parameterType="com.carels.mes.module.pur.domain.PurRequestItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into pur_request_item (
+            request_id, item_id_ref, item_code, item_name, item_spec, unit,
+            quantity, price, amount, required_date, remark, create_by, create_time
+        ) values (
+            #{requestId}, #{itemIdRef}, #{itemCode}, #{itemName}, #{itemSpec}, #{unit},
+            #{quantity}, #{price}, #{amount}, #{requiredDate}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <insert id="batchInsertPurRequestItem">
+        insert into pur_request_item (
+            request_id, item_id_ref, item_code, item_name, item_spec, unit,
+            quantity, price, amount, required_date, remark, create_by, create_time
+        ) values
+        <foreach collection="items" item="item" separator=",">
+            (#{item.requestId}, #{item.itemIdRef}, #{item.itemCode}, #{item.itemName}, #{item.itemSpec}, #{item.unit},
+            #{item.quantity}, #{item.price}, #{item.amount}, #{item.requiredDate}, #{item.remark}, #{item.createBy}, sysdate())
+        </foreach>
+    </insert>
+
+    <update id="updatePurRequestItem" parameterType="com.carels.mes.module.pur.domain.PurRequestItem">
+        update pur_request_item
+        <set>
+            <if test="requestId != null">request_id = #{requestId},</if>
+            <if test="itemIdRef != null">item_id_ref = #{itemIdRef},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="itemSpec != null">item_spec = #{itemSpec},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="requiredDate != null">required_date = #{requiredDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deletePurRequestItemById">
+        delete from pur_request_item where item_id = #{itemId}
+    </delete>
+
+    <delete id="deletePurRequestItemsByRequestId">
+        delete from pur_request_item where request_id = #{requestId}
+    </delete>
+
+</mapper>

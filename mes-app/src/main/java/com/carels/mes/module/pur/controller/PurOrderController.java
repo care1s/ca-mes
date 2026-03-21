@@ -32,19 +32,15 @@ public class PurOrderController extends BaseController {
     public AjaxResult getInfo(@PathVariable Long orderId) {
         return AjaxResult.success(purOrderService.selectPurOrderById(orderId));
     }
-    
-    @PostMapping
-    public AjaxResult add(@RequestBody PurOrder purOrder) {
-        return toAjax(purOrderService.insertPurOrder(purOrder));
-    }
-    
-    @PutMapping
-    public AjaxResult edit(@RequestBody PurOrder purOrder) {
-        return toAjax(purOrderService.updatePurOrder(purOrder));
-    }
-    
+
     @DeleteMapping("/{orderId}")
     public AjaxResult remove(@PathVariable Long orderId) {
         return toAjax(purOrderService.deletePurOrderById(orderId));
+    }
+
+    @PostMapping("/from-request/{requestId}")
+    public AjaxResult createFromRequest(@PathVariable Long requestId) {
+        Long orderId = purOrderService.createOrderFromRequest(requestId);
+        return AjaxResult.success("订单生成成功", orderId);
     }
 }

@@ -5,6 +5,11 @@
         <id property="id" column="id"/>
         <result property="recptNo" column="recpt_no"/>
         <result property="recptType" column="recpt_type"/>
+        <result property="vendorId" column="vendor_id"/>
+        <result property="vendorCode" column="vendor_code"/>
+        <result property="vendorName" column="vendor_name"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
         <result property="sourceType" column="source_type"/>
         <result property="sourceId" column="source_id"/>
         <result property="sourceNo" column="source_no"/>
@@ -12,6 +17,16 @@
         <result property="warehouseName" column="warehouse_name"/>
         <result property="status" column="status"/>
         <result property="recptDate" column="recpt_date"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="qualifiedQty" column="qualified_qty"/>
+        <result property="unqualifiedQty" column="unqualified_qty"/>
+        <result property="currency" column="currency"/>
+        <result property="inspectorId" column="inspector_id"/>
+        <result property="inspectorName" column="inspector_name"/>
+        <result property="inspectionDate" column="inspection_date"/>
+        <result property="inspectionRemark" column="inspection_remark"/>
+        <result property="auditStatus" column="audit_status"/>
         <result property="remark" column="remark"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
@@ -34,8 +49,11 @@
     </resultMap>
 
     <sql id="selectWmRecptVo">
-        select id, recpt_no, recpt_type, source_type, source_id, source_no, warehouse_id, warehouse_name,
-               status, recpt_date, remark, create_by, create_time, update_by, update_time
+        select id, recpt_no, recpt_type, vendor_id, vendor_code, vendor_name, order_id, order_no,
+               source_type, source_id, source_no, warehouse_id, warehouse_name, status, recpt_date,
+               total_amount, total_quantity, qualified_qty, unqualified_qty, currency,
+               inspector_id, inspector_name, inspection_date, inspection_remark, audit_status,
+               remark, create_by, create_time, update_by, update_time
         from wm_recpt
     </sql>
 
@@ -47,6 +65,12 @@
             </if>
             <if test="recptType != null and recptType != ''">
                 AND recpt_type = #{recptType}
+            </if>
+            <if test="vendorName != null and vendorName != ''">
+                AND vendor_name like concat('%', #{vendorName}, '%')
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no like concat('%', #{orderNo}, '%')
             </if>
             <if test="sourceType != null and sourceType != ''">
                 AND source_type = #{sourceType}
@@ -76,10 +100,16 @@
     </select>
 
     <insert id="insertWmRecpt" useGeneratedKeys="true" keyProperty="id">
-        insert into wm_recpt (recpt_no, recpt_type, source_type, source_id, source_no, warehouse_id, warehouse_name,
-                              status, recpt_date, remark, create_by, create_time)
-        values (#{recptNo}, #{recptType}, #{sourceType}, #{sourceId}, #{sourceNo}, #{warehouseId}, #{warehouseName},
-                #{status}, #{recptDate}, #{remark}, #{createBy}, sysdate())
+        insert into wm_recpt (recpt_no, recpt_type, vendor_id, vendor_code, vendor_name, order_id, order_no,
+                              source_type, source_id, source_no, warehouse_id, warehouse_name, status, recpt_date,
+                              total_amount, total_quantity, qualified_qty, unqualified_qty, currency,
+                              inspector_id, inspector_name, inspection_date, inspection_remark, audit_status,
+                              remark, create_by, create_time)
+        values (#{recptNo}, #{recptType}, #{vendorId}, #{vendorCode}, #{vendorName}, #{orderId}, #{orderNo},
+                #{sourceType}, #{sourceId}, #{sourceNo}, #{warehouseId}, #{warehouseName}, #{status}, #{recptDate},
+                #{totalAmount}, #{totalQuantity}, #{qualifiedQty}, #{unqualifiedQty}, #{currency},
+                #{inspectorId}, #{inspectorName}, #{inspectionDate}, #{inspectionRemark}, #{auditStatus},
+                #{remark}, #{createBy}, sysdate())
     </insert>
 
     <update id="updateWmRecpt">
@@ -87,6 +117,11 @@
         <set>
             <if test="recptNo != null">recpt_no = #{recptNo},</if>
             <if test="recptType != null">recpt_type = #{recptType},</if>
+            <if test="vendorId != null">vendor_id = #{vendorId},</if>
+            <if test="vendorCode != null">vendor_code = #{vendorCode},</if>
+            <if test="vendorName != null">vendor_name = #{vendorName},</if>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
             <if test="sourceType != null">source_type = #{sourceType},</if>
             <if test="sourceId != null">source_id = #{sourceId},</if>
             <if test="sourceNo != null">source_no = #{sourceNo},</if>
@@ -94,6 +129,16 @@
             <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
             <if test="status != null">status = #{status},</if>
             <if test="recptDate != null">recpt_date = #{recptDate},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+            <if test="qualifiedQty != null">qualified_qty = #{qualifiedQty},</if>
+            <if test="unqualifiedQty != null">unqualified_qty = #{unqualifiedQty},</if>
+            <if test="currency != null">currency = #{currency},</if>
+            <if test="inspectorId != null">inspector_id = #{inspectorId},</if>
+            <if test="inspectorName != null">inspector_name = #{inspectorName},</if>
+            <if test="inspectionDate != null">inspection_date = #{inspectionDate},</if>
+            <if test="inspectionRemark != null">inspection_remark = #{inspectionRemark},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
             <if test="remark != null">remark = #{remark},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             update_time = sysdate()

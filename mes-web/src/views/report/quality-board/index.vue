@@ -13,75 +13,38 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-row">
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card iqc" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-box"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.iqc || 0 }}</div>
-            <div class="stat-label">来料待检</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card ipqc" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-s-check"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.ipqc || 0 }}</div>
-            <div class="stat-label">过程待检</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card oqc" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-sold-out"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.oqc || 0 }}</div>
-            <div class="stat-label">出货物检</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card rqc" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-refresh-left"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.rqc || 0 }}</div>
-            <div class="stat-label">退货待检</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card total" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-s-grid"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.total || 0 }}</div>
-            <div class="stat-label">总待检</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="4" :xs="12">
-        <el-card class="stat-card urgent" shadow="hover">
-          <div class="stat-icon">
-            <i class="el-icon-warning"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ summary.urgent || 0 }}</div>
-            <div class="stat-label">紧急待检</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 统计信息 - 单行展示 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">来料待检</span>
+        <span class="stat-value blue">{{ summary.iqc || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">过程待检</span>
+        <span class="stat-value blue">{{ summary.ipqc || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">出货物检</span>
+        <span class="stat-value blue">{{ summary.oqc || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">退货待检</span>
+        <span class="stat-value orange">{{ summary.rqc || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">总待检</span>
+        <span class="stat-value blue">{{ summary.total || 0 }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">紧急待检</span>
+        <span class="stat-value red">{{ summary.urgent || 0 }}</span>
+      </div>
+    </div>
 
     <!-- 检验类型筛选 -->
     <el-card class="filter-card" shadow="never">

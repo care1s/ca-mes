@@ -31,4 +31,7 @@ public class LoginResultDTO {
     
     /** 权限列表 */
     private Set<String> permissions;
+
+    /** 部门名称 */
+    private String deptName;
 }

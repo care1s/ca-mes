@@ -44,6 +44,7 @@ export default new Vuex.Store({
       state: {
         token: localStorage.getItem('mes-token') || '',
         name: localStorage.getItem('mes-user-name') || '',
+        deptName: localStorage.getItem('mes-user-dept') || '',
         avatar: ''
       },
       mutations: {
@@ -57,11 +58,17 @@ export default new Vuex.Store({
           state.name = name
           localStorage.setItem('mes-user-name', name)
         },
+        SET_DEPT: (state, deptName) => {
+          state.deptName = deptName
+          localStorage.setItem('mes-user-dept', deptName)
+        },
         LOGOUT: (state) => {
           state.token = ''
           state.name = ''
+          state.deptName = ''
           localStorage.removeItem('mes-token')
           localStorage.removeItem('mes-user-name')
+          localStorage.removeItem('mes-user-dept')
         }
       },
       actions: {
@@ -86,10 +93,11 @@ export default new Vuex.Store({
               console.log('响应数据:', res)
               console.log('token:', res.data ? res.data.token : 'undefined')
               if (res.code === 200) {
-                const { token, userName } = res.data
+                const { token, userName, deptName } = res.data
                 console.log('保存token:', token)
                 commit('SET_TOKEN', token)
                 commit('SET_NAME', userName || username)
+                commit('SET_DEPT', deptName || '')
                 resolve(res.data)
               } else {
                 reject(new Error(res.msg || '登录失败'))

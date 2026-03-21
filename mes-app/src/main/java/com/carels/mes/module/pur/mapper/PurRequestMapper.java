@@ -58,4 +58,9 @@ public interface PurRequestMapper {
      * 更新申请状态
      */
     int updateRequestStatus(@Param("requestId") Long requestId, @Param("status") String status);
+
+    /**
+     * 查询当天最大单号
+     */
+    String selectMaxRequestCodeByDate(@Param("dateStr") String dateStr);
 }

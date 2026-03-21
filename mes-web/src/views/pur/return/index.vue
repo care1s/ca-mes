@@ -58,8 +58,8 @@
 
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
-      <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table :data="tableData" stripe style="width: 100%">
+        <el-table-column type="index" label="序号" width="80" align="center" fixed />
         <el-table-column prop="returnNo" label="退货单号" width="140" />
         <el-table-column prop="receiptNo" label="入库单号" width="140" />
         <el-table-column prop="vendorName" label="供应商" min-width="120" />

@@ -14,7 +14,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/mes/wm/zone")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class WmZoneController extends BaseController {
     
     @Autowired

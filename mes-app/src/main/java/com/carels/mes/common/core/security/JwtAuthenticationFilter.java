@@ -61,9 +61,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7);
         
         try {
+            // 确保密钥长度足够（HS256需要至少256位）
+            String secret = jwtSecret;
+            if (secret.length() < 32) {
+                secret = secret + "-carels-mes-padding-to-32chars";
+            }
             // 解析token
             Claims claims = Jwts.parser()
-                    .setSigningKey(jwtSecret)
+                    .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody();
             

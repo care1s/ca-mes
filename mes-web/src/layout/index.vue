@@ -45,7 +45,6 @@
             <el-menu-item index="/wm/warning">库存预警</el-menu-item>
             <el-menu-item index="/pur/request">采购申请</el-menu-item>
             <el-menu-item index="/pur/order">采购订单</el-menu-item>
-            <el-menu-item index="/pur/receipt">采购入库</el-menu-item>
             <el-menu-item index="/pur/return">采购退货</el-menu-item>
           </el-submenu>
           
@@ -140,7 +139,6 @@
                 <el-menu-item index="/wm/warning">库存预警</el-menu-item>
                 <el-menu-item index="/pur/request">采购申请</el-menu-item>
                 <el-menu-item index="/pur/order">采购订单</el-menu-item>
-                <el-menu-item index="/pur/receipt">采购入库</el-menu-item>
                 <el-menu-item index="/pur/return">采购退货</el-menu-item>
               </div>
             </div>

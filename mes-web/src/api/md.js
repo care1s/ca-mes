@@ -660,6 +660,43 @@ export function delPurRequest(requestId) {
   })
 }
 
+/**
+ * 提交采购申请审批
+ * @param {number} requestId 申请ID
+ */
+export function submitPurRequest(requestId) {
+  return request({
+    url: '/mes/pur/request/' + requestId + '/submit',
+    method: 'put'
+  })
+}
+
+/**
+ * 审批通过采购申请
+ * @param {number} requestId 申请ID
+ * @param {string} auditOpinion 审批意见
+ */
+export function approvePurRequest(requestId, auditOpinion) {
+  return request({
+    url: '/mes/pur/request/' + requestId + '/approve',
+    method: 'put',
+    params: { auditOpinion }
+  })
+}
+
+/**
+ * 审批拒绝采购申请
+ * @param {number} requestId 申请ID
+ * @param {string} auditOpinion 审批意见
+ */
+export function rejectPurRequest(requestId, auditOpinion) {
+  return request({
+    url: '/mes/pur/request/' + requestId + '/reject',
+    method: 'put',
+    params: { auditOpinion }
+  })
+}
+
 // ==================== 采购订单 API ====================
 
 /**
@@ -720,6 +757,17 @@ export function delPurOrder(orderId) {
   })
 }
 
+/**
+ * 根据采购申请生成采购订单
+ * @param {number} requestId 申请ID
+ */
+export function createOrderFromRequest(requestId) {
+  return request({
+    url: '/mes/pur/order/from-request/' + requestId,
+    method: 'post'
+  })
+}
+
 // ==================== 采购入库 API ====================
 
 /**
@@ -777,6 +825,17 @@ export function delPurReceipt(receiptId) {
   return request({
     url: '/mes/pur/receipt/' + receiptId,
     method: 'delete'
+  })
+}
+
+/**
+ * 确认采购入库
+ * @param {number} receiptId 入库ID
+ */
+export function confirmPurReceipt(receiptId) {
+  return request({
+    url: '/mes/pur/receipt/' + receiptId + '/confirm',
+    method: 'post'
   })
 }
 
@@ -1190,6 +1249,30 @@ export function changeMenuStatus(menuId, status) {
   })
 }
 
+// ==================== 部门管理 API ====================
+
+export function listSysDept(params) {
+  return request({
+    url: '/mes/system/dept/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getAllDepts() {
+  return request({
+    url: '/mes/system/dept/all',
+    method: 'get'
+  })
+}
+
+export function getSysDept(deptId) {
+  return request({
+    url: '/mes/system/dept/' + deptId,
+    method: 'get'
+  })
+}
+
 /**
  * ==================== 仓库管理 API ====================
  */
@@ -1552,6 +1635,61 @@ export function delWmLocation(locationId) {
 export function delWmLocationBatch(locationIds) {
   return request({
     url: '/mes/wm/location/batch/' + locationIds.join(','),
+    method: 'delete'
+  })
+}
+
+/**
+ * ==================== 部门管理 API ====================
+ */
+
+// 部门列表
+export function listDept(params) {
+  return request({
+    url: '/mes/system/dept/list',
+    method: 'get',
+    params
+  })
+}
+
+// 所有部门（下拉选择）
+export function getAllDepts() {
+  return request({
+    url: '/mes/system/dept/all',
+    method: 'get'
+  })
+}
+
+// 部门详情
+export function getDept(deptId) {
+  return request({
+    url: '/mes/system/dept/' + deptId,
+    method: 'get'
+  })
+}
+
+// 新增部门
+export function addDept(data) {
+  return request({
+    url: '/mes/system/dept',
+    method: 'post',
+    data
+  })
+}
+
+// 修改部门
+export function updateDept(data) {
+  return request({
+    url: '/mes/system/dept',
+    method: 'put',
+    data
+  })
+}
+
+// 删除部门
+export function delDept(deptId) {
+  return request({
+    url: '/mes/system/dept/' + deptId,
     method: 'delete'
   })
 }

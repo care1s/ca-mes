@@ -26,6 +26,9 @@ public class PurRequestItem extends BaseEntity {
     /** 申请ID */
     private Long requestId;
 
+    /** 物料ID引用 */
+    private Long itemIdRef;
+
     /** 物料编码 */
     private String itemCode;
 
@@ -40,6 +43,12 @@ public class PurRequestItem extends BaseEntity {
 
     /** 数量 */
     private BigDecimal quantity;
+
+    /** 单价 */
+    private BigDecimal price;
+
+    /** 金额 */
+    private BigDecimal amount;
 
     /** 需求日期 */
     private Date requiredDate;

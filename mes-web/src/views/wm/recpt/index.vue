@@ -8,7 +8,6 @@
         <span class="subtitle">Receipt Management</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
         <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
@@ -105,6 +104,12 @@
             <el-tag v-else type="info">{{ scope.row.recptType }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="vendorName" label="供应商" width="150" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span v-if="scope.row.vendorName">{{ scope.row.vendorName }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="sourceNo" label="来源单号" width="150" show-overflow-tooltip />
         <el-table-column prop="warehouseName" label="仓库" min-width="120" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -122,144 +127,23 @@
         <el-table-column label="操作" width="250" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button 
-              v-if="scope.row.status === 'PENDING'" 
-              type="text" 
-              icon="el-icon-check" 
+            <el-button
+              v-if="scope.row.status === 'PENDING'"
+              type="text"
+              icon="el-icon-check"
               style="color: #67c23a"
               @click="handleConfirm(scope.row)"
             >确认</el-button>
-            <el-button 
-              type="text" 
-              icon="el-icon-delete" 
-              style="color: #f56c6c" 
+            <el-button
+              type="text"
+              icon="el-icon-delete"
+              style="color: #f56c6c"
               @click="handleDelete(scope.row)"
             >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
-
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="800px" :append-to-body="true">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="入库单号" prop="recptNo">
-              <el-input v-model="form.recptNo" placeholder="系统自动生成" disabled />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="入库类型" prop="recptType">
-              <el-select v-model="form.recptType" placeholder="请选择入库类型" style="width: 100%">
-                <el-option label="采购入库" value="PURCHASE" />
-                <el-option label="生产入库" value="PRODUCTION" />
-                <el-option label="退货入库" value="RETURN" />
-                <el-option label="其他入库" value="OTHER" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="来源类型" prop="sourceType">
-              <el-select v-model="form.sourceType" placeholder="请选择来源类型" style="width: 100%">
-                <el-option label="采购订单" value="PUR_ORDER" />
-                <el-option label="生产工单" value="WORK_ORDER" />
-                <el-option label="无" value="NONE" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="来源单号" prop="sourceNo">
-              <el-input v-model="form.sourceNo" placeholder="请输入来源单号" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-             <el-form-item label="入库仓库" prop="warehouseId">
-               <el-select v-model="form.warehouseId" placeholder="请选择仓库" style="width: 100%" @change="handleWarehouseChange">
-                 <el-option
-                   v-for="item in warehouseOptions"
-                   :key="item.warehouseId"
-                   :label="item.warehouseName"
-                   :value="item.warehouseId"
-                 />
-               </el-select>
-             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="入库日期" prop="recptDate">
-              <el-date-picker
-                v-model="form.recptDate"
-                type="datetime"
-                placeholder="选择入库日期"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-        </el-form-item>
-        
-        <!-- 明细表格 -->
-        <el-divider content-position="left">入库明细</el-divider>
-         <el-table :data="form.items" border size="small" style="margin-bottom: 10px">
-           <el-table-column type="index" label="序号" width="90" align="center" fixed="left" />
-           <el-table-column label="物料编码" width="160" fixed="left">
-             <template slot-scope="scope">
-               <div style="display: flex; align-items: center;">
-                 <el-input v-model="scope.row.itemCode" placeholder="点击选择物料" size="small" style="flex: 1;" readonly />
-                 <el-button type="text" icon="el-icon-search" size="small" @click="openItemSelect(scope.$index)" style="margin-left: 5px; padding: 0;" />
-               </div>
-             </template>
-           </el-table-column>
-           <el-table-column label="物料名称" min-width="200" show-overflow-tooltip>
-             <template slot-scope="scope">
-               <el-input v-model="scope.row.itemName" placeholder="自动填充" size="small" readonly />
-             </template>
-           </el-table-column>
-           <el-table-column label="规格型号" width="120" show-overflow-tooltip>
-             <template slot-scope="scope">
-               <el-input v-model="scope.row.specification" placeholder="规格" size="small" />
-             </template>
-           </el-table-column>
-           <el-table-column label="批次号" width="120">
-             <template slot-scope="scope">
-               <el-input v-model="scope.row.batchCode" placeholder="请输入批次号" size="small" />
-             </template>
-           </el-table-column>
-           <el-table-column label="入库数量" width="140" align="center">
-             <template slot-scope="scope">
-               <el-input-number v-model="scope.row.quantity" :min="0" :precision="2" :step="1" controls-position="right" size="small" style="width: 100%" />
-             </template>
-           </el-table-column>
-           <el-table-column label="单位" width="80" align="center">
-             <template slot-scope="scope">
-               <el-input v-model="scope.row.unit" placeholder="单位" size="small" readonly />
-             </template>
-           </el-table-column>
-           <el-table-column label="备注说明" min-width="150" show-overflow-tooltip>
-             <template slot-scope="scope">
-               <el-input v-model="scope.row.remark" placeholder="请输入备注" size="small" />
-             </template>
-           </el-table-column>
-           <el-table-column label="操作" width="80" align="center" fixed="right">
-             <template slot-scope="scope">
-               <el-button type="danger" icon="el-icon-delete" circle size="mini" @click="removeItem(scope.$index)" />
-             </template>
-           </el-table-column>
-         </el-table>
-        <el-button type="primary" icon="el-icon-plus" size="small" @click="addItem">添加明细</el-button>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm" :loading="submitLoading">确 定</el-button>
-      </div>
-    </el-dialog>
 
     <!-- 查看详情对话框 -->
     <el-dialog title="入库单详情" :visible.sync="viewDialogVisible" width="700px">
@@ -271,6 +155,7 @@
           <el-tag v-else-if="viewData.recptType === 'RETURN'" type="warning">退货入库</el-tag>
           <el-tag v-else type="info">{{ viewData.recptType }}</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="供应商">{{ viewData.vendorName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="来源单号">{{ viewData.sourceNo }}</el-descriptions-item>
         <el-descriptions-item label="入库仓库">{{ viewData.warehouseName }}</el-descriptions-item>
         <el-descriptions-item label="状态">
@@ -296,48 +181,11 @@
         <el-button @click="viewDialogVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
-
-    <!-- 物料选择弹窗 -->
-    <el-dialog title="选择物料" :visible.sync="itemDialogVisible" width="700px" :append-to-body="true">
-      <el-form :inline="true" :model="itemQueryParams" class="search-form">
-        <el-form-item label="物料编码/名称">
-          <el-input v-model="itemQueryParams.keyword" placeholder="请输入物料编码或名称" clearable />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="handleItemQuery">查询</el-button>
-        </el-form-item>
-      </el-form>
-      
-      <el-table :data="itemTableData" border highlight-current-row style="margin-top: 10px">
-        <el-table-column type="index" label="序号" width="50" align="center" />
-        <el-table-column prop="itemCode" label="物料编码" width="120" />
-        <el-table-column prop="itemName" label="物料名称" min-width="150" />
-        <el-table-column prop="specification" label="规格" width="100" />
-        <el-table-column prop="unitName" label="单位" width="80" align="center" />
-        <el-table-column label="操作" width="80" align="center">
-          <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="selectItem(scope.row)">选择</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
-      <el-pagination
-        class="pagination"
-        background
-        layout="total, prev, pager, next"
-        :total="itemTotal"
-        :page-size="itemQueryParams.pageSize"
-        :current-page="itemQueryParams.pageNum"
-        @size-change="handleItemSizeChange"
-        @current-change="handleItemCurrentChange"
-        style="margin-top: 15px;"
-      />
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listWmRecpt, getWmRecpt, addWmRecpt, updateWmRecpt, delWmRecpt, confirmWmRecpt, listWmWarehouse, listItem } from '@/api/md'
+import { listWmRecpt, getWmRecpt, delWmRecpt, confirmWmRecpt, listWmWarehouse } from '@/api/md'
 import XLSX from 'xlsx'
 
 /**
@@ -351,7 +199,6 @@ export default {
   data() {
     return {
       loading: false,
-      submitLoading: false,
       total: 0,
       stats: {
         total: 0,
@@ -369,46 +216,17 @@ export default {
       },
       tableData: [],
       warehouseOptions: [],
-      // 物料选择弹窗
-      itemDialogVisible: false,
-      itemQueryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        keyword: ''
-      },
-      itemTableData: [],
-      itemTotal: 0,
-      currentRowIndex: null,
-      dialogVisible: false,
       viewDialogVisible: false,
-      dialogTitle: '新增',
-      form: {
-        id: null,
-        recptNo: '',
-        recptType: 'PURCHASE',
-        sourceType: 'PUR_ORDER',
-        sourceId: null,
-        sourceNo: '',
-        warehouseId: null,
-        warehouseName: '',
-        status: 'PENDING',
-        recptDate: null,
-        remark: '',
-        items: []
-      },
       viewData: {
         recptNo: '',
         recptType: '',
+        vendorName: '',
         sourceNo: '',
         warehouseName: '',
         status: '',
         recptDate: '',
         remark: '',
         items: []
-      },
-      rules: {
-        recptType: [{ required: true, message: '请选择入库类型', trigger: 'change' }],
-        warehouseId: [{ required: true, message: '请选择入库仓库', trigger: 'change' }]
       }
     }
   },
@@ -495,47 +313,6 @@ export default {
       }
       this.fetchData()
     },
-    handleWarehouseChange(val) {
-      const warehouse = this.warehouseOptions.find(item => item.warehouseId === val)
-      if (warehouse) {
-        this.form.warehouseName = warehouse.warehouseName
-      }
-    },
-    handleAdd() {
-      this.dialogTitle = '新增入库单'
-      this.form = {
-        id: null,
-        recptNo: '',
-        recptType: 'PURCHASE',
-        sourceType: 'PUR_ORDER',
-        sourceId: null,
-        sourceNo: '',
-        warehouseId: null,
-        warehouseName: '',
-        status: 'PENDING',
-        recptDate: new Date(),
-        remark: '',
-        items: []
-      }
-      this.dialogVisible = true
-    },
-    async handleEdit(row) {
-      this.dialogTitle = '编辑入库单'
-      try {
-        const res = await getWmRecpt(row.id)
-        if (res.code === 200) {
-          this.form = { ...res.data }
-          if (!this.form.items) {
-            this.form.items = []
-          }
-          this.dialogVisible = true
-        } else {
-          this.$message.error(res.msg || '获取详情失败')
-        }
-      } catch (error) {
-        this.$message.error('获取详情失败: ' + error.message)
-      }
-    },
     handleView(row) {
       this.viewData = { ...row }
       this.viewDialogVisible = true
@@ -576,21 +353,6 @@ export default {
         }
       }
     },
-    addItem() {
-      this.form.items.push({
-        itemId: null,
-        itemId2: null,
-        itemCode: '',
-        itemName: '',
-        batchCode: '',
-        quantity: 0,
-        unit: '',
-        remark: ''
-      })
-    },
-    removeItem(index) {
-      this.form.items.splice(index, 1)
-    },
     handleSizeChange(val) {
       this.queryParams.pageSize = val
       this.fetchData()
@@ -599,72 +361,7 @@ export default {
       this.queryParams.pageNum = val
       this.fetchData()
     },
-    submitForm() {
-      this.$refs.form.validate(async valid => {
-        if (valid) {
-          this.submitLoading = true
-          try {
-            const api = this.form.id ? updateWmRecpt : addWmRecpt
-            const res = await api(this.form)
-            if (res.code === 200) {
-              this.$message.success(this.form.id ? '修改成功' : '新增成功')
-              this.dialogVisible = false
-              this.fetchData()
-            } else {
-              this.$message.error(res.msg || '操作失败')
-            }
-          } catch (error) {
-            this.$message.error('操作失败: ' + error.message)
-          } finally {
-            this.submitLoading = false
-          }
-        }
-      })
-    },
-    // 打开物料选择弹窗
-    openItemSelect(index) {
-      this.currentRowIndex = index
-      this.itemDialogVisible = true
-      this.itemQueryParams.keyword = ''
-      this.fetchItemList()
-    },
-    // 查询物料列表
-    async fetchItemList() {
-      try {
-        const res = await listItem(this.itemQueryParams)
-        if (res.code === 200) {
-          this.itemTableData = res.rows || []
-          this.itemTotal = res.total || 0
-        }
-      } catch (error) {
-        this.$message.error('获取物料列表失败')
-      }
-    },
-    // 搜索物料
-    handleItemQuery() {
-      this.itemQueryParams.pageNum = 1
-      this.fetchItemList()
-    },
-    // 选择物料
-    selectItem(row) {
-      const item = this.form.items[this.currentRowIndex]
-      item.itemId2 = row.itemId
-      item.itemCode = row.itemCode
-      item.itemName = row.itemName
-      item.unit = row.unitName
-      this.itemDialogVisible = false
-      this.$message.success('已选择物料：' + row.itemName)
-    },
-    // 物料分页
-    handleItemSizeChange(val) {
-      this.itemQueryParams.pageSize = val
-      this.fetchItemList()
-    },
-    handleItemCurrentChange(val) {
-      this.itemQueryParams.pageNum = val
-      this.fetchItemList()
-    },
-    
+
     // 辅助方法
     getRecptTypeText(type) {
       const types = {

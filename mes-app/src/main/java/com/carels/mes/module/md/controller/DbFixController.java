@@ -236,7 +236,7 @@ public class DbFixController {
                         "dept_name VARCHAR(50) NULL COMMENT '部门名称', " +
                         "total_amount DECIMAL(18,2) DEFAULT 0 COMMENT '总金额', " +
                         "currency VARCHAR(10) DEFAULT 'CNY' COMMENT '币种', " +
-                        "status VARCHAR(1) DEFAULT '0' COMMENT '状态: 0-草稿,1-已提交,2-已审批,3-已拒绝,9-已关闭', " +
+                        "status VARCHAR(20) DEFAULT 'DRAFT' COMMENT '状态: DRAFT-草稿,PENDING-待审批,APPROVED-已审批,REJECTED-已拒绝', " +
                         "remark VARCHAR(500) NULL COMMENT '备注', " +
                         "create_by VARCHAR(64) NULL COMMENT '创建者', " +
                         "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', " +
@@ -245,17 +245,73 @@ public class DbFixController {
                         "UNIQUE KEY uk_request_code (request_code)" +
                         ") COMMENT '采购申请主表'";
                 jdbcTemplate.execute(createTable);
-                
+
                 jdbcTemplate.execute("CREATE INDEX idx_request_date ON pur_request(request_date)");
                 jdbcTemplate.execute("CREATE INDEX idx_applicant_id ON pur_request(applicant_id)");
                 jdbcTemplate.execute("CREATE INDEX idx_status ON pur_request(status)");
-                
+
                 log.info("采购申请表创建成功！");
             } else {
-                log.info("采购申请表已存在");
+                log.info("采购申请表已存在，检查并修复status字段长度...");
+                try {
+                    // 修改status字段长度
+                    jdbcTemplate.execute("ALTER TABLE pur_request MODIFY COLUMN status VARCHAR(20) DEFAULT 'DRAFT' COMMENT '状态: DRAFT-草稿,PENDING-待审批,APPROVED-已审批,REJECTED-已拒绝'");
+                    log.info("status字段已修改为VARCHAR(20)");
+                } catch (Exception e) {
+                    log.debug("status字段修改失败或已正确: {}", e.getMessage());
+                }
             }
+
+            // 创建明细表
+            autoFixPurRequestItemTable();
+
         } catch (Exception e) {
             log.error("自动修复采购申请表失败: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 自动修复采购申请明细表
+     */
+    private void autoFixPurRequestItemTable() {
+        try {
+            log.info("检查并修复采购申请明细表结构...");
+
+            String checkTable = "SELECT COUNT(*) FROM information_schema.TABLES " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pur_request_item'";
+            Integer tableCount = jdbcTemplate.queryForObject(checkTable, Integer.class);
+
+            if (tableCount == null || tableCount == 0) {
+                log.info("采购申请明细表不存在，正在创建...");
+                String createTable = "CREATE TABLE pur_request_item (" +
+                        "item_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '明细ID', " +
+                        "request_id BIGINT NOT NULL COMMENT '申请ID', " +
+                        "item_id_ref BIGINT NULL COMMENT '物料ID', " +
+                        "item_code VARCHAR(50) NOT NULL COMMENT '物料编码', " +
+                        "item_name VARCHAR(100) NOT NULL COMMENT '物料名称', " +
+                        "item_spec VARCHAR(200) NULL COMMENT '规格型号', " +
+                        "unit VARCHAR(20) NULL COMMENT '单位', " +
+                        "quantity DECIMAL(18,4) DEFAULT 0 COMMENT '数量', " +
+                        "price DECIMAL(18,4) DEFAULT 0 COMMENT '单价', " +
+                        "amount DECIMAL(18,2) DEFAULT 0 COMMENT '金额', " +
+                        "required_date DATE NULL COMMENT '需求日期', " +
+                        "remark VARCHAR(500) NULL COMMENT '备注', " +
+                        "create_by VARCHAR(64) NULL COMMENT '创建者', " +
+                        "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', " +
+                        "update_by VARCHAR(64) NULL COMMENT '更新者', " +
+                        "update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间', " +
+                        "KEY idx_request_id (request_id)" +
+                        ") COMMENT '采购申请明细表'";
+                jdbcTemplate.execute(createTable);
+
+                jdbcTemplate.execute("CREATE INDEX idx_item_code ON pur_request_item(item_code)");
+
+                log.info("采购申请明细表创建成功！");
+            } else {
+                log.info("采购申请明细表已存在");
+            }
+        } catch (Exception e) {
+            log.error("自动修复采购申请明细表失败: {}", e.getMessage(), e);
         }
     }
     
