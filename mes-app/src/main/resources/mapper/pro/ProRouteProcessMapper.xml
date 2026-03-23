@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProRouteProcessMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProRouteProcess" id="ProRouteProcessResult">
+        <id property="id" column="id"/>
+        <result property="routeId" column="route_id"/>
+        <result property="processId" column="process_id"/>
+        <result property="processCode" column="process_code"/>
+        <result property="processName" column="process_name"/>
+        <result property="sequenceNo" column="sequence_no"/>
+        <result property="workstationId" column="workstation_id"/>
+        <result property="workstationName" column="workstation_name"/>
+        <result property="standardHours" column="standard_hours"/>
+        <result property="inspectFlag" column="inspect_flag"/>
+        <result property="inspectType" column="inspect_type"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectByRouteId" resultMap="ProRouteProcessResult">
+        select id, route_id, process_id, process_code, process_name, sequence_no,
+               workstation_id, workstation_name, standard_hours, inspect_flag, inspect_type,
+               remark, create_by, create_time
+        from pro_route_process
+        where route_id = #{routeId}
+        order by sequence_no asc
+    </select>
+
+    <select id="selectByRouteIdAndSeq" resultMap="ProRouteProcessResult">
+        select id, route_id, process_id, process_code, process_name, sequence_no,
+               workstation_id, workstation_name, standard_hours, inspect_flag, inspect_type,
+               remark, create_by, create_time
+        from pro_route_process
+        where route_id = #{routeId} and sequence_no = #{sequenceNo}
+    </select>
+
+    <insert id="insert" parameterType="com.carels.mes.module.pro.domain.ProRouteProcess" useGeneratedKeys="true" keyProperty="id">
+        insert into pro_route_process (
+            route_id, process_id, process_code, process_name, sequence_no,
+            workstation_id, workstation_name, standard_hours, inspect_flag, inspect_type,
+            remark, create_by, create_time
+        ) values (
+            #{routeId}, #{processId}, #{processCode}, #{processName}, #{sequenceNo},
+            #{workstationId}, #{workstationName}, #{standardHours}, #{inspectFlag}, #{inspectType},
+            #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <insert id="batchInsert">
+        insert into pro_route_process (
+            route_id, process_id, process_code, process_name, sequence_no,
+            workstation_id, workstation_name, standard_hours, inspect_flag, inspect_type,
+            remark, create_by, create_time
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.routeId}, #{item.processId}, #{item.processCode}, #{item.processName}, #{item.sequenceNo},
+             #{item.workstationId}, #{item.workstationName}, #{item.standardHours}, #{item.inspectFlag}, #{item.inspectType},
+             #{item.remark}, #{item.createBy}, sysdate())
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.carels.mes.module.pro.domain.ProRouteProcess">
+        update pro_route_process
+        <set>
+            <if test="processId != null">process_id = #{processId},</if>
+            <if test="processCode != null">process_code = #{processCode},</if>
+            <if test="processName != null">process_name = #{processName},</if>
+            <if test="sequenceNo != null">sequence_no = #{sequenceNo},</if>
+            <if test="workstationId != null">workstation_id = #{workstationId},</if>
+            <if test="workstationName != null">workstation_name = #{workstationName},</if>
+            <if test="standardHours != null">standard_hours = #{standardHours},</if>
+            <if test="inspectFlag != null">inspect_flag = #{inspectFlag},</if>
+            <if test="inspectType != null">inspect_type = #{inspectType},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from pro_route_process where id = #{id}
+    </delete>
+
+    <delete id="deleteByRouteId">
+        delete from pro_route_process where route_id = #{routeId}
+    </delete>
+
+</mapper>

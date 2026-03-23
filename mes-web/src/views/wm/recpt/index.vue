@@ -169,7 +169,7 @@
       </el-descriptions>
       <h4 style="margin: 20px 0 10px 0;">入库明细</h4>
       <el-table :data="viewData.items" border size="small">
-        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="itemCode" label="物料编码" width="120" />
         <el-table-column prop="itemName" label="物料名称" width="150" />
         <el-table-column prop="batchCode" label="批次" width="100" />

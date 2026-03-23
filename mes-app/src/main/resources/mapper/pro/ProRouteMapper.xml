@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProRouteMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProRoute" id="ProRouteResult">
+        <id property="routeId" column="route_id"/>
+        <result property="routeCode" column="route_code"/>
+        <result property="routeName" column="route_name"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="version" column="version"/>
+        <result property="status" column="status"/>
+        <result property="isDefault" column="is_default"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProRouteVo">
+        SELECT r.route_id, r.route_code, r.route_name, r.item_id, r.item_code, r.item_name,
+               r.version, r.status, r.is_default, r.remark, r.create_by, r.create_time,
+               r.update_by, r.update_time
+        FROM pro_route r
+    </sql>
+
+    <select id="selectProRouteList" parameterType="com.carels.mes.module.pro.domain.ProRoute" resultMap="ProRouteResult">
+        <include refid="selectProRouteVo"/>
+        <where>
+            <if test="routeCode != null and routeCode != ''">
+                AND r.route_code LIKE CONCAT('%', #{routeCode}, '%')
+            </if>
+            <if test="routeName != null and routeName != ''">
+                AND r.route_name LIKE CONCAT('%', #{routeName}, '%')
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND r.item_name LIKE CONCAT('%', #{itemName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND r.status = #{status}
+            </if>
+            <if test="itemId != null">
+                AND r.item_id = #{itemId}
+            </if>
+        </where>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectProRouteById" parameterType="Long" resultMap="ProRouteResult">
+        <include refid="selectProRouteVo"/>
+        WHERE r.route_id = #{routeId}
+    </select>
+
+    <select id="selectProRouteByCode" parameterType="String" resultMap="ProRouteResult">
+        <include refid="selectProRouteVo"/>
+        WHERE r.route_code = #{routeCode}
+    </select>
+
+    <select id="selectDefaultRouteByItemId" parameterType="Long" resultMap="ProRouteResult">
+        <include refid="selectProRouteVo"/>
+        WHERE r.item_id = #{itemId} AND r.is_default = 'Y' AND r.status = '0'
+        LIMIT 1
+    </select>
+
+    <select id="selectProRouteByItemId" parameterType="Long" resultMap="ProRouteResult">
+        <include refid="selectProRouteVo"/>
+        WHERE r.item_id = #{itemId} AND r.status = '0'
+        ORDER BY r.is_default DESC, r.create_time DESC
+    </select>
+
+    <insert id="insertProRoute" parameterType="com.carels.mes.module.pro.domain.ProRoute" useGeneratedKeys="true" keyProperty="routeId">
+        INSERT INTO pro_route (
+            route_code, route_name, item_id, item_code, item_name,
+            version, status, is_default, remark, create_by, create_time
+        ) VALUES (
+            #{routeCode}, #{routeName}, #{itemId}, #{itemCode}, #{itemName},
+            #{version}, #{status}, #{isDefault}, #{remark}, #{createBy}, NOW()
+        )
+    </insert>
+
+    <update id="updateProRoute" parameterType="com.carels.mes.module.pro.domain.ProRoute">
+        UPDATE pro_route
+        <set>
+            <if test="routeCode != null">route_code = #{routeCode},</if>
+            <if test="routeName != null">route_name = #{routeName},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy},
+            update_time = NOW()
+        </set>
+        WHERE route_id = #{routeId}
+    </update>
+
+    <delete id="deleteProRouteById" parameterType="Long">
+        DELETE FROM pro_route WHERE route_id = #{routeId}
+    </delete>
+
+    <delete id="deleteProRouteByIds">
+        DELETE FROM pro_route WHERE route_id IN
+        <foreach collection="array" item="routeId" open="(" separator="," close=")">
+            #{routeId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -149,7 +149,7 @@
               class="md-item-table"
             >
               <el-table-column type="selection" width="55" align="center" fixed="left" />
-              <el-table-column type="index" label="序号" width="50" align="center" fixed="left" />
+              <el-table-column type="index" label="序号" width="80" align="center" fixed="left" />
               <el-table-column prop="itemCode" label="物料编码" min-width="110" show-overflow-tooltip fixed="left">
                 <template slot-scope="scope">
                   <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.itemCode }}</el-link>

@@ -41,6 +41,7 @@ const ProRoute = () => import('@/views/pro/route/index')
 const ProAndon = () => import('@/views/pro/andon/index')
 const ProPlan = () => import('@/views/pro/plan/index')
 const ProMaterialReq = () => import('@/views/pro/materialReq/index')
+const ProProcess = () => import('@/views/pro/process/index')
 
 // 仓储管理页面
 const WmWarehouse = () => import('@/views/wm/warehouse/index')
@@ -70,6 +71,9 @@ const DvRepair = () => import('@/views/dv/repair/index')
 const PurRequest = () => import('@/views/pur/request/index')
 const PurOrder = () => import('@/views/pur/order/index')
 const PurReturn = () => import('@/views/pur/return/index')
+
+// 销售管理页面
+const SaleOrder = () => import('@/views/sale/order/index')
 
 // 报表页面
 const ReportChart = () => import('@/views/report/chart/index')
@@ -142,11 +146,12 @@ export const routes = [
     meta: { title: '生产执行', icon: 'el-icon-s-order' },
     children: [
       { path: 'plan', name: 'ProPlan', component: ProPlan, meta: { title: '生产计划', icon: 'el-icon-s-order' } },
-      { path: 'materialReq', name: 'ProMaterialReq', component: ProMaterialReq, meta: { title: '物料需求', icon: 'el-icon-s-goods' } },
       { path: 'workorder', name: 'ProWorkorder', component: ProWorkorder, meta: { title: '生产工单', icon: 'el-icon-document' } },
       { path: 'task', name: 'ProTask', component: ProTask, meta: { title: '生产任务', icon: 'el-icon-s-claim' } },
-      { path: 'feedback', name: 'ProFeedback', component: ProFeedback, meta: { title: '生产报工', icon: 'el-icon-check' } },
       { path: 'route', name: 'ProRoute', component: ProRoute, meta: { title: '工艺路线', icon: 'el-icon-s-management' } },
+      { path: 'process', name: 'ProProcess', component: ProProcess, meta: { title: '工序管理', icon: 'el-icon-s-tools' } },
+      { path: 'materialReq', name: 'ProMaterialReq', component: ProMaterialReq, meta: { title: '物料需求', icon: 'el-icon-s-goods' } },
+      { path: 'feedback', name: 'ProFeedback', component: ProFeedback, meta: { title: '生产报工', icon: 'el-icon-check' } },
       { path: 'andon', name: 'ProAndon', component: ProAndon, meta: { title: '异常管理', icon: 'el-icon-warning' } }
     ]
   },
@@ -213,6 +218,18 @@ export const routes = [
       { path: 'request', name: 'PurRequest', component: PurRequest, meta: { title: '采购申请', icon: 'el-icon-document' } },
       { path: 'order', name: 'PurOrder', component: PurOrder, meta: { title: '采购订单', icon: 'el-icon-s-order' } },
       { path: 'return', name: 'PurReturn', component: PurReturn, meta: { title: '采购退货', icon: 'el-icon-refresh-left' } }
+    ]
+  },
+
+  // 销售管理
+  {
+    path: '/sale',
+    component: Layout,
+    redirect: '/sale/order',
+    name: 'Sale',
+    meta: { title: '销售管理', icon: 'el-icon-s-goods' },
+    children: [
+      { path: 'order', name: 'SaleOrder', component: SaleOrder, meta: { title: '销售订单', icon: 'el-icon-s-order' } }
     ]
   },
   

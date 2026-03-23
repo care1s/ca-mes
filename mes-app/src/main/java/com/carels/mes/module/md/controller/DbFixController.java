@@ -1434,4 +1434,81 @@ public class DbFixController {
             log.error("自动修复仓位表失败: {}", e.getMessage(), e);
         }
     }
+
+    /**
+     * 自动修复部门表 - 添加 code 和 remark 字段
+     */
+    @PostConstruct
+    public void autoFixSysDeptTable() {
+        try {
+            log.info("检查并修复部门表结构...");
+
+            String checkTable = "SELECT COUNT(*) FROM information_schema.TABLES " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_dept'";
+            Integer tableCount = jdbcTemplate.queryForObject(checkTable, Integer.class);
+
+            if (tableCount == null || tableCount == 0) {
+                log.info("部门表不存在，正在创建...");
+                String createTable = "CREATE TABLE sys_dept (" +
+                        "dept_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '部门ID', " +
+                        "parent_id BIGINT DEFAULT 0 COMMENT '父部门ID', " +
+                        "ancestors VARCHAR(500) COMMENT '祖级列表', " +
+                        "code VARCHAR(50) UNIQUE COMMENT '部门编码', " +
+                        "dept_name VARCHAR(100) NOT NULL COMMENT '部门名称', " +
+                        "order_num INT DEFAULT 0 COMMENT '显示顺序', " +
+                        "leader VARCHAR(100) COMMENT '负责人', " +
+                        "phone VARCHAR(20) COMMENT '联系电话', " +
+                        "email VARCHAR(100) COMMENT '邮箱', " +
+                        "status CHAR(1) DEFAULT '0' COMMENT '状态: 0-正常, 1-停用', " +
+                        "del_flag CHAR(1) DEFAULT '0' COMMENT '删除标志: 0-代表存在, 2-代表删除', " +
+                        "create_by VARCHAR(64) COMMENT '创建者', " +
+                        "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', " +
+                        "update_by VARCHAR(64) COMMENT '更新者', " +
+                        "update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间', " +
+                        "remark VARCHAR(500) COMMENT '备注'" +
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表 - carels'";
+                jdbcTemplate.execute(createTable);
+
+                // 添加默认部门
+                jdbcTemplate.execute("INSERT INTO sys_dept (code, dept_name, status, create_by) VALUES " +
+                        "('DEPT001', '采购部', '0', 'system'), " +
+                        "('DEPT002', '生产部', '0', 'system'), " +
+                        "('DEPT003', '质量部', '0', 'system'), " +
+                        "('DEPT004', '仓储部', '0', 'system'), " +
+                        "('DEPT005', '设备部', '0', 'system')");
+
+                log.info("部门表创建成功！");
+            } else {
+                log.info("部门表已存在，检查并修复字段...");
+
+                // 检查并添加 code 字段
+                try {
+                    String checkCode = "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_dept' AND COLUMN_NAME = 'code'";
+                    Integer codeCount = jdbcTemplate.queryForObject(checkCode, Integer.class);
+                    if (codeCount == null || codeCount == 0) {
+                        jdbcTemplate.execute("ALTER TABLE sys_dept ADD COLUMN code VARCHAR(50) UNIQUE COMMENT '部门编码'");
+                        log.info("code 字段添加成功");
+                    }
+                } catch (Exception e) {
+                    log.debug("code 字段已存在或添加失败: {}", e.getMessage());
+                }
+
+                // 检查并添加 remark 字段
+                try {
+                    String checkRemark = "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_dept' AND COLUMN_NAME = 'remark'";
+                    Integer remarkCount = jdbcTemplate.queryForObject(checkRemark, Integer.class);
+                    if (remarkCount == null || remarkCount == 0) {
+                        jdbcTemplate.execute("ALTER TABLE sys_dept ADD COLUMN remark VARCHAR(500) COMMENT '备注'");
+                        log.info("remark 字段添加成功");
+                    }
+                } catch (Exception e) {
+                    log.debug("remark 字段已存在或添加失败: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("自动修复部门表失败: {}", e.getMessage(), e);
+        }
+    }
 }

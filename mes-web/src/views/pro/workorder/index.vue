@@ -8,8 +8,7 @@
         <span class="subtitle">Workorder Management</span>
       </div>
       <div class="action-section">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" icon="el-icon-download" @click="handleExport">导出</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增工单</el-button>
         <el-button icon="el-icon-refresh" @click="fetchData">刷新</el-button>
       </div>
     </div>
@@ -17,11 +16,20 @@
     <!-- 搜索栏 -->
     <el-card class="search-card" shadow="never">
       <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="编码">
-          <el-input v-model="queryParams.code" placeholder="请输入编码" clearable />
+        <el-form-item label="工单编码">
+          <el-input v-model="queryParams.workorderCode" placeholder="请输入编码" clearable />
         </el-form-item>
-        <el-form-item label="名称">
-          <el-input v-model="queryParams.name" placeholder="请输入名称" clearable />
+        <el-form-item label="产品名称">
+          <el-input v-model="queryParams.itemName" placeholder="请输入产品名称" clearable />
+        </el-form-item>
+        <el-form-item label="工单状态">
+          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="width: 120px">
+            <el-option label="待下达" value="PENDING" />
+            <el-option label="已下达" value="RELEASED" />
+            <el-option label="生产中" value="PRODUCING" />
+            <el-option label="已完成" value="COMPLETED" />
+            <el-option label="已关闭" value="CLOSED" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
@@ -30,192 +38,274 @@
       </el-form>
     </el-card>
 
-    <!-- 统计信息 - 单行展示 -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <span class="stat-label">总数</span>
-        <span class="stat-value blue">{{ stats.total }}</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-label">启用</span>
-        <span class="stat-value green">{{ stats.active }}</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-label">停用</span>
-        <span class="stat-value orange">{{ stats.inactive }}</span>
-      </div>
-    </div>
-
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
-      <div slot="header" class="card-header">
-        <span class="header-title">
-          <i class="el-icon-document"></i>
-          生产工单列表
-        </span>
+      <el-table v-loading="loading" :data="tableData" stripe>
+        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column prop="workorderCode" label="工单编码" width="150" show-overflow-tooltip />
+        <el-table-column prop="itemName" label="产品名称" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="itemCode" label="产品编码" width="120" />
+        <el-table-column prop="planQuantity" label="计划数量" width="100" align="right" />
+        <el-table-column prop="completedQuantity" label="完工数量" width="100" align="right" />
+        <el-table-column prop="qualifiedQuantity" label="合格数量" width="100" align="right" />
+        <el-table-column prop="status" label="状态" width="100" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="getStatusType(scope.row.status)" size="small">
+              {{ getStatusText(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="priority" label="优先级" width="80" align="center">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.priority === 'HIGH'" type="danger" size="small">高</el-tag>
+            <el-tag v-else-if="scope.row.priority === 'LOW'" type="info" size="small">低</el-tag>
+            <span v-else>正常</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="planStartTime" label="计划开始" width="160" />
+        <el-table-column prop="planEndTime" label="计划完成" width="160" />
+        <el-table-column label="操作" width="250" fixed="right">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
+            <el-button type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button
+              v-if="scope.row.status === 'PENDING'"
+              type="text"
+              size="small"
+              style="color: #67c23a"
+              @click="handleRelease(scope.row)"
+            >下达</el-button>
+            <el-button
+              v-if="scope.row.status !== 'CLOSED' && scope.row.status !== 'PENDING'"
+              type="text"
+              size="small"
+              style="color: #e6a23c"
+              @click="handleClose(scope.row)"
+            >关闭</el-button>
+            <el-button type="text" size="small" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-container">
         <el-pagination
-          class="pagination"
           background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
+          :current-page="queryParams.pageNum"
           :page-size="queryParams.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
       </div>
-      
-      <el-table
-        
-        :data="tableData"
-        border
-        stripe
-        highlight-current-row
-        style="width: 100%"
-      >
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
-        <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80" align="center">
-          <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              active-value="0"
-              inactive-value="1"
-              @change="handleStatusChange(scope.row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
-          <template slot-scope="scope">
-            <el-button type="text" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
-            <el-button type="text" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" icon="el-icon-delete" style="color: #f56c6c" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码" />
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="700px" :close-on-click-modal="false" :modal="false">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="工单编码" prop="workorderCode">
+              <el-input v-model="form.workorderCode" placeholder="请输入编码" :disabled="!!form.workorderId" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="工单类型" prop="workorderType">
+              <el-select v-model="form.workorderType" placeholder="请选择类型" style="width: 100%">
+                <el-option label="标准工单" value="STANDARD" />
+                <el-option label="返工工单" value="REWORK" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="生产计划" prop="planId">
+              <el-select v-model="form.planId" placeholder="选择计划" style="width: 100%" filterable @change="handlePlanChange">
+                <el-option v-for="item in planList" :key="item.planId" :label="item.planNo" :value="item.planId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="产品" prop="itemId">
+              <el-select v-model="form.itemId" placeholder="选择产品" style="width: 100%" filterable @change="handleItemChange">
+                <el-option v-for="item in itemList" :key="item.itemId" :label="item.itemName" :value="item.itemId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="工艺路线" prop="routeId">
+              <el-select v-model="form.routeId" placeholder="选择工艺路线" style="width: 100%" filterable>
+                <el-option v-for="item in routeList" :key="item.routeId" :label="item.routeName" :value="item.routeId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="计划数量" prop="planQuantity">
+              <el-input-number v-model="form.planQuantity" :min="1" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="计划开始" prop="planStartTime">
+              <el-date-picker v-model="form.planStartTime" type="datetime" placeholder="选择时间" style="width: 100%" value-format="yyyy-MM-dd HH:mm:ss" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="计划完成" prop="planEndTime">
+              <el-date-picker v-model="form.planEndTime" type="datetime" placeholder="选择时间" style="width: 100%" value-format="yyyy-MM-dd HH:mm:ss" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="优先级" prop="priority">
+              <el-select v-model="form.priority" placeholder="选择优先级" style="width: 100%">
+                <el-option label="高" value="HIGH" />
+                <el-option label="正常" value="NORMAL" />
+                <el-option label="低" value="LOW" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="生产车间" prop="workshopId">
+              <el-select v-model="form.workshopId" placeholder="选择车间" style="width: 100%" filterable @change="handleWorkshopChange">
+                <el-option v-for="item in workshopList" :key="item.workshopId" :label="item.workshopName" :value="item.workshopId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="备注">
+          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">确定</el-button>
       </div>
+    </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="工单详情" :visible.sync="viewDialogVisible" width="700px" :modal="false">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="工单编码">{{ viewForm.workorderCode }}</el-descriptions-item>
+        <el-descriptions-item label="工单类型">{{ viewForm.workorderType === 'REWORK' ? '返工工单' : '标准工单' }}</el-descriptions-item>
+        <el-descriptions-item label="产品">{{ viewForm.itemName }} ({{ viewForm.itemCode }})</el-descriptions-item>
+        <el-descriptions-item label="工艺路线">{{ viewForm.routeName }}</el-descriptions-item>
+        <el-descriptions-item label="计划数量">{{ viewForm.planQuantity }}</el-descriptions-item>
+        <el-descriptions-item label="完工数量">{{ viewForm.completedQuantity || 0 }}</el-descriptions-item>
+        <el-descriptions-item label="合格数量">{{ viewForm.qualifiedQuantity || 0 }}</el-descriptions-item>
+        <el-descriptions-item label="不良数量">{{ viewForm.defectiveQuantity || 0 }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(viewForm.status)">{{ getStatusText(viewForm.status) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="优先级">
+          <el-tag v-if="viewForm.priority === 'HIGH'" type="danger">高</el-tag>
+          <el-tag v-else-if="viewForm.priority === 'LOW'" type="info">低</el-tag>
+          <span v-else>正常</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="计划开始">{{ viewForm.planStartTime }}</el-descriptions-item>
+        <el-descriptions-item label="计划完成">{{ viewForm.planEndTime }}</el-descriptions-item>
+        <el-descriptions-item label="生产车间">{{ viewForm.workshopName }}</el-descriptions-item>
+        <el-descriptions-item label="生产计划">{{ viewForm.planNo }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ viewForm.remark || '-' }}</el-descriptions-item>
+      </el-descriptions>
     </el-dialog>
   </div>
 </template>
 
-import XLSX from 'xlsx'
-
 <script>
-/**
- * 生产工单 - carels
- * @author carels
- * @version V9.0
- * @date 2026-03-15
- */
+import { listProWorkorder, getProWorkorder, addProWorkorder, updateProWorkorder, delProWorkorder, releaseWorkorder, closeWorkorder } from '@/api/pro'
+import { listProPlan } from '@/api/pro'
+
 export default {
   name: 'ProWorkorder',
   data() {
     return {
       loading: false,
-      total: 50,
-      stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
-      },
+      tableData: [],
+      total: 0,
       queryParams: {
         pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
+        pageSize: 20,
+        workorderCode: '',
+        itemName: '',
+        status: ''
       },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
       dialogVisible: false,
-      dialogTitle: '新增',
+      viewDialogVisible: false,
+      dialogTitle: '',
       form: {
-        code: '',
-        name: '',
+        workorderId: null,
+        workorderCode: '',
+        workorderType: 'STANDARD',
+        planId: null,
+        planNo: '',
+        itemId: null,
+        itemCode: '',
+        itemName: '',
+        routeId: null,
+        routeName: '',
+        planQuantity: 1,
+        priority: 'NORMAL',
+        workshopId: null,
+        workshopName: '',
+        planStartTime: '',
+        planEndTime: '',
         remark: ''
       },
+      viewForm: {},
       rules: {
-        code: [{ required: true, message: '请输入编码', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入名称', trigger: 'blur' }]
-      }
+        workorderCode: [{ required: true, message: '请输入工单编码', trigger: 'blur' }],
+        workorderType: [{ required: true, message: '请选择工单类型', trigger: 'change' }],
+        itemId: [{ required: true, message: '请选择产品', trigger: 'change' }],
+        routeId: [{ required: true, message: '请选择工艺路线', trigger: 'change' }],
+        planQuantity: [{ required: true, message: '请输入计划数量', trigger: 'blur' }],
+        planStartTime: [{ required: true, message: '请选择计划开始时间', trigger: 'change' }],
+        planEndTime: [{ required: true, message: '请选择计划完成时间', trigger: 'change' }]
+      },
+      // 下拉选项数据
+      planList: [],
+      itemList: [
+        { itemId: 1, itemCode: 'P001', itemName: '手机主板' },
+        { itemId: 2, itemCode: 'P002', itemName: '电池组件' },
+        { itemId: 3, itemCode: 'P003', itemName: '显示屏' }
+      ],
+      routeList: [
+        { routeId: 1, routeName: '手机主板生产工艺' },
+        { routeId: 2, routeName: '电池组件生产工艺' }
+      ],
+      workshopList: [
+        { workshopId: 1, workshopName: '总装车间' },
+        { workshopId: 2, workshopName: '注塑车间' },
+        { workshopId: 3, workshopName: '钣金车间' }
+      ]
     }
   },
-  mounted() {
+  created() {
     this.fetchData()
+    this.loadPlanList()
   },
   methods: {
-    handleExport() {
-      if (this.tableData.length === 0) {
-        this.$message.warning('暂无数据可导出')
-        return
-      }
-      
-      const headers = ['序号', '编码', '名称', '状态', '创建时间']
-      const data = this.tableData.map((row, index) => [
-        index + 1,
-        row.code,
-        row.name,
-        row.status === '0' ? '启用' : '停用',
-        row.createTime
-      ])
-      
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, '生产工单')
-      
-      const now = new Date()
-      const filename = `生产工单_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
-      
-      XLSX.writeFile(wb, filename)
-      this.$message.success('导出成功')
-    },
     fetchData() {
       this.loading = true
-      setTimeout(() => {
+      listProWorkorder(this.queryParams).then(response => {
+        this.tableData = response.rows || []
+        this.total = response.total || 0
         this.loading = false
-      }, 500)
+      }).catch(() => {
+        this.loading = false
+      })
+    },
+    loadPlanList() {
+      listProPlan({ pageNum: 1, pageSize: 100 }).then(response => {
+        this.planList = response.rows || []
+      })
     },
     handleQuery() {
       this.queryParams.pageNum = 1
@@ -224,44 +314,12 @@ export default {
     resetQuery() {
       this.queryParams = {
         pageNum: 1,
-        pageSize: 10,
-        code: '',
-        name: ''
+        pageSize: 20,
+        workorderCode: '',
+        itemName: '',
+        status: ''
       }
       this.fetchData()
-    },
-    handleAdd() {
-      this.dialogTitle = '新增'
-      this.form = {
-        code: '',
-        name: '',
-        remark: ''
-      }
-      this.dialogVisible = true
-    },
-    handleEdit(row) {
-      this.dialogTitle = '编辑'
-      this.form = { ...row }
-      this.dialogVisible = true
-    },
-    handleView(row) {
-      this.$alert(`编码：${row.code}<br>名称：${row.name}`, '详情', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
-      })
-    },
-    handleDelete(row) {
-      this.$confirm(`确认删除 "${row.name}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
-      })
-    },
-    handleStatusChange(row) {
-      const status = row.status === '0' ? '启用' : '停用'
-      this.$message.success(`已${status}：${row.name}`)
     },
     handleSizeChange(val) {
       this.queryParams.pageSize = val
@@ -271,170 +329,197 @@ export default {
       this.queryParams.pageNum = val
       this.fetchData()
     },
+    handleAdd() {
+      this.dialogTitle = '新增工单'
+      this.form = {
+        workorderId: null,
+        workorderCode: '',
+        workorderType: 'STANDARD',
+        planId: null,
+        planNo: '',
+        itemId: null,
+        itemCode: '',
+        itemName: '',
+        routeId: null,
+        routeName: '',
+        planQuantity: 1,
+        priority: 'NORMAL',
+        workshopId: null,
+        workshopName: '',
+        planStartTime: '',
+        planEndTime: '',
+        remark: ''
+      }
+      this.dialogVisible = true
+    },
+    handleView(row) {
+      this.viewForm = { ...row }
+      this.viewDialogVisible = true
+    },
+    handleEdit(row) {
+      this.dialogTitle = '编辑工单'
+      this.form = { ...row }
+      this.dialogVisible = true
+    },
+    handleDelete(row) {
+      this.$confirm(`确认删除工单 "${row.workorderCode}" 吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        delProWorkorder(row.workorderId).then(() => {
+          this.$message.success('删除成功')
+          this.fetchData()
+        })
+      }).catch(() => {})
+    },
+    handleRelease(row) {
+      this.$confirm(`确认下达工单 "${row.workorderCode}" 吗？下达后将自动生成生产任务。`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }).then(() => {
+        releaseWorkorder(row.workorderId).then(() => {
+          this.$message.success('工单已下达，生产任务已生成')
+          this.fetchData()
+        })
+      }).catch(() => {})
+    },
+    handleClose(row) {
+      this.$confirm(`确认关闭工单 "${row.workorderCode}" 吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        closeWorkorder(row.workorderId).then(() => {
+          this.$message.success('工单已关闭')
+          this.fetchData()
+        })
+      }).catch(() => {})
+    },
+    handlePlanChange(planId) {
+      const plan = this.planList.find(p => p.planId === planId)
+      if (plan) {
+        this.form.planNo = plan.planNo
+        this.form.itemId = plan.itemId
+        this.form.itemCode = plan.itemCode
+        this.form.itemName = plan.itemName
+      }
+    },
+    handleItemChange(itemId) {
+      const item = this.itemList.find(i => i.itemId === itemId)
+      if (item) {
+        this.form.itemCode = item.itemCode
+        this.form.itemName = item.itemName
+      }
+    },
+    handleWorkshopChange(workshopId) {
+      const workshop = this.workshopList.find(w => w.workshopId === workshopId)
+      if (workshop) {
+        this.form.workshopName = workshop.workshopName
+      }
+    },
     submitForm() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
+          if (this.form.workorderId) {
+            updateProWorkorder(this.form).then(() => {
+              this.$message.success('修改成功')
+              this.dialogVisible = false
+              this.fetchData()
+            })
+          } else {
+            addProWorkorder(this.form).then(() => {
+              this.$message.success('新增成功')
+              this.dialogVisible = false
+              this.fetchData()
+            })
+          }
         }
       })
+    },
+    getStatusType(status) {
+      const types = {
+        PENDING: 'info',
+        RELEASED: 'primary',
+        PRODUCING: 'warning',
+        COMPLETED: 'success',
+        CLOSED: ''
+      }
+      return types[status] || ''
+    },
+    getStatusText(status) {
+      const texts = {
+        PENDING: '待下达',
+        RELEASED: '已下达',
+        PRODUCING: '生产中',
+        COMPLETED: '已完成',
+        CLOSED: '已关闭'
+      }
+      return texts[status] || status
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.app-container {
-  padding: 20px;
-  min-height: calc(100vh - 120px);
-}
-
-// 页面头部
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   padding: 0 0 15px 0;
-  border-bottom: 2px solid #EBEEF5;
+  border-bottom: 1px solid #ebeef5;
 
   .title-section {
     display: flex;
     align-items: center;
-    
+    gap: 10px;
+
     i {
-      font-size: 28px;
-      color: #409EFF;
-      margin-right: 12px;
+      font-size: 24px;
+      color: #e6a23c;
     }
-    
+
     .title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
       color: #303133;
-      margin-right: 10px;
     }
-    
+
     .subtitle {
-      font-size: 13px;
+      font-size: 14px;
       color: #909399;
       font-weight: normal;
     }
   }
 }
 
-// 搜索栏
 .search-card {
   margin-bottom: 20px;
-  
+
   .search-form {
-    .el-form-item {
-      margin-bottom: 0;
-      margin-right: 20px;
-    }
-  }
-}
-
-// 统计卡片
-.stat-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  transition: all 0.3s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    
-    i {
-      font-size: 28px;
-      color: #fff;
-    }
-    
-    &.blue {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    &.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    &.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-  }
-  
-  .stat-info {
-    flex: 1;
-    
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #303133;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-    
-    .stat-label {
-      font-size: 14px;
-      color: #909399;
-    }
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }
 
-// 表格卡片
 .table-card {
-  .card-header {
+  .pagination-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    .header-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #303133;
-      
-      i {
-        margin-right: 8px;
-        color: #409EFF;
-      }
-    }
-  }
-  
-  .el-table {
-    margin-top: 15px;
+    justify-content: flex-end;
+    margin-top: 20px;
   }
 }
 
-// 响应式调整
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    
-    .action-section {
-      margin-top: 10px;
-    }
-  }
-  
-  .stat-row {
-    .el-col {
-      margin-bottom: 15px;
-    }
-  }
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+::v-deep .el-loading-mask {
+  display: none !important;
 }
 </style>

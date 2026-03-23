@@ -22,5 +22,20 @@ public class WmIssue extends BaseEntity {
     private String status;
     private Date issueDate;
     private String remark;
+
+    // ==================== 销售出库特有字段 ====================
+    /** 销售订单ID */
+    private Long salesOrderId;
+
+    /** 销售订单号 */
+    private String salesOrderNo;
+
+    /** 客户ID */
+    private Long clientId;
+
+    /** 客户名称 */
+    private String clientName;
+    // =========================================================
+
     private List<WmIssueItem> items;
 }

@@ -30,7 +30,34 @@ public class ProPlan {
     
     /** 计划状态: 0-草稿, 1-已发布, 2-执行中, 3-已完成, 4-已取消 */
     private Integer status;
-    
+
+    /** 排单类型: 0-自身排单, 1-绑定销售订单 */
+    private Integer scheduleType;
+
+    /** 销售订单ID */
+    private Long salesOrderId;
+
+    /** 销售订单号 */
+    private String salesOrderNo;
+
+    /** 客户ID */
+    private Long customerId;
+
+    /** 客户名称 */
+    private String customerName;
+
+    /** 产品ID（物料ID） */
+    private Long itemId;
+
+    /** 产品编码 */
+    private String itemCode;
+
+    /** 产品名称 */
+    private String itemName;
+
+    /** 规格型号 */
+    private String specification;
+
     /** 计划产量 */
     private Double planQty;
     

@@ -67,7 +67,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="transferNo" label="调拨单号" width="140" />
         <el-table-column prop="transferType" label="类型" width="90" align="center">
           <template slot-scope="scope">

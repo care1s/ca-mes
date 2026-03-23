@@ -94,7 +94,7 @@
         highlight-current-row
         style="width: 100%"
       >
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
         <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="80" align="center">

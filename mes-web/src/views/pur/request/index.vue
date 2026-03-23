@@ -172,7 +172,7 @@
           <span class="total-amount">合计金额: {{ formatMoney(calculateTotal) }}</span>
         </div>
         <el-table :data="form.items" border size="small" style="width: 100%; margin-top: 10px;">
-          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column type="index" label="序号" width="80" align="center" />
           <el-table-column label="物料编码" width="130">
             <template slot-scope="scope">
               <div style="display: flex; align-items: center;">
@@ -248,7 +248,7 @@
 
       <el-divider content-position="left">采购明细</el-divider>
       <el-table :data="viewData.items" border size="small" style="width: 100%">
-        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="itemCode" label="物料编码" width="120" />
         <el-table-column prop="itemName" label="物料名称" width="150" />
         <el-table-column prop="itemSpec" label="规格型号" width="120" />
@@ -280,7 +280,7 @@
       </el-form>
 
       <el-table :data="itemTableData" border highlight-current-row style="margin-top: 10px">
-        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="itemCode" label="物料编码" width="120" />
         <el-table-column prop="itemName" label="物料名称" min-width="150" show-overflow-tooltip />
         <el-table-column prop="itemSpec" label="规格型号" width="120" show-overflow-tooltip />

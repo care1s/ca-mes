@@ -59,7 +59,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="nickname" label="昵称" width="100" />
         <el-table-column prop="realName" label="真实姓名" width="100" />
@@ -121,7 +121,7 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="700px" :close-on-click-modal="false">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="700px" :close-on-click-modal="false" :modal="false">
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -200,7 +200,7 @@
     </el-dialog>
 
     <!-- 重置密码对话框 -->
-    <el-dialog title="重置密码" :visible.sync="resetPwdVisible" width="400px" :close-on-click-modal="false">
+    <el-dialog title="重置密码" :visible.sync="resetPwdVisible" width="400px" :close-on-click-modal="false" :modal="false">
       <el-form ref="resetPwdForm" :model="resetPwdForm" :rules="resetPwdRules" label-width="100px">
         <el-form-item label="新密码" prop="password">
           <el-input v-model="resetPwdForm.password" type="password" placeholder="请输入新密码" show-password />
@@ -216,7 +216,7 @@
     </el-dialog>
 
     <!-- 分配角色对话框 -->
-    <el-dialog title="分配角色" :visible.sync="assignRoleVisible" width="500px" :close-on-click-modal="false">
+    <el-dialog title="分配角色" :visible.sync="assignRoleVisible" width="500px" :close-on-click-modal="false" :modal="false">
       <el-form label-width="80px">
         <el-form-item label="用户">
           <span>{{ currentUser.username }} - {{ currentUser.realName }}</span>

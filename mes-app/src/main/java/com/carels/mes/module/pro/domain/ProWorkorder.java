@@ -21,10 +21,16 @@ public class ProWorkorder extends BaseEntity {
     
     /** 工单ID */
     private Long workorderId;
-    
+
     /** 工单编码 */
     private String workorderCode;
-    
+
+    /** 生产计划ID */
+    private Long planId;
+
+    /** 生产计划单号 */
+    private String planNo;
+
     /** 工单类型: STANDARD-标准工单, Rework-返工工单 */
     private String workorderType;
     

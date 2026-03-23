@@ -7,6 +7,8 @@
     <resultMap type="com.carels.mes.module.pro.domain.ProWorkorder" id="ProWorkorderResult">
         <id property="workorderId" column="workorder_id"/>
         <result property="workorderCode" column="workorder_code"/>
+        <result property="planId" column="plan_id"/>
+        <result property="planNo" column="plan_no"/>
         <result property="workorderType" column="workorder_type"/>
         <result property="itemId" column="item_id"/>
         <result property="itemCode" column="item_code"/>
@@ -43,7 +45,7 @@
     </resultMap>
 
     <sql id="selectProWorkorderVo">
-        select workorder_id, workorder_code, workorder_type, item_id, item_code, item_name,
+        select workorder_id, workorder_code, plan_id, plan_no, workorder_type, item_id, item_code, item_name,
                specification, bom_id, route_id, route_name, plan_quantity, completed_quantity,
                qualified_quantity, defective_quantity, scrap_quantity, status, priority,
                plan_start_time, plan_end_time, actual_start_time, actual_end_time,
@@ -58,6 +60,9 @@
         <where>
             <if test="workorderCode != null and workorderCode != ''">
                 AND workorder_code like concat('%', #{workorderCode}, '%')
+            </if>
+            <if test="planId != null">
+                AND plan_id = #{planId}
             </if>
             <if test="itemName != null and itemName != ''">
                 AND item_name like concat('%', #{itemName}, '%')
@@ -88,13 +93,13 @@
 
     <insert id="insertProWorkorder" parameterType="com.carels.mes.module.pro.domain.ProWorkorder" useGeneratedKeys="true" keyProperty="workorderId">
         insert into pro_workorder (
-            workorder_code, workorder_type, item_id, item_code, item_name, specification,
+            workorder_code, plan_id, plan_no, workorder_type, item_id, item_code, item_name, specification,
             bom_id, route_id, route_name, plan_quantity, priority,
             plan_start_time, plan_end_time, workshop_id, workshop_name,
             team_id, team_name, estimated_hours, client_id, client_name,
             sales_order_no, remark, create_by, create_time, status
         ) values (
-            #{workorderCode}, #{workorderType}, #{itemId}, #{itemCode}, #{itemName}, #{specification},
+            #{workorderCode}, #{planId}, #{planNo}, #{workorderType}, #{itemId}, #{itemCode}, #{itemName}, #{specification},
             #{bomId}, #{routeId}, #{routeName}, #{planQuantity}, #{priority},
             #{planStartTime}, #{planEndTime}, #{workshopId}, #{workshopName},
             #{teamId}, #{teamName}, #{estimatedHours}, #{clientId}, #{clientName},
@@ -106,6 +111,8 @@
         update pro_workorder
         <set>
             <if test="workorderCode != null">workorder_code = #{workorderCode},</if>
+            <if test="planId != null">plan_id = #{planId},</if>
+            <if test="planNo != null">plan_no = #{planNo},</if>
             <if test="workorderType != null">workorder_type = #{workorderType},</if>
             <if test="itemId != null">item_id = #{itemId},</if>
             <if test="itemCode != null">item_code = #{itemCode},</if>

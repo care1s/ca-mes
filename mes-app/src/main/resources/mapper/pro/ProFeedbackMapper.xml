@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProFeedbackMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProFeedback" id="ProFeedbackResult">
+        <id property="feedbackId" column="feedback_id"/>
+        <result property="feedbackCode" column="feedback_code"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderCode" column="workorder_code"/>
+        <result property="taskId" column="task_id"/>
+        <result property="taskCode" column="task_code"/>
+        <result property="processId" column="process_id"/>
+        <result property="processCode" column="process_code"/>
+        <result property="processName" column="process_name"/>
+        <result property="workstationId" column="workstation_id"/>
+        <result property="workstationName" column="workstation_name"/>
+        <result property="quantity" column="quantity"/>
+        <result property="qualifiedQuantity" column="qualified_quantity"/>
+        <result property="defectiveQuantity" column="defective_quantity"/>
+        <result property="scrapQuantity" column="scrap_quantity"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="feedbackTime" column="feedback_time"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProFeedbackVo">
+        SELECT f.feedback_id, f.feedback_code, f.workorder_id, f.workorder_code, f.task_id, f.task_code,
+               f.process_id, f.process_code, f.process_name, f.workstation_id, f.workstation_name,
+               f.quantity, f.qualified_quantity, f.defective_quantity, f.scrap_quantity,
+               f.operator_id, f.operator_name, f.feedback_time, f.status, f.remark,
+               f.create_by, f.create_time, f.update_by, f.update_time
+        FROM pro_feedback f
+    </sql>
+
+    <select id="selectProFeedbackList" parameterType="com.carels.mes.module.pro.domain.ProFeedback" resultMap="ProFeedbackResult">
+        <include refid="selectProFeedbackVo"/>
+        <where>
+            <if test="feedbackCode != null and feedbackCode != ''">
+                AND f.feedback_code LIKE CONCAT('%', #{feedbackCode}, '%')
+            </if>
+            <if test="workorderCode != null and workorderCode != ''">
+                AND f.workorder_code LIKE CONCAT('%', #{workorderCode}, '%')
+            </if>
+            <if test="taskCode != null and taskCode != ''">
+                AND f.task_code LIKE CONCAT('%', #{taskCode}, '%')
+            </if>
+            <if test="processName != null and processName != ''">
+                AND f.process_name LIKE CONCAT('%', #{processName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND f.status = #{status}
+            </if>
+            <if test="operatorName != null and operatorName != ''">
+                AND f.operator_name LIKE CONCAT('%', #{operatorName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND DATE(f.feedback_time) &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND DATE(f.feedback_time) &lt;= #{params.endTime}
+            </if>
+        </where>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="selectProFeedbackById" parameterType="Long" resultMap="ProFeedbackResult">
+        <include refid="selectProFeedbackVo"/>
+        WHERE f.feedback_id = #{feedbackId}
+    </select>
+
+    <select id="selectProFeedbackByTaskId" parameterType="Long" resultMap="ProFeedbackResult">
+        <include refid="selectProFeedbackVo"/>
+        WHERE f.task_id = #{taskId}
+        ORDER BY f.create_time DESC
+    </select>
+
+    <insert id="insertProFeedback" parameterType="com.carels.mes.module.pro.domain.ProFeedback" useGeneratedKeys="true" keyProperty="feedbackId">
+        INSERT INTO pro_feedback (
+            feedback_code, workorder_id, workorder_code, task_id, task_code,
+            process_id, process_code, process_name, workstation_id, workstation_name,
+            quantity, qualified_quantity, defective_quantity, scrap_quantity,
+            operator_id, operator_name, feedback_time, status, remark, create_by, create_time
+        ) VALUES (
+            #{feedbackCode}, #{workorderId}, #{workorderCode}, #{taskId}, #{taskCode},
+            #{processId}, #{processCode}, #{processName}, #{workstationId}, #{workstationName},
+            #{quantity}, #{qualifiedQuantity}, #{defectiveQuantity}, #{scrapQuantity},
+            #{operatorId}, #{operatorName}, #{feedbackTime}, #{status}, #{remark}, #{createBy}, NOW()
+        )
+    </insert>
+
+    <update id="updateProFeedback" parameterType="com.carels.mes.module.pro.domain.ProFeedback">
+        UPDATE pro_feedback
+        <set>
+            <if test="feedbackCode != null">feedback_code = #{feedbackCode},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="qualifiedQuantity != null">qualified_quantity = #{qualifiedQuantity},</if>
+            <if test="defectiveQuantity != null">defective_quantity = #{defectiveQuantity},</if>
+            <if test="scrapQuantity != null">scrap_quantity = #{scrapQuantity},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="feedbackTime != null">feedback_time = #{feedbackTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy},
+            update_time = NOW()
+        </set>
+        WHERE feedback_id = #{feedbackId}
+    </update>
+
+    <delete id="deleteProFeedbackById" parameterType="Long">
+        DELETE FROM pro_feedback WHERE feedback_id = #{feedbackId}
+    </delete>
+
+    <delete id="deleteProFeedbackByIds">
+        DELETE FROM pro_feedback WHERE feedback_id IN
+        <foreach collection="array" item="feedbackId" open="(" separator="," close=")">
+            #{feedbackId}
+        </foreach>
+    </delete>
+
+    <update id="approveFeedback">
+        UPDATE pro_feedback SET status = #{status}, update_time = NOW() WHERE feedback_id = #{feedbackId}
+    </update>
+
+</mapper>

@@ -1,6 +1,8 @@
 package com.carels.mes.module.pro.service.impl;
 
+import com.carels.mes.module.pro.domain.ProFeedback;
 import com.carels.mes.module.pro.domain.ProTask;
+import com.carels.mes.module.pro.mapper.ProFeedbackMapper;
 import com.carels.mes.module.pro.mapper.ProTaskMapper;
 import com.carels.mes.module.pro.service.IProFeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * 生产报工Service实现 - carels
+ * 生产报工Service实现类 - carels
  *
  * @author carels
  * @version V9.0
@@ -21,7 +24,45 @@ import java.util.Map;
 public class ProFeedbackServiceImpl implements IProFeedbackService {
 
     @Autowired
+    private ProFeedbackMapper feedbackMapper;
+
+    @Autowired
     private ProTaskMapper taskMapper;
+
+    @Override
+    public List<ProFeedback> selectProFeedbackList(ProFeedback feedback) {
+        return feedbackMapper.selectProFeedbackList(feedback);
+    }
+
+    @Override
+    public ProFeedback selectProFeedbackById(Long feedbackId) {
+        return feedbackMapper.selectProFeedbackById(feedbackId);
+    }
+
+    @Override
+    public int insertProFeedback(ProFeedback feedback) {
+        return feedbackMapper.insertProFeedback(feedback);
+    }
+
+    @Override
+    public int updateProFeedback(ProFeedback feedback) {
+        return feedbackMapper.updateProFeedback(feedback);
+    }
+
+    @Override
+    public int deleteProFeedbackById(Long feedbackId) {
+        return feedbackMapper.deleteProFeedbackById(feedbackId);
+    }
+
+    @Override
+    public int deleteProFeedbackByIds(Long[] feedbackIds) {
+        return feedbackMapper.deleteProFeedbackByIds(feedbackIds);
+    }
+
+    @Override
+    public int approveFeedback(Long feedbackId, String status) {
+        return feedbackMapper.approveFeedback(feedbackId, status);
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -49,7 +90,9 @@ public class ProFeedbackServiceImpl implements IProFeedbackService {
         }
 
         // 更新完工数量
-        taskMapper.updateCompletedQty(taskId, quantity);
+        Double newCompletedQty = (task.getCompletedQuantity() != null ? task.getCompletedQuantity() : 0) + quantity;
+        task.setCompletedQuantity(newCompletedQty);
+        taskMapper.updateProTask(task);
 
         // 重新查询任务获取最新状态
         task = taskMapper.selectProTaskById(taskId);
@@ -95,11 +138,15 @@ public class ProFeedbackServiceImpl implements IProFeedbackService {
             taskMapper.updateStatus(taskId, "PROCESSING");
         }
 
-        // 更新完工数量（合格+不合格）
-        taskMapper.updateCompletedQty(taskId, totalQty);
+        // 更新完工数量
+        Double newCompletedQty = (task.getCompletedQuantity() != null ? task.getCompletedQuantity() : 0) + totalQty;
+        Double newQualifiedQty = (task.getQualifiedQuantity() != null ? task.getQualifiedQuantity() : 0) + qualifiedQty;
+        Double newDefectiveQty = (task.getDefectiveQuantity() != null ? task.getDefectiveQuantity() : 0) + defectiveQty;
 
-        // 更新合格/不合格数量（使用SQL或额外方法）
-        // 这里假设在Mapper中添加了updateQualityQty方法
+        task.setCompletedQuantity(newCompletedQty);
+        task.setQualifiedQuantity(newQualifiedQty);
+        task.setDefectiveQuantity(newDefectiveQty);
+        taskMapper.updateProTask(task);
 
         // 重新查询任务获取最新状态
         task = taskMapper.selectProTaskById(taskId);

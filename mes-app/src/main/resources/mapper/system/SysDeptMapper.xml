@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.system.mapper.SysDeptMapper">
+
+    <resultMap type="com.carels.mes.module.system.domain.SysDept" id="SysDeptResult">
+        <id property="deptId" column="dept_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="ancestors" column="ancestors"/>
+        <result property="code" column="code"/>
+        <result property="name" column="dept_name"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="leader" column="leader"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectSysDeptVo">
+        select dept_id, parent_id, ancestors, code, dept_name, order_num, leader, phone, email,
+               status, del_flag, create_by, create_time, update_by, update_time, remark
+        from sys_dept
+    </sql>
+
+    <select id="selectDeptList" parameterType="com.carels.mes.module.system.domain.SysDept" resultMap="SysDeptResult">
+        <include refid="selectSysDeptVo"/>
+        <where>
+            del_flag = '0'
+            <if test="code != null and code != ''">
+                AND code like concat('%', #{code}, '%')
+            </if>
+            <if test="name != null and name != ''">
+                AND dept_name like concat('%', #{name}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by order_num, dept_id
+    </select>
+
+    <select id="selectDeptById" parameterType="Long" resultMap="SysDeptResult">
+        <include refid="selectSysDeptVo"/>
+        where dept_id = #{deptId}
+    </select>
+
+    <select id="selectDeptAll" resultMap="SysDeptResult">
+        <include refid="selectSysDeptVo"/>
+        where del_flag = '0' and status = '0'
+        order by order_num, dept_id
+    </select>
+
+    <insert id="insertDept" parameterType="com.carels.mes.module.system.domain.SysDept" useGeneratedKeys="true" keyProperty="deptId">
+        insert into sys_dept
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">parent_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="code != null">code,</if>
+            <if test="name != null">dept_name,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="leader != null">leader,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time,
+            update_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">#{parentId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="code != null">#{code},</if>
+            <if test="name != null">#{name},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="leader != null">#{leader},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            now(),
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateDept" parameterType="com.carels.mes.module.system.domain.SysDept">
+        update sys_dept
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="name != null">dept_name = #{name},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="leader != null">leader = #{leader},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = now()
+        </trim>
+        where dept_id = #{deptId}
+    </update>
+
+    <delete id="deleteDeptById" parameterType="Long">
+        update sys_dept set del_flag = '2' where dept_id = #{deptId}
+    </delete>
+
+    <delete id="deleteDeptByIds">
+        update sys_dept set del_flag = '2' where dept_id in
+        <foreach collection="array" item="deptId" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+
+    <select id="checkDeptCodeUnique" resultType="int">
+        select count(*) from sys_dept where code = #{code}
+        <if test="deptId != null">
+            and dept_id != #{deptId}
+        </if>
+    </select>
+
+    <select id="checkDeptExistUser" resultType="int">
+        select count(*) from sys_user where dept_id = #{deptId} and del_flag = '0'
+    </select>
+
+    <select id="checkDeptExistChildren" resultType="int">
+        select count(*) from sys_dept where parent_id = #{deptId} and del_flag = '0'
+    </select>
+
+</mapper>

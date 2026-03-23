@@ -208,7 +208,7 @@
         <!-- 明细表格 -->
         <el-divider content-position="left">出库明细</el-divider>
         <el-table :data="form.items" border size="small" style="margin-bottom: 10px">
-          <el-table-column type="index" label="序号" width="70" align="center" fixed="left" />
+          <el-table-column type="index" label="序号" width="80" align="center" fixed="left" />
           <el-table-column label="物料编码" width="160" fixed="left">
             <template slot-scope="scope">
               <div style="display: flex; align-items: center;">
@@ -284,7 +284,7 @@
       </el-descriptions>
       <h4 style="margin: 20px 0 10px 0;">出库明细</h4>
       <el-table :data="viewData.items" border size="small">
-        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="itemCode" label="物料编码" width="120" />
         <el-table-column prop="itemName" label="物料名称" width="150" />
         <el-table-column prop="batchCode" label="批次" width="100" />
@@ -309,7 +309,7 @@
       </el-form>
       
       <el-table :data="stockTableData" border highlight-current-row style="margin-top: 10px">
-        <el-table-column type="index" label="序号" width="50" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="itemCode" label="物料编码" width="120" />
         <el-table-column prop="itemName" label="物料名称" min-width="150" show-overflow-tooltip />
         <el-table-column prop="batchCode" label="批次" width="100" />

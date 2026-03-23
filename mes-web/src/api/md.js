@@ -1652,21 +1652,6 @@ export function listDept(params) {
   })
 }
 
-// 所有部门（下拉选择）
-export function getAllDepts() {
-  return request({
-    url: '/mes/system/dept/all',
-    method: 'get'
-  })
-}
-
-// 部门详情
-export function getDept(deptId) {
-  return request({
-    url: '/mes/system/dept/' + deptId,
-    method: 'get'
-  })
-}
 
 // 新增部门
 export function addDept(data) {

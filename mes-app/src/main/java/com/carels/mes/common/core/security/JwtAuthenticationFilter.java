@@ -35,19 +35,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String jwtSecret;
     
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        
+
         // 获取请求路径
         String requestPath = request.getRequestURI();
-        
+
         // 登录相关接口不需要验证token
         if (requestPath.startsWith("/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
+        log.debug("JWT Secret from @Value: {}", jwtSecret);
+
         // 从header中获取token
         String header = request.getHeader("Authorization");
         
@@ -63,8 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // 确保密钥长度足够（HS256需要至少256位）
             String secret = jwtSecret;
+            log.debug("Original JWT Secret: {}", secret);
             if (secret.length() < 32) {
                 secret = secret + "-carels-mes-padding-to-32chars";
+                log.debug("Padded JWT Secret: {}", secret);
             }
             // 解析token
             Claims claims = Jwts.parser()
@@ -89,7 +93,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 writeUnauthorizedResponse(response, "登录已过期，请重新登录");
             }
         } catch (Exception e) {
-            log.error("JWT验证失败: {}", e.getMessage());
+            log.error("JWT验证失败: {}, jwtSecret used: {}", e.getMessage(), jwtSecret);
             SecurityContextHolder.clearContext();
             writeUnauthorizedResponse(response, "登录已过期，请重新登录");
         }

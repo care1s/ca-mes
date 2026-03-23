@@ -12,6 +12,15 @@
         <result property="startDate" column="start_date"/>
         <result property="endDate" column="end_date"/>
         <result property="status" column="status"/>
+        <result property="scheduleType" column="schedule_type"/>
+        <result property="salesOrderId" column="sales_order_id"/>
+        <result property="salesOrderNo" column="sales_order_no"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
         <result property="planQty" column="plan_qty"/>
         <result property="actualQty" column="actual_qty"/>
         <result property="completionRate" column="completion_rate"/>
@@ -26,8 +35,9 @@
 
     <sql id="selectProPlanVo">
         select plan_id, plan_no, plan_name, plan_type, start_date, end_date, status,
-               plan_qty, actual_qty, completion_rate, manager_id, manager_name, remark,
-               create_by, create_time, update_by, update_time
+               schedule_type, sales_order_id, sales_order_no, customer_id, customer_name,
+               item_id, item_code, item_name, specification, plan_qty, actual_qty, completion_rate,
+               manager_id, manager_name, remark, create_by, create_time, update_by, update_time
         from pro_plan
     </sql>
 
@@ -45,6 +55,15 @@
             </if>
             <if test="status != null">
                 AND status = #{status}
+            </if>
+            <if test="scheduleType != null">
+                AND schedule_type = #{scheduleType}
+            </if>
+            <if test="salesOrderNo != null and salesOrderNo != ''">
+                AND sales_order_no like concat('%', #{salesOrderNo}, '%')
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name like concat('%', #{customerName}, '%')
             </if>
             <if test="managerName != null and managerName != ''">
                 AND manager_name like concat('%', #{managerName}, '%')
@@ -65,10 +84,14 @@
 
     <insert id="insertProPlan" parameterType="com.carels.mes.module.pro.domain.ProPlan" useGeneratedKeys="true" keyProperty="planId">
         insert into pro_plan (
-            plan_no, plan_name, plan_type, start_date, end_date, status, plan_qty,
+            plan_no, plan_name, plan_type, start_date, end_date, status, schedule_type,
+            sales_order_id, sales_order_no, customer_id, customer_name,
+            item_id, item_code, item_name, specification, plan_qty,
             actual_qty, completion_rate, manager_id, manager_name, remark, create_by, create_time
         ) values (
-            #{planNo}, #{planName}, #{planType}, #{startDate}, #{endDate}, #{status}, #{planQty},
+            #{planNo}, #{planName}, #{planType}, #{startDate}, #{endDate}, #{status}, #{scheduleType},
+            #{salesOrderId}, #{salesOrderNo}, #{customerId}, #{customerName},
+            #{itemId}, #{itemCode}, #{itemName}, #{specification}, #{planQty},
             #{actualQty}, #{completionRate}, #{managerId}, #{managerName}, #{remark}, #{createBy}, sysdate()
         )
     </insert>
@@ -82,6 +105,15 @@
             <if test="startDate != null">start_date = #{startDate},</if>
             <if test="endDate != null">end_date = #{endDate},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="scheduleType != null">schedule_type = #{scheduleType},</if>
+            <if test="salesOrderId != null">sales_order_id = #{salesOrderId},</if>
+            <if test="salesOrderNo != null">sales_order_no = #{salesOrderNo},</if>
+            <if test="customerId != null">customer_id = #{customerId},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="specification != null">specification = #{specification},</if>
             <if test="planQty != null">plan_qty = #{planQty},</if>
             <if test="actualQty != null">actual_qty = #{actualQty},</if>
             <if test="completionRate != null">completion_rate = #{completionRate},</if>

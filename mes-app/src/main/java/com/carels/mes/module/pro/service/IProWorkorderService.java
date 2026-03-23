@@ -58,4 +58,9 @@ public interface IProWorkorderService {
      * 获取工单看板数据
      */
     List<Map<String, Object>> getWorkorderDashboard();
+
+    /**
+     * 根据生产计划生成工单
+     */
+    ProWorkorder createWorkorderFromPlan(Long planId, Long workshopId, String workshopName);
 }

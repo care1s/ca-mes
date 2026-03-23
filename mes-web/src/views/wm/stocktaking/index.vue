@@ -75,7 +75,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="stocktakingNo" label="盘点单号" width="140" />
         <el-table-column prop="warehouseName" label="仓库" min-width="120" />
         <el-table-column prop="stocktakingType" label="盘点类型" width="100" align="center">

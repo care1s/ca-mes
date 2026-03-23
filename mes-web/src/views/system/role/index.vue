@@ -56,7 +56,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="roleName" label="角色名称" min-width="150" />
         <el-table-column prop="roleCode" label="角色编码" width="150" />
         <el-table-column prop="orderNum" label="显示顺序" width="100" align="center" />

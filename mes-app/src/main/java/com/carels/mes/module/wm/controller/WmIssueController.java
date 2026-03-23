@@ -60,4 +60,13 @@ public class WmIssueController extends BaseController {
         issueService.confirmIssue(issueId);
         return AjaxResult.success("出库确认成功");
     }
+
+    /**
+     * 从销售订单生成出库单
+     */
+    @PostMapping("/fromSalesOrder")
+    public AjaxResult createFromSalesOrder(@RequestParam Long salesOrderId, @RequestParam Long warehouseId) {
+        WmIssue issue = issueService.createIssueFromSalesOrder(salesOrderId, warehouseId);
+        return AjaxResult.success("出库单生成成功", issue);
+    }
 }

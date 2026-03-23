@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.sale.mapper.SaleOrderMapper">
+
+    <resultMap type="com.carels.mes.module.sale.domain.SaleOrder" id="SaleOrderResult">
+        <id property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="clientId" column="client_id"/>
+        <result property="clientCode" column="client_code"/>
+        <result property="clientName" column="client_name"/>
+        <result property="deliveryDate" column="delivery_date"/>
+        <result property="deliveryAddress" column="delivery_address"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="taxAmount" column="tax_amount"/>
+        <result property="discountAmount" column="discount_amount"/>
+        <result property="payableAmount" column="payable_amount"/>
+        <result property="status" column="status"/>
+        <result property="deliveryStatus" column="delivery_status"/>
+        <result property="relatedPlanId" column="related_plan_id"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap type="com.carels.mes.module.sale.domain.SaleOrderItem" id="SaleOrderItemResult">
+        <id property="itemId" column="item_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="itemId2" column="item_id2"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="unit" column="unit"/>
+        <result property="quantity" column="quantity"/>
+        <result property="deliveredQty" column="delivered_qty"/>
+        <result property="remainQty" column="remain_qty"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="selectSaleOrderVo">
+        select order_id, order_no, order_date, client_id, client_code, client_name,
+               delivery_date, delivery_address, contact_person, contact_phone,
+               total_amount, tax_amount, discount_amount, payable_amount,
+               status, delivery_status, related_plan_id, remark,
+               create_by, create_time, update_by, update_time
+        from sale_order
+    </sql>
+
+    <select id="selectSaleOrderList" parameterType="com.carels.mes.module.sale.domain.SaleOrder" resultMap="SaleOrderResult">
+        <include refid="selectSaleOrderVo"/>
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no like concat('%', #{orderNo}, '%')
+            </if>
+            <if test="clientName != null and clientName != ''">
+                AND client_name like concat('%', #{clientName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="deliveryStatus != null">
+                AND delivery_status = #{deliveryStatus}
+            </if>
+            <if test="orderDate != null">
+                AND order_date = #{orderDate}
+            </if>
+            <if test="params.beginDate != null and params.beginDate != ''">
+                AND order_date &gt;= #{params.beginDate}
+            </if>
+            <if test="params.endDate != null and params.endDate != ''">
+                AND order_date &lt;= #{params.endDate}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSaleOrderById" resultMap="SaleOrderResult">
+        <include refid="selectSaleOrderVo"/>
+        where order_id = #{orderId}
+    </select>
+
+    <select id="selectSaleOrderByNo" resultMap="SaleOrderResult">
+        <include refid="selectSaleOrderVo"/>
+        where order_no = #{orderNo}
+    </select>
+
+    <select id="selectItemsByOrderId" resultMap="SaleOrderItemResult">
+        select item_id, order_id, item_id2, item_code, item_name, specification, unit,
+               quantity, delivered_qty, remain_qty, unit_price, total_price, status, remark, create_by, create_time
+        from sale_order_item
+        where order_id = #{orderId}
+    </select>
+
+    <select id="selectAvailableOrdersForIssue" resultMap="SaleOrderResult">
+        <include refid="selectSaleOrderVo"/>
+        where status in (2, 3, 4) and delivery_status in (0, 1)
+        order by order_date asc
+    </select>
+
+    <insert id="insertSaleOrder" parameterType="com.carels.mes.module.sale.domain.SaleOrder" useGeneratedKeys="true" keyProperty="orderId">
+        insert into sale_order (
+            order_no, order_date, client_id, client_code, client_name,
+            delivery_date, delivery_address, contact_person, contact_phone,
+            total_amount, tax_amount, discount_amount, payable_amount,
+            status, delivery_status, related_plan_id, remark, create_by, create_time
+        ) values (
+            #{orderNo}, #{orderDate}, #{clientId}, #{clientCode}, #{clientName},
+            #{deliveryDate}, #{deliveryAddress}, #{contactPerson}, #{contactPhone},
+            #{totalAmount}, #{taxAmount}, #{discountAmount}, #{payableAmount},
+            #{status}, #{deliveryStatus}, #{relatedPlanId}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <insert id="insertSaleOrderItem" parameterType="com.carels.mes.module.sale.domain.SaleOrderItem">
+        insert into sale_order_item (
+            order_id, item_id2, item_code, item_name, specification, unit,
+            quantity, delivered_qty, remain_qty, unit_price, total_price, status, remark, create_by, create_time
+        ) values (
+            #{orderId}, #{itemId2}, #{itemCode}, #{itemName}, #{specification}, #{unit},
+            #{quantity}, #{deliveredQty}, #{remainQty}, #{unitPrice}, #{totalPrice}, #{status}, #{remark}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <insert id="batchInsertItems">
+        insert into sale_order_item (
+            order_id, item_id2, item_code, item_name, specification, unit,
+            quantity, delivered_qty, remain_qty, unit_price, total_price, status, remark, create_by, create_time
+        ) values
+        <foreach collection="items" item="item" separator=",">
+            (#{item.orderId}, #{item.itemId2}, #{item.itemCode}, #{item.itemName}, #{item.specification}, #{item.unit},
+             #{item.quantity}, #{item.deliveredQty}, #{item.remainQty}, #{item.unitPrice}, #{item.totalPrice},
+             #{item.status}, #{item.remark}, #{item.createBy}, sysdate())
+        </foreach>
+    </insert>
+
+    <update id="updateSaleOrder" parameterType="com.carels.mes.module.sale.domain.SaleOrder">
+        update sale_order
+        <set>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="orderDate != null">order_date = #{orderDate},</if>
+            <if test="clientId != null">client_id = #{clientId},</if>
+            <if test="clientCode != null">client_code = #{clientCode},</if>
+            <if test="clientName != null">client_name = #{clientName},</if>
+            <if test="deliveryDate != null">delivery_date = #{deliveryDate},</if>
+            <if test="deliveryAddress != null">delivery_address = #{deliveryAddress},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="taxAmount != null">tax_amount = #{taxAmount},</if>
+            <if test="discountAmount != null">discount_amount = #{discountAmount},</if>
+            <if test="payableAmount != null">payable_amount = #{payableAmount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="deliveryStatus != null">delivery_status = #{deliveryStatus},</if>
+            <if test="relatedPlanId != null">related_plan_id = #{relatedPlanId},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where order_id = #{orderId}
+    </update>
+
+    <update id="updateSaleOrderItem" parameterType="com.carels.mes.module.sale.domain.SaleOrderItem">
+        update sale_order_item
+        <set>
+            <if test="itemId2 != null">item_id2 = #{itemId2},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="unitPrice != null">unit_price = #{unitPrice},</if>
+            <if test="totalPrice != null">total_price = #{totalPrice},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where item_id = #{itemId}
+    </update>
+
+    <update id="updateStatus">
+        update sale_order
+        set status = #{status}, update_time = sysdate()
+        where order_id = #{orderId}
+    </update>
+
+    <update id="updateDeliveryStatus">
+        update sale_order
+        set delivery_status = #{deliveryStatus}, update_time = sysdate()
+        where order_id = #{orderId}
+    </update>
+
+    <update id="updateDeliveredQty">
+        update sale_order_item
+        set delivered_qty = delivered_qty + #{qty},
+            remain_qty = quantity - delivered_qty - #{qty}
+        where item_id = #{itemId}
+    </update>
+
+    <update id="relatePlan">
+        update sale_order
+        set related_plan_id = #{planId}, update_time = sysdate()
+        where order_id = #{orderId}
+    </update>
+
+    <delete id="deleteSaleOrderById">
+        delete from sale_order where order_id = #{orderId}
+    </delete>
+
+    <delete id="deleteSaleOrderByIds">
+        delete from sale_order where order_id in
+        <foreach collection="array" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteItemsByOrderId">
+        delete from sale_order_item where order_id = #{orderId}
+    </delete>
+
+</mapper>

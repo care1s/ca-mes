@@ -75,7 +75,7 @@
         highlight-current-row
         style="width: 100%"
       >
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="code" label="编码" width="150" show-overflow-tooltip />
         <el-table-column prop="name" label="名称" min-width="200" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="80" align="center">
@@ -120,9 +120,9 @@
   </div>
 </template>
 
-import XLSX from 'xlsx'
-
 <script>
+import XLSX from 'xlsx'
+import { listDept, addDept, updateDept, delDept } from '@/api/md'
 /**
  * 部门管理 - carels
  * @author carels
@@ -134,11 +134,11 @@ export default {
   data() {
     return {
       loading: false,
-      total: 50,
+      total: 0,
       stats: {
-        total: 50,
-        active: 45,
-        inactive: 5
+        total: 0,
+        active: 0,
+        inactive: 0
       },
       queryParams: {
         pageNum: 1,
@@ -146,29 +146,7 @@ export default {
         code: '',
         name: ''
       },
-      tableData: [
-        {
-          id: 1,
-          code: 'CODE001',
-          name: '示例数据1',
-          status: '0',
-          createTime: '2026-03-15 10:00:00'
-        },
-        {
-          id: 2,
-          code: 'CODE002',
-          name: '示例数据2',
-          status: '0',
-          createTime: '2026-03-15 11:00:00'
-        },
-        {
-          id: 3,
-          code: 'CODE003',
-          name: '示例数据3',
-          status: '1',
-          createTime: '2026-03-15 12:00:00'
-        }
-      ],
+      tableData: [],
       dialogVisible: false,
       dialogTitle: '新增',
       form: {
@@ -191,7 +169,7 @@ export default {
         this.$message.warning('暂无数据可导出')
         return
       }
-      
+
       const headers = ['序号', '编码', '名称', '状态', '创建时间']
       const data = this.tableData.map((row, index) => [
         index + 1,
@@ -200,22 +178,36 @@ export default {
         row.status === '0' ? '启用' : '停用',
         row.createTime
       ])
-      
+
       const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, '部门管理')
-      
+
       const now = new Date()
       const filename = `部门管理_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`
-      
+
       XLSX.writeFile(wb, filename)
       this.$message.success('导出成功')
     },
-    fetchData() {
+    async fetchData() {
       this.loading = true
-      setTimeout(() => {
+      try {
+        const res = await listDept(this.queryParams)
+        if (res.code === 200) {
+          this.tableData = res.rows || []
+          this.total = res.total || 0
+          this.calculateStats()
+        }
+      } catch (error) {
+        this.$message.error('获取数据失败')
+      } finally {
         this.loading = false
-      }, 500)
+      }
+    },
+    calculateStats() {
+      this.stats.total = this.total
+      this.stats.active = this.tableData.filter(item => item.status === '0' || item.status === 0).length
+      this.stats.inactive = this.tableData.filter(item => item.status === '1' || item.status === 1).length
     },
     handleQuery() {
       this.queryParams.pageNum = 1
@@ -233,6 +225,7 @@ export default {
     handleAdd() {
       this.dialogTitle = '新增'
       this.form = {
+        deptId: null,
         code: '',
         name: '',
         remark: ''
@@ -255,9 +248,19 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
-      })
+      }).then(async () => {
+        try {
+          const res = await delDept(row.deptId)
+          if (res.code === 200) {
+            this.$message.success('删除成功')
+            this.fetchData()
+          } else {
+            this.$message.error(res.msg || '删除失败')
+          }
+        } catch (error) {
+          this.$message.error('删除失败')
+        }
+      }).catch(() => {})
     },
     handleStatusChange(row) {
       const status = row.status === '0' ? '启用' : '停用'
@@ -272,10 +275,21 @@ export default {
       this.fetchData()
     },
     submitForm() {
-      this.$refs.form.validate(valid => {
+      this.$refs.form.validate(async valid => {
         if (valid) {
-          this.$message.success('保存成功')
-          this.dialogVisible = false
+          try {
+            const api = this.form.deptId ? updateDept : addDept
+            const res = await api(this.form)
+            if (res.code === 200) {
+              this.$message.success(this.form.deptId ? '修改成功' : '新增成功')
+              this.dialogVisible = false
+              this.fetchData()
+            } else {
+              this.$message.error(res.msg || '操作失败')
+            }
+          } catch (error) {
+            this.$message.error('操作失败')
+          }
         }
       })
     }

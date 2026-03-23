@@ -61,6 +61,12 @@
             <el-option label="已取消" :value="4" />
           </el-select>
         </el-form-item>
+        <el-form-item label="排单类型">
+          <el-select v-model="queryParams.scheduleType" placeholder="请选择排单类型" clearable>
+            <el-option label="自身排单" :value="0" />
+            <el-option label="绑定销售订单" :value="1" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" @click="handleQuery">查询</el-button>
           <el-button icon="el-icon-refresh-right" @click="resetQuery">重置</el-button>
@@ -71,7 +77,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="planNo" label="计划单号" width="140" />
         <el-table-column prop="planName" label="计划名称" min-width="150" show-overflow-tooltip />
         <el-table-column prop="planType" label="类型" width="90" align="center">
@@ -81,6 +87,16 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="scheduleType" label="排单类型" width="110" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.scheduleType === 1 ? 'success' : 'info'" size="small">
+              {{ scope.row.scheduleType === 1 ? '绑定订单' : '自身排单' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="salesOrderNo" label="销售订单号" width="130" />
+        <el-table-column prop="customerName" label="客户名称" width="120" show-overflow-tooltip />
+        <el-table-column prop="itemName" label="生产产品" min-width="150" show-overflow-tooltip />
         <el-table-column prop="startDate" label="开始日期" width="100" />
         <el-table-column prop="endDate" label="结束日期" width="100" />
         <el-table-column prop="planQty" label="计划产量" width="100" align="right" />
@@ -127,14 +143,39 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="700px" :close-on-click-modal="false">
-      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="750px" :close-on-click-modal="false" :modal="false">
+      <el-form ref="form" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="计划单号" prop="planNo">
               <el-input v-model="form.planNo" placeholder="系统自动生成" disabled />
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="排单类型" prop="scheduleType">
+              <el-select v-model="form.scheduleType" placeholder="请选择排单类型" style="width: 100%" @change="handleScheduleTypeChange">
+                <el-option label="自身排单" :value="0" />
+                <el-option label="绑定销售订单" :value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <!-- 销售订单选择（仅绑定销售订单时显示） -->
+        <el-row :gutter="20" v-if="form.scheduleType === 1">
+          <el-col :span="12">
+            <el-form-item label="销售订单" prop="salesOrderNo">
+              <el-select v-model="form.salesOrderId" placeholder="请选择销售订单" style="width: 100%" filterable @change="handleSalesOrderChange">
+                <el-option v-for="item in salesOrderList" :key="item.orderId" :label="item.orderNo" :value="item.orderId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="客户名称">
+              <el-input v-model="form.customerName" disabled placeholder="选择销售订单后自动填充" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="计划类型" prop="planType">
               <el-select v-model="form.planType" placeholder="请选择类型" style="width: 100%">
@@ -144,9 +185,19 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="计划产量" prop="planQty">
+              <el-input-number v-model="form.planQty" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-form-item label="计划名称" prop="planName">
           <el-input v-model="form.planName" placeholder="请输入计划名称" />
+        </el-form-item>
+        <el-form-item label="生产产品" prop="itemId">
+          <el-select v-model="form.itemId" placeholder="请选择生产产品" style="width: 100%" filterable @change="handleItemChange">
+            <el-option v-for="item in itemList" :key="item.itemId" :label="item.itemName + ' (' + item.itemCode + ')'" :value="item.itemId" />
+          </el-select>
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -181,10 +232,27 @@
         <el-button type="primary" @click="submitForm">确定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 发布计划对话框 -->
+    <el-dialog title="发布生产计划" :visible.sync="publishDialogVisible" width="400px" :close-on-click-modal="false" :modal="false">
+      <el-form :model="publishForm" label-width="100px">
+        <el-form-item label="生产车间" prop="workshopId">
+          <el-select v-model="publishForm.workshopId" placeholder="请选择车间" style="width: 100%">
+            <el-option v-for="item in workshopList" :key="item.workshopId" :label="item.workshopName" :value="item.workshopId" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="publishDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitPublish">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { listProPlan, getProPlan, addProPlan, updateProPlan, delProPlan, publishPlan, startPlan, completePlan } from '@/api/pro'
+
 export default {
   name: 'ProPlan',
   data() {
@@ -198,7 +266,8 @@ export default {
         planNo: '',
         planName: '',
         planType: null,
-        status: null
+        status: null,
+        scheduleType: null
       },
       stats: {
         total: 0,
@@ -212,6 +281,15 @@ export default {
         planNo: '',
         planName: '',
         planType: 0,
+        scheduleType: 0,
+        salesOrderId: null,
+        salesOrderNo: '',
+        customerId: null,
+        customerName: '',
+        itemId: null,
+        itemCode: '',
+        itemName: '',
+        specification: '',
         startDate: null,
         endDate: null,
         planQty: 0,
@@ -219,6 +297,18 @@ export default {
         managerName: '',
         remark: ''
       },
+      publishDialogVisible: false,
+      publishForm: {
+        planId: null,
+        workshopId: null,
+        workshopName: ''
+      },
+      workshopList: [
+        { workshopId: 1, workshopName: '总装车间' },
+        { workshopId: 2, workshopName: '注塑车间' },
+        { workshopId: 3, workshopName: '钣金车间' }
+      ],
+      itemList: [],
       rules: {
         planName: [{ required: true, message: '请输入计划名称', trigger: 'blur' }],
         planType: [{ required: true, message: '请选择计划类型', trigger: 'change' }],
@@ -233,42 +323,14 @@ export default {
   methods: {
     fetchData() {
       this.loading = true
-      // 模拟数据
-      setTimeout(() => {
-        this.tableData = [
-          {
-            planId: 1,
-            planNo: 'PL20240317001',
-            planName: '3月第3周生产计划',
-            planType: 0,
-            startDate: '2024-03-17',
-            endDate: '2024-03-23',
-            planQty: 1000,
-            actualQty: 850,
-            completionRate: 85,
-            managerName: '张三',
-            status: 2,
-            createTime: '2024-03-17 10:00:00'
-          },
-          {
-            planId: 2,
-            planNo: 'PL20240317002',
-            planName: '3月份生产计划',
-            planType: 1,
-            startDate: '2024-03-01',
-            endDate: '2024-03-31',
-            planQty: 5000,
-            actualQty: 3200,
-            completionRate: 64,
-            managerName: '李四',
-            status: 2,
-            createTime: '2024-03-01 09:00:00'
-          }
-        ]
-        this.total = 2
+      listProPlan(this.queryParams).then(response => {
+        this.tableData = response.rows || []
+        this.total = response.total || 0
         this.calculateStats()
         this.loading = false
-      }, 500)
+      }).catch(() => {
+        this.loading = false
+      })
     },
     calculateStats() {
       this.stats.total = this.total
@@ -290,7 +352,8 @@ export default {
         planNo: '',
         planName: '',
         planType: null,
-        status: null
+        status: null,
+        scheduleType: null
       }
       this.fetchData()
     },
@@ -308,6 +371,15 @@ export default {
         planNo: '',
         planName: '',
         planType: 0,
+        scheduleType: 0,
+        salesOrderId: null,
+        salesOrderNo: '',
+        customerId: null,
+        customerName: '',
+        itemId: null,
+        itemCode: '',
+        itemName: '',
+        specification: '',
         startDate: new Date(),
         endDate: null,
         planQty: 0,
@@ -315,6 +387,8 @@ export default {
         managerName: '',
         remark: ''
       }
+      this.loadSalesOrderList()
+      this.loadItemList()
       this.dialogVisible = true
     },
     handleView(row) {
@@ -323,6 +397,9 @@ export default {
     handleEdit(row) {
       this.dialogTitle = '编辑生产计划'
       this.form = { ...row }
+      if (this.form.scheduleType === 1) {
+        this.loadSalesOrderList()
+      }
       this.dialogVisible = true
     },
     handleDelete(row) {
@@ -331,19 +408,35 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$message.success('删除成功')
-        this.fetchData()
+        delProPlan(row.planId).then(() => {
+          this.$message.success('删除成功')
+          this.fetchData()
+        })
       }).catch(() => {})
     },
     handlePublish(row) {
-      this.$confirm('确认发布该生产计划吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }).then(() => {
-        this.$message.success('计划发布成功')
+      this.publishForm = {
+        planId: row.planId,
+        workshopId: null,
+        workshopName: ''
+      }
+      this.publishDialogVisible = true
+    },
+    submitPublish() {
+      if (!this.publishForm.workshopId) {
+        this.$message.error('请选择生产车间')
+        return
+      }
+      const workshop = this.workshopList.find(w => w.workshopId === this.publishForm.workshopId)
+      this.publishForm.workshopName = workshop ? workshop.workshopName : ''
+
+      publishPlan(this.publishForm.planId, this.publishForm.workshopId, this.publishForm.workshopName).then(() => {
+        this.$message.success('计划发布成功，已自动生成工单')
+        this.publishDialogVisible = false
         this.fetchData()
-      }).catch(() => {})
+      }).catch(err => {
+        this.$message.error(err.message || '发布失败')
+      })
     },
     handleStart(row) {
       this.$confirm('确认开始执行该计划吗？', '提示', {
@@ -351,8 +444,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$message.success('计划开始执行')
-        this.fetchData()
+        startPlan(row.planId).then(() => {
+          this.$message.success('计划开始执行')
+          this.fetchData()
+        })
       }).catch(() => {})
     },
     handleComplete(row) {
@@ -361,16 +456,28 @@ export default {
         cancelButtonText: '取消',
         type: 'success'
       }).then(() => {
-        this.$message.success('计划已完成')
-        this.fetchData()
+        completePlan(row.planId).then(() => {
+          this.$message.success('计划已完成')
+          this.fetchData()
+        })
       }).catch(() => {})
     },
     submitForm() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          this.$message.success(this.form.planId ? '修改成功' : '新增成功')
-          this.dialogVisible = false
-          this.fetchData()
+          if (this.form.planId) {
+            updateProPlan(this.form).then(() => {
+              this.$message.success('修改成功')
+              this.dialogVisible = false
+              this.fetchData()
+            })
+          } else {
+            addProPlan(this.form).then(() => {
+              this.$message.success('新增成功')
+              this.dialogVisible = false
+              this.fetchData()
+            })
+          }
         }
       })
     },
@@ -394,6 +501,56 @@ export default {
       if (rate >= 90) return '#67c23a'
       if (rate >= 60) return '#e6a23c'
       return '#f56c6c'
+    },
+    // 加载销售订单列表
+    loadSalesOrderList() {
+      // TODO: 调用API获取销售订单列表
+      // 模拟数据
+      this.salesOrderList = [
+        { orderId: 1, orderNo: 'SO202403001', customerId: 1, customerName: '华为技术有限公司' },
+        { orderId: 2, orderNo: 'SO202403002', customerId: 2, customerName: '比亚迪股份有限公司' },
+        { orderId: 3, orderNo: 'SO202403003', customerId: 3, customerName: '美的集团股份有限公司' }
+      ]
+    },
+    // 排单类型改变
+    handleScheduleTypeChange(val) {
+      if (val === 1) {
+        this.loadSalesOrderList()
+      } else {
+        // 清空销售订单信息
+        this.form.salesOrderId = null
+        this.form.salesOrderNo = ''
+        this.form.customerId = null
+        this.form.customerName = ''
+      }
+    },
+    // 加载物料列表（成品）
+    loadItemList() {
+      // TODO: 调用API获取物料列表（成品类型）
+      // 模拟数据
+      this.itemList = [
+        { itemId: 1, itemCode: 'P001', itemName: '手机主板', specification: '标准版' },
+        { itemId: 2, itemCode: 'P002', itemName: '电池组件', specification: '4000mAh' },
+        { itemId: 3, itemCode: 'P003', itemName: '显示屏', specification: '6.1英寸' }
+      ]
+    },
+    // 产品选择改变
+    handleItemChange(itemId) {
+      const item = this.itemList.find(i => i.itemId === itemId)
+      if (item) {
+        this.form.itemCode = item.itemCode
+        this.form.itemName = item.itemName
+        this.form.specification = item.specification
+      }
+    },
+    // 销售订单选择改变
+    handleSalesOrderChange(orderId) {
+      const order = this.salesOrderList.find(item => item.orderId === orderId)
+      if (order) {
+        this.form.salesOrderNo = order.orderNo
+        this.form.customerId = order.customerId
+        this.form.customerName = order.customerName
+      }
     }
   }
 }

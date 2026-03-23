@@ -72,7 +72,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table  :data="tableData" stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="reqNo" label="需求单号" width="140" />
         <el-table-column prop="planNo" label="计划单号" width="140" />
         <el-table-column prop="reqType" label="类型" width="100" align="center">

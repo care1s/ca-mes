@@ -22,4 +22,9 @@ public interface IWmIssueService {
     void updateStatus(Long issueId, String status);
 
     void confirmIssue(Long issueId);
+
+    /**
+     * 从销售订单生成出库单
+     */
+    WmIssue createIssueFromSalesOrder(Long salesOrderId, Long warehouseId);
 }

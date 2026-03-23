@@ -5,6 +5,7 @@ import com.carels.mes.common.core.page.TableDataInfo;
 import com.carels.mes.common.core.web.controller.BaseController;
 import com.carels.mes.module.pro.domain.ProPlan;
 import com.carels.mes.module.pro.service.IProPlanService;
+import com.carels.mes.module.pro.service.IProWorkorderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/mes/pro/plan")
 public class ProPlanController extends BaseController {
-    
+
     @Autowired
     private IProPlanService planService;
+
+    @Autowired
+    private IProWorkorderService workorderService;
     
     @GetMapping("/list")
     public TableDataInfo list(@RequestParam(defaultValue = "1") Integer pageNum,
@@ -50,9 +54,19 @@ public class ProPlanController extends BaseController {
     }
     
     @PutMapping("/{planId}/publish")
-    public AjaxResult publish(@PathVariable Long planId) {
+    public AjaxResult publish(@PathVariable Long planId,
+                              @RequestParam(required = false) Long workshopId,
+                              @RequestParam(required = false) String workshopName) {
+        // 1. 发布计划
         planService.publishPlan(planId);
-        return AjaxResult.success("计划发布成功");
+
+        // 2. 自动生成工单
+        try {
+            workorderService.createWorkorderFromPlan(planId, workshopId, workshopName);
+            return AjaxResult.success("计划发布成功，已自动生成工单");
+        } catch (Exception e) {
+            return AjaxResult.success("计划发布成功，但工单生成失败：" + e.getMessage());
+        }
     }
     
     @PutMapping("/{planId}/start")
