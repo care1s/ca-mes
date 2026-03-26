@@ -69,4 +69,9 @@ public interface ProTaskMapper {
      * 获取我的任务列表（移动端）
      */
     List<Map<String, Object>> selectMyTaskList(@Param("operatorId") Long operatorId);
+
+    /**
+     * 根据工单ID删除任务
+     */
+    int deleteByWorkorderId(Long workorderId);
 }

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProAndonRecordMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProAndonRecord" id="ProAndonRecordResult">
+        <id property="recordId" column="record_id"/>
+        <result property="recordNo" column="record_no"/>
+        <result property="typeId" column="type_id"/>
+        <result property="typeName" column="type_name"/>
+        <result property="typeLevel" column="type_level"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderNo" column="workorder_no"/>
+        <result property="taskId" column="task_id"/>
+        <result property="workstationId" column="workstation_id"/>
+        <result property="workstationName" column="workstation_name"/>
+        <result property="description" column="description"/>
+        <result property="images" column="images"/>
+        <result property="reporterId" column="reporter_id"/>
+        <result property="reporterName" column="reporter_name"/>
+        <result property="reportTime" column="report_time"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="handlerName" column="handler_name"/>
+        <result property="acceptTime" column="accept_time"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="handleResult" column="handle_result"/>
+        <result property="completeTime" column="complete_time"/>
+        <result property="status" column="status"/>
+        <result property="escalateLevel" column="escalate_level"/>
+        <result property="timeoutTime" column="timeout_time"/>
+        <result property="closeReason" column="close_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProAndonRecordVo">
+        select r.record_id, r.record_no, r.type_id, t.type_name, t.type_level, r.workorder_id, r.workorder_no,
+               r.task_id, r.workstation_id, r.workstation_name, r.description, r.images,
+               r.reporter_id, r.reporter_name, r.report_time, r.handler_id, r.handler_name,
+               r.accept_time, r.handle_time, r.handle_result, r.complete_time, r.status,
+               r.escalate_level, r.timeout_time, r.close_reason, r.remark,
+               r.create_by, r.create_time, r.update_by, r.update_time
+        from pro_andon_record r
+        left join pro_andon_type t on r.type_id = t.type_id
+    </sql>
+
+    <select id="selectProAndonRecordList" parameterType="com.carels.mes.module.pro.domain.ProAndonRecord" resultMap="ProAndonRecordResult">
+        <include refid="selectProAndonRecordVo"/>
+        <where>
+            <if test="recordNo != null and recordNo != ''">
+                and r.record_no like concat('%', #{recordNo}, '%')
+            </if>
+            <if test="typeId != null">
+                and r.type_id = #{typeId}
+            </if>
+            <if test="workorderNo != null and workorderNo != ''">
+                and r.workorder_no like concat('%', #{workorderNo}, '%')
+            </if>
+            <if test="workstationId != null">
+                and r.workstation_id = #{workstationId}
+            </if>
+            <if test="status != null and status != ''">
+                and r.status = #{status}
+            </if>
+            <if test="reporterName != null and reporterName != ''">
+                and r.reporter_name like concat('%', #{reporterName}, '%')
+            </if>
+            <if test="handlerName != null and handlerName != ''">
+                and r.handler_name like concat('%', #{handlerName}, '%')
+            </if>
+            <if test="params != null and params.beginTime != null and params.beginTime != ''">
+                and r.report_time &gt;= #{params.beginTime}
+            </if>
+            <if test="params != null and params.endTime != null and params.endTime != ''">
+                and r.report_time &lt;= #{params.endTime}
+            </if>
+        </where>
+        order by r.report_time desc
+    </select>
+
+    <select id="selectProAndonRecordById" parameterType="Long" resultMap="ProAndonRecordResult">
+        <include refid="selectProAndonRecordVo"/>
+        where r.record_id = #{recordId}
+    </select>
+
+    <select id="selectTimeoutRecords" resultMap="ProAndonRecordResult">
+        <include refid="selectProAndonRecordVo"/>
+        where r.status in ('PENDING', 'ACCEPTED', 'HANDLING')
+          and r.timeout_time &lt; now()
+    </select>
+
+    <insert id="insertProAndonRecord" parameterType="com.carels.mes.module.pro.domain.ProAndonRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into pro_andon_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="recordNo != null">record_no,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="workorderId != null">workorder_id,</if>
+            <if test="workorderNo != null">workorder_no,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="workstationId != null">workstation_id,</if>
+            <if test="workstationName != null">workstation_name,</if>
+            <if test="description != null">description,</if>
+            <if test="images != null">images,</if>
+            <if test="reporterId != null">reporter_id,</if>
+            <if test="reporterName != null">reporter_name,</if>
+            <if test="reportTime != null">report_time,</if>
+            <if test="handlerId != null">handler_id,</if>
+            <if test="handlerName != null">handler_name,</if>
+            <if test="acceptTime != null">accept_time,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleResult != null">handle_result,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="status != null">status,</if>
+            <if test="escalateLevel != null">escalate_level,</if>
+            <if test="timeoutTime != null">timeout_time,</if>
+            <if test="closeReason != null">close_reason,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="recordNo != null">#{recordNo},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="workorderId != null">#{workorderId},</if>
+            <if test="workorderNo != null">#{workorderNo},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="workstationId != null">#{workstationId},</if>
+            <if test="workstationName != null">#{workstationName},</if>
+            <if test="description != null">#{description},</if>
+            <if test="images != null">#{images},</if>
+            <if test="reporterId != null">#{reporterId},</if>
+            <if test="reporterName != null">#{reporterName},</if>
+            <if test="reportTime != null">#{reportTime},</if>
+            <if test="handlerId != null">#{handlerId},</if>
+            <if test="handlerName != null">#{handlerName},</if>
+            <if test="acceptTime != null">#{acceptTime},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleResult != null">#{handleResult},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="escalateLevel != null">#{escalateLevel},</if>
+            <if test="timeoutTime != null">#{timeoutTime},</if>
+            <if test="closeReason != null">#{closeReason},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateProAndonRecord" parameterType="com.carels.mes.module.pro.domain.ProAndonRecord">
+        update pro_andon_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="recordNo != null">record_no = #{recordNo},</if>
+            <if test="typeId != null">type_id = #{typeId},</if>
+            <if test="workorderId != null">workorder_id = #{workorderId},</if>
+            <if test="workorderNo != null">workorder_no = #{workorderNo},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="workstationId != null">workstation_id = #{workstationId},</if>
+            <if test="workstationName != null">workstation_name = #{workstationName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="reporterId != null">reporter_id = #{reporterId},</if>
+            <if test="reporterName != null">reporter_name = #{reporterName},</if>
+            <if test="reportTime != null">report_time = #{reportTime},</if>
+            <if test="handlerId != null">handler_id = #{handlerId},</if>
+            <if test="handlerName != null">handler_name = #{handlerName},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleResult != null">handle_result = #{handleResult},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="escalateLevel != null">escalate_level = #{escalateLevel},</if>
+            <if test="timeoutTime != null">timeout_time = #{timeoutTime},</if>
+            <if test="closeReason != null">close_reason = #{closeReason},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteProAndonRecordById" parameterType="Long">
+        delete from pro_andon_record where record_id = #{recordId}
+    </delete>
+
+</mapper>

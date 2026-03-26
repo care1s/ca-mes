@@ -185,8 +185,7 @@
 </template>
 
 <script>
-import { listProRoute, getProRoute, addProRoute, updateProRoute, delProRoute } from '@/api/pro'
-import { listProProcess } from '@/api/pro'
+import { listProRoute, getProRoute, addProRoute, updateProRoute, delProRoute, listProProcess, listRouteProcess, saveRouteProcess } from '@/api/pro'
 
 export default {
   name: 'ProRoute',
@@ -358,15 +357,13 @@ export default {
     // 配置工序相关方法
     handleConfigProcess(row) {
       this.currentRoute = { ...row }
-      // 加载该工艺路线的工序列表（模拟数据）
-      this.routeProcessList = [
-        { processId: 1, processCode: 'CUT', processName: '切割', workstationName: '切割工作站1', standardHours: 0.5, inspectFlag: 'N' },
-        { processId: 2, processCode: 'WELD', processName: '焊接', workstationName: '焊接工作站1', standardHours: 1.0, inspectFlag: 'Y' },
-        { processId: 3, processCode: 'ASSY', processName: '组装', workstationName: '组装线A', standardHours: 2.0, inspectFlag: 'N' },
-        { processId: 4, processCode: 'TEST', processName: '测试', workstationName: '测试工位1', standardHours: 0.5, inspectFlag: 'Y' },
-        { processId: 5, processCode: 'PACK', processName: '包装', workstationName: '包装工位1', standardHours: 0.3, inspectFlag: 'N' }
-      ]
-      this.processDialogVisible = true
+      // 从后端加载该工艺路线的工序列表
+      listRouteProcess(row.routeId).then(response => {
+        this.routeProcessList = response.data || []
+        this.processDialogVisible = true
+      }).catch(() => {
+        this.$message.error('加载工序列表失败')
+      })
     },
     handleAddProcess() {
       this.processForm = {
@@ -408,147 +405,13 @@ export default {
       this.routeProcessList.splice(index, 1)
     },
     saveRouteProcess() {
-      this.$message.success('工序配置保存成功')
-      this.processDialogVisible = false
-    }
-  }
-}
-</script>
-          }
-        ]
-        this.total = 2
-        this.loading = false
-      }, 500)
-    },
-    handleQuery() {
-      this.queryParams.pageNum = 1
-      this.fetchData()
-    },
-    resetQuery() {
-      this.queryParams = {
-        pageNum: 1,
-        pageSize: 20,
-        routeCode: '',
-        routeName: '',
-        itemName: ''
-      }
-      this.fetchData()
-    },
-    handleSizeChange(val) {
-      this.queryParams.pageSize = val
-      this.fetchData()
-    },
-    handleCurrentChange(val) {
-      this.queryParams.pageNum = val
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogTitle = '新增工艺路线'
-      this.form = {
-        routeId: null,
-        routeCode: '',
-        routeName: '',
-        itemId: null,
-        itemCode: '',
-        itemName: '',
-        version: 'V1.0',
-        isDefault: 'N',
-        remark: ''
-      }
-      this.dialogVisible = true
-    },
-    handleEdit(row) {
-      this.dialogTitle = '编辑工艺路线'
-      this.form = { ...row }
-      this.dialogVisible = true
-    },
-    handleView(row) {
-      this.$alert(`路线编码：${row.routeCode}<br>路线名称：${row.routeName}<br>适用产品：${row.itemName}<br>版本：${row.version}`, '工艺路线详情', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定'
+      // 保存到后端
+      saveRouteProcess(this.currentRoute.routeId, this.routeProcessList).then(() => {
+        this.$message.success('工序配置保存成功')
+        this.processDialogVisible = false
+      }).catch(() => {
+        this.$message.error('保存失败')
       })
-    },
-    handleDelete(row) {
-      this.$confirm(`确认删除工艺路线 "${row.routeName}" 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
-        this.fetchData()
-      })
-    },
-    handleItemChange(itemId) {
-      const item = this.itemList.find(i => i.itemId === itemId)
-      if (item) {
-        this.form.itemCode = item.itemCode
-        this.form.itemName = item.itemName
-      }
-    },
-    submitForm() {
-      this.$refs.form.validate(valid => {
-        if (valid) {
-          this.$message.success(this.form.routeId ? '修改成功' : '新增成功')
-          this.dialogVisible = false
-          this.fetchData()
-        }
-      })
-    },
-    // 配置工序相关方法
-    handleConfigProcess(row) {
-      this.currentRoute = { ...row }
-      // 加载该工艺路线的工序列表（模拟数据）
-      this.routeProcessList = [
-        { processId: 1, processCode: 'CUT', processName: '切割', workstationName: '切割工作站1', standardHours: 0.5, inspectFlag: 'N' },
-        { processId: 2, processCode: 'WELD', processName: '焊接', workstationName: '焊接工作站1', standardHours: 1.0, inspectFlag: 'Y' },
-        { processId: 3, processCode: 'ASSY', processName: '组装', workstationName: '组装线A', standardHours: 2.0, inspectFlag: 'N' },
-        { processId: 4, processCode: 'TEST', processName: '测试', workstationName: '测试工位1', standardHours: 0.5, inspectFlag: 'Y' },
-        { processId: 5, processCode: 'PACK', processName: '包装', workstationName: '包装工位1', standardHours: 0.3, inspectFlag: 'N' }
-      ]
-      this.processDialogVisible = true
-    },
-    handleAddProcess() {
-      this.processForm = {
-        processId: null,
-        processCode: '',
-        processName: '',
-        workstationId: null,
-        workstationName: '',
-        standardHours: 0,
-        inspectFlag: 'N'
-      }
-      this.selectProcessDialogVisible = true
-    },
-    handleProcessChange(processId) {
-      const process = this.availableProcessList.find(p => p.processId === processId)
-      if (process) {
-        this.processForm.processCode = process.processCode
-        this.processForm.processName = process.processName
-        this.processForm.standardHours = process.standardHours
-      }
-    },
-    confirmAddProcess() {
-      if (!this.processForm.processId) {
-        this.$message.error('请选择工序')
-        return
-      }
-      const workstation = this.workstationList.find(w => w.workstationId === this.processForm.workstationId)
-      this.routeProcessList.push({
-        ...this.processForm,
-        workstationName: workstation ? workstation.workstationName : ''
-      })
-      this.selectProcessDialogVisible = false
-    },
-    handleEditRouteProcess(row) {
-      this.processForm = { ...row }
-      this.selectProcessDialogVisible = true
-    },
-    handleDeleteRouteProcess(index) {
-      this.routeProcessList.splice(index, 1)
-    },
-    saveRouteProcess() {
-      this.$message.success('工序配置保存成功')
-      this.processDialogVisible = false
     }
   }
 }

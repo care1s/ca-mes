@@ -76,11 +76,11 @@
             <if test="priority != null and priority != ''">
                 AND priority = #{priority}
             </if>
-            <if test="params.beginTime != null and params.beginTime != ''">
-                AND plan_start_time &gt;= #{params.beginTime}
+            <if test="beginTime != null">
+                AND plan_start_time &gt;= #{beginTime}
             </if>
-            <if test="params.endTime != null and params.endTime != ''">
-                AND plan_end_time &lt;= #{params.endTime}
+            <if test="endTime != null">
+                AND plan_end_time &lt;= #{endTime}
             </if>
         </where>
         order by create_time desc
@@ -235,6 +235,13 @@
         where w.status in ('PENDING', 'RELEASED', 'PRODUCING')
           and w.plan_end_time &lt; date_add(now(), interval 1 day)
         order by w.plan_end_time asc
+    </select>
+
+    <!-- 根据计划ID查询已存在工单的计划数量总和 -->
+    <select id="selectSumPlanQuantityByPlanId" resultType="java.lang.Double">
+        select COALESCE(sum(plan_quantity), 0)
+        from pro_workorder
+        where plan_id = #{planId}
     </select>
 
 </mapper>

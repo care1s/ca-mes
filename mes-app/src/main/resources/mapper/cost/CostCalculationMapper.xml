@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.cost.mapper.CostCalculationMapper">
+
+    <resultMap type="com.carels.mes.module.cost.domain.CostCalculation" id="CostCalculationResult">
+        <id property="calcId" column="calc_id"/>
+        <result property="calcNo" column="calc_no"/>
+        <result property="calcDate" column="calc_date"/>
+        <result property="calcMonth" column="calc_month"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderNo" column="workorder_no"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="completedQty" column="completed_qty"/>
+        <result property="materialCost" column="material_cost"/>
+        <result property="laborCost" column="labor_cost"/>
+        <result property="overheadCost" column="overhead_cost"/>
+        <result property="totalCost" column="total_cost"/>
+        <result property="unitCost" column="unit_cost"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectCostCalculationVo">
+        select calc_id, calc_no, calc_date, calc_month, workorder_id, workorder_no,
+               item_id, item_code, item_name, completed_qty, material_cost, labor_cost,
+               overhead_cost, total_cost, unit_cost, status, remark,
+               create_by, create_time, update_by, update_time
+        from cost_calculation
+    </sql>
+
+    <select id="selectCostCalculationList" parameterType="com.carels.mes.module.cost.domain.CostCalculation" resultMap="CostCalculationResult">
+        <include refid="selectCostCalculationVo"/>
+        <where>
+            <if test="calcNo != null and calcNo != ''">
+                and calc_no like concat('%', #{calcNo}, '%')
+            </if>
+            <if test="workorderNo != null and workorderNo != ''">
+                and workorder_no like concat('%', #{workorderNo}, '%')
+            </if>
+            <if test="itemCode != null and itemCode != ''">
+                and item_code like concat('%', #{itemCode}, '%')
+            </if>
+            <if test="calcMonth != null and calcMonth != ''">
+                and calc_month = #{calcMonth}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+        order by calc_date desc
+    </select>
+
+    <select id="selectCostCalculationById" parameterType="Long" resultMap="CostCalculationResult">
+        <include refid="selectCostCalculationVo"/>
+        where calc_id = #{calcId}
+    </select>
+
+    <insert id="insertCostCalculation" parameterType="com.carels.mes.module.cost.domain.CostCalculation" useGeneratedKeys="true" keyProperty="calcId">
+        insert into cost_calculation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="calcNo != null">calc_no,</if>
+            <if test="calcDate != null">calc_date,</if>
+            <if test="calcMonth != null">calc_month,</if>
+            <if test="workorderId != null">workorder_id,</if>
+            <if test="workorderNo != null">workorder_no,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="itemCode != null">item_code,</if>
+            <if test="itemName != null">item_name,</if>
+            <if test="completedQty != null">completed_qty,</if>
+            <if test="materialCost != null">material_cost,</if>
+            <if test="laborCost != null">labor_cost,</if>
+            <if test="overheadCost != null">overhead_cost,</if>
+            <if test="totalCost != null">total_cost,</if>
+            <if test="unitCost != null">unit_cost,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="calcNo != null">#{calcNo},</if>
+            <if test="calcDate != null">#{calcDate},</if>
+            <if test="calcMonth != null">#{calcMonth},</if>
+            <if test="workorderId != null">#{workorderId},</if>
+            <if test="workorderNo != null">#{workorderNo},</if>
+            <if test="itemId != null">#{itemId},</if>
+            <if test="itemCode != null">#{itemCode},</if>
+            <if test="itemName != null">#{itemName},</if>
+            <if test="completedQty != null">#{completedQty},</if>
+            <if test="materialCost != null">#{materialCost},</if>
+            <if test="laborCost != null">#{laborCost},</if>
+            <if test="overheadCost != null">#{overheadCost},</if>
+            <if test="totalCost != null">#{totalCost},</if>
+            <if test="unitCost != null">#{unitCost},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateCostCalculation" parameterType="com.carels.mes.module.cost.domain.CostCalculation">
+        update cost_calculation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="calcDate != null">calc_date = #{calcDate},</if>
+            <if test="calcMonth != null">calc_month = #{calcMonth},</if>
+            <if test="workorderId != null">workorder_id = #{workorderId},</if>
+            <if test="workorderNo != null">workorder_no = #{workorderNo},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="completedQty != null">completed_qty = #{completedQty},</if>
+            <if test="materialCost != null">material_cost = #{materialCost},</if>
+            <if test="laborCost != null">labor_cost = #{laborCost},</if>
+            <if test="overheadCost != null">overhead_cost = #{overheadCost},</if>
+            <if test="totalCost != null">total_cost = #{totalCost},</if>
+            <if test="unitCost != null">unit_cost = #{unitCost},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where calc_id = #{calcId}
+    </update>
+
+    <update id="updateStatus">
+        update cost_calculation
+        set status = #{status},
+            update_time = sysdate()
+        where calc_id = #{calcId}
+    </update>
+
+    <delete id="deleteCostCalculationById" parameterType="Long">
+        delete from cost_calculation where calc_id = #{calcId}
+    </delete>
+
+    <delete id="deleteCostCalculationByIds">
+        delete from cost_calculation where calc_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

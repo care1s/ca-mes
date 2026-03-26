@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Entity基类 - carels
@@ -41,7 +42,7 @@ public class BaseEntity implements Serializable {
     private String remark;
     
     /** 请求参数 */
-    private String params;
+    private Map<String, Object> params;
     
     /** 开始时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

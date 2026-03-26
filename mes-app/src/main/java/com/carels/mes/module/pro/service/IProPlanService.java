@@ -53,4 +53,11 @@ public interface IProPlanService {
      * 取消计划
      */
     void cancelPlan(Long planId);
+
+    /**
+     * 从计划生成工单
+     * @param planId 计划ID
+     * @return 生成的工单ID
+     */
+    Long generateWorkorderFromPlan(Long planId);
 }

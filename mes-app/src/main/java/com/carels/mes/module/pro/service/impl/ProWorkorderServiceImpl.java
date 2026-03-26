@@ -8,6 +8,7 @@ import com.carels.mes.module.pro.mapper.ProRouteProcessMapper;
 import com.carels.mes.module.pro.mapper.ProTaskMapper;
 import com.carels.mes.module.pro.mapper.ProWorkorderMapper;
 import com.carels.mes.module.pro.service.IProPlanService;
+import com.carels.mes.module.pro.service.IProRouteService;
 import com.carels.mes.module.pro.service.IProWorkorderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,9 @@ public class ProWorkorderServiceImpl implements IProWorkorderService {
     @Autowired
     private IProPlanService planService;
 
+    @Autowired
+    private IProRouteService routeService;
+
     @Override
     public List<ProWorkorder> selectProWorkorderList(ProWorkorder workorder) {
         return workorderMapper.selectProWorkorderList(workorder);
@@ -54,12 +58,109 @@ public class ProWorkorderServiceImpl implements IProWorkorderService {
     }
 
     @Override
+    @Transactional
     public int insertProWorkorder(ProWorkorder workorder) {
+        // 1. 验证生产计划必输
+        if (workorder.getPlanId() == null) {
+            throw new RuntimeException("生产计划不能为空");
+        }
+
+        // 2. 验证车间必输
+        if (workorder.getWorkshopId() == null) {
+            throw new RuntimeException("生产车间不能为空");
+        }
+
+        // 3. 验证生产计划存在且获取计划数量
+        ProPlan plan = planService.selectProPlanById(workorder.getPlanId());
+        if (plan == null) {
+            throw new RuntimeException("生产计划不存在");
+        }
+
+        // 4. 从产品排产自动获取产品信息（不需要前端传递）
+        workorder.setItemId(plan.getItemId());
+        workorder.setItemCode(plan.getItemCode());
+        workorder.setItemName(plan.getItemName());
+        workorder.setSpecification(plan.getSpecification());
+
+        // 5. 验证工单计划数量不超过生产计划数量
+        Double existingQty = workorderMapper.selectSumPlanQuantityByPlanId(workorder.getPlanId());
+        if (existingQty == null) {
+            existingQty = 0.0;
+        }
+        Double newTotalQty = existingQty + (workorder.getPlanQuantity() != null ? workorder.getPlanQuantity() : 0);
+        if (plan.getPlanQty() != null && newTotalQty > plan.getPlanQty()) {
+            throw new RuntimeException("工单计划数量总和(" + newTotalQty + ")不能超过生产计划数量(" + plan.getPlanQty() + ")");
+        }
+
+        // 6. 验证工艺路线存在（如果提供了）
+        if (workorder.getRouteId() != null) {
+            com.carels.mes.module.pro.domain.ProRoute route = routeService.selectProRouteById(workorder.getRouteId());
+            if (route == null) {
+                throw new RuntimeException("工艺路线不存在，请从工艺路线列表中选择");
+            }
+            // 自动设置工艺路线名称
+            workorder.setRouteName(route.getRouteName());
+        }
+
+        // 7. 自动生成工单编码
+        if (workorder.getWorkorderCode() == null || workorder.getWorkorderCode().trim().isEmpty()) {
+            workorder.setWorkorderCode(generateWorkorderCode());
+        }
+
         return workorderMapper.insertProWorkorder(workorder);
     }
 
     @Override
+    @Transactional
     public int updateProWorkorder(ProWorkorder workorder) {
+        // 1. 验证工单存在
+        ProWorkorder existingWorkorder = workorderMapper.selectProWorkorderById(workorder.getWorkorderId());
+        if (existingWorkorder == null) {
+            throw new RuntimeException("工单不存在");
+        }
+
+        // 2. 验证车间必输
+        if (workorder.getWorkshopId() == null) {
+            throw new RuntimeException("生产车间不能为空");
+        }
+
+        // 3. 从产品排产自动获取产品信息（不需要前端传递）
+        if (workorder.getPlanId() != null) {
+            ProPlan plan = planService.selectProPlanById(workorder.getPlanId());
+            if (plan != null) {
+                workorder.setItemId(plan.getItemId());
+                workorder.setItemCode(plan.getItemCode());
+                workorder.setItemName(plan.getItemName());
+                workorder.setSpecification(plan.getSpecification());
+
+                // 4. 验证工单计划数量不超过生产计划数量
+                if (workorder.getPlanQuantity() != null && plan.getPlanQty() != null) {
+                    Double existingQty = workorderMapper.selectSumPlanQuantityByPlanId(workorder.getPlanId());
+                    if (existingQty == null) {
+                        existingQty = 0.0;
+                    }
+                    // 减去当前工单原有数量
+                    if (existingWorkorder.getPlanQuantity() != null) {
+                        existingQty = existingQty - existingWorkorder.getPlanQuantity();
+                    }
+                    Double newTotalQty = existingQty + workorder.getPlanQuantity();
+                    if (newTotalQty > plan.getPlanQty()) {
+                        throw new RuntimeException("工单计划数量总和(" + newTotalQty + ")不能超过生产计划数量(" + plan.getPlanQty() + ")");
+                    }
+                }
+            }
+        }
+
+        // 5. 验证工艺路线存在（如果提供了）
+        if (workorder.getRouteId() != null) {
+            com.carels.mes.module.pro.domain.ProRoute route = routeService.selectProRouteById(workorder.getRouteId());
+            if (route == null) {
+                throw new RuntimeException("工艺路线不存在，请从工艺路线列表中选择");
+            }
+            // 自动设置工艺路线名称
+            workorder.setRouteName(route.getRouteName());
+        }
+
         return workorderMapper.updateProWorkorder(workorder);
     }
 
@@ -227,5 +328,72 @@ public class ProWorkorderServiceImpl implements IProWorkorderService {
         String dateStr = sdf.format(new Date());
         String seq = String.format("%04d", (int)(Math.random() * 9000) + 1000);
         return "TK" + dateStr + seq;
+    }
+
+    @Override
+    @Transactional
+    public int splitWorkorderToTasks(Long workorderId) {
+        // 1. 获取工单详情
+        ProWorkorder workorder = workorderMapper.selectProWorkorderById(workorderId);
+        if (workorder == null) {
+            throw new RuntimeException("工单不存在");
+        }
+        if (workorder.getRouteId() == null) {
+            throw new RuntimeException("工单未设置工艺路线，无法分解任务");
+        }
+
+        // 2. 获取工艺路线的工序列表
+        List<ProRouteProcess> routeProcesses = routeProcessMapper.selectByRouteId(workorder.getRouteId());
+        if (routeProcesses == null || routeProcesses.isEmpty()) {
+            throw new RuntimeException("工艺路线没有配置工序");
+        }
+
+        // 3. 删除已存在的任务（重新分解）
+        taskMapper.deleteByWorkorderId(workorderId);
+
+        // 4. 按工序顺序生成任务
+        Date currentPlanStart = workorder.getPlanStartTime();
+        Calendar calendar = Calendar.getInstance();
+        int taskCount = 0;
+
+        for (ProRouteProcess routeProcess : routeProcesses) {
+            ProTask task = new ProTask();
+            task.setTaskCode(generateTaskCode());
+            task.setWorkorderId(workorderId);
+            task.setWorkorderCode(workorder.getWorkorderCode());
+            task.setProcessId(routeProcess.getProcessId());
+            task.setProcessCode(routeProcess.getProcessCode());
+            task.setProcessName(routeProcess.getProcessName());
+            task.setWorkstationId(routeProcess.getWorkstationId());
+            task.setWorkstationName(routeProcess.getWorkstationName());
+            task.setPlanQuantity(workorder.getPlanQuantity());
+            task.setCompletedQuantity(0.0);
+            task.setQualifiedQuantity(0.0);
+            task.setDefectiveQuantity(0.0);
+            task.setStatus("PENDING");
+
+            // 设置计划时间
+            task.setPlanStartTime(currentPlanStart);
+
+            // 根据标准工时计算计划结束时间
+            if (routeProcess.getStandardHours() != null && routeProcess.getStandardHours().doubleValue() > 0) {
+                calendar.setTime(currentPlanStart);
+                calendar.add(Calendar.MINUTE, (int)(routeProcess.getStandardHours().doubleValue() * 60));
+                task.setPlanEndTime(calendar.getTime());
+            } else {
+                // 默认给1小时
+                calendar.setTime(currentPlanStart);
+                calendar.add(Calendar.HOUR, 1);
+                task.setPlanEndTime(calendar.getTime());
+            }
+
+            // 下一个任务的开始时间是当前任务的结束时间
+            currentPlanStart = task.getPlanEndTime();
+
+            taskMapper.insertProTask(task);
+            taskCount++;
+        }
+
+        return taskCount;
     }
 }

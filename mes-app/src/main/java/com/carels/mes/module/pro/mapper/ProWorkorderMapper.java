@@ -64,4 +64,9 @@ public interface ProWorkorderMapper {
      * 获取延期工单列表
      */
     List<Map<String, Object>> selectDelayedWorkorderList();
+
+    /**
+     * 根据计划ID查询已存在工单的计划数量总和
+     */
+    Double selectSumPlanQuantityByPlanId(Long planId);
 }

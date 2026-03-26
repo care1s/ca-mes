@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.sale.mapper.SaleDeliveryLineMapper">
+
+    <resultMap type="com.carels.mes.module.sale.domain.SaleDeliveryLine" id="SaleDeliveryLineResult">
+        <id property="lineId" column="line_id"/>
+        <result property="deliveryId" column="delivery_id"/>
+        <result property="orderLineId" column="order_line_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="unit" column="unit"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+        <result property="amount" column="amount"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="locationId" column="location_id"/>
+        <result property="locationName" column="location_name"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSaleDeliveryLineVo">
+        select line_id, delivery_id, order_line_id, item_id, item_code, item_name,
+               specification, unit, quantity, price, amount, batch_no, location_id,
+               location_name, remark, create_by, create_time, update_by, update_time
+        from sale_delivery_line
+    </sql>
+
+    <select id="selectLinesByDeliveryId" parameterType="Long" resultMap="SaleDeliveryLineResult">
+        <include refid="selectSaleDeliveryLineVo"/>
+        where delivery_id = #{deliveryId}
+    </select>
+
+    <select id="selectLineById" parameterType="Long" resultMap="SaleDeliveryLineResult">
+        <include refid="selectSaleDeliveryLineVo"/>
+        where line_id = #{lineId}
+    </select>
+
+    <insert id="batchInsertLines">
+        insert into sale_delivery_line
+        (delivery_id, order_line_id, item_id, item_code, item_name, specification,
+         unit, quantity, price, amount, batch_no, location_id, location_name, remark, create_time)
+        values
+        <foreach collection="list" item="line" separator=",">
+            (#{line.deliveryId}, #{line.orderLineId}, #{line.itemId}, #{line.itemCode}, #{line.itemName},
+             #{line.specification}, #{line.unit}, #{line.quantity}, #{line.price}, #{line.amount},
+             #{line.batchNo}, #{line.locationId}, #{line.locationName}, #{line.remark}, sysdate())
+        </foreach>
+    </insert>
+
+    <update id="updateLine" parameterType="com.carels.mes.module.sale.domain.SaleDeliveryLine">
+        update sale_delivery_line
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orderLineId != null">order_line_id = #{orderLineId},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="batchNo != null">batch_no = #{batchNo},</if>
+            <if test="locationId != null">location_id = #{locationId},</if>
+            <if test="locationName != null">location_name = #{locationName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </trim>
+        where line_id = #{lineId}
+    </update>
+
+    <delete id="deleteLineById" parameterType="Long">
+        delete from sale_delivery_line where line_id = #{lineId}
+    </delete>
+
+    <delete id="deleteLinesByDeliveryId" parameterType="Long">
+        delete from sale_delivery_line where delivery_id = #{deliveryId}
+    </delete>
+
+    <delete id="deleteLinesByIds">
+        delete from sale_delivery_line where line_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

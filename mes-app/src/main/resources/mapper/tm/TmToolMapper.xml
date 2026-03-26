@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.tm.mapper.TmToolMapper">
+
+    <resultMap type="com.carels.mes.module.tm.domain.TmTool" id="TmToolResult">
+        <id property="toolId" column="tool_id"/>
+        <result property="toolCode" column="tool_code"/>
+        <result property="toolName" column="tool_name"/>
+        <result property="toolType" column="tool_type"/>
+        <result property="specification" column="specification"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="purchaseDate" column="purchase_date"/>
+        <result property="price" column="price"/>
+        <result property="lifeLimit" column="life_limit"/>
+        <result property="usedLife" column="used_life"/>
+        <result property="remainLife" column="remain_life"/>
+        <result property="location" column="location"/>
+        <result property="status" column="status"/>
+        <result property="lastMaintainDate" column="last_maintain_date"/>
+        <result property="maintainCycle" column="maintain_cycle"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectTmToolVo">
+        select tool_id, tool_code, tool_name, tool_type, specification, manufacturer,
+               purchase_date, price, life_limit, used_life, remain_life, location,
+               status, last_maintain_date, maintain_cycle, remark,
+               create_by, create_time, update_by, update_time
+        from tm_tool
+    </sql>
+
+    <select id="selectTmToolList" parameterType="com.carels.mes.module.tm.domain.TmTool" resultMap="TmToolResult">
+        <include refid="selectTmToolVo"/>
+        <where>
+            <if test="toolCode != null and toolCode != ''">
+                and tool_code like concat('%', #{toolCode}, '%')
+            </if>
+            <if test="toolName != null and toolName != ''">
+                and tool_name like concat('%', #{toolName}, '%')
+            </if>
+            <if test="toolType != null and toolType != ''">
+                and tool_type = #{toolType}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectTmToolById" parameterType="Long" resultMap="TmToolResult">
+        <include refid="selectTmToolVo"/>
+        where tool_id = #{toolId}
+    </select>
+
+    <insert id="insertTmTool" parameterType="com.carels.mes.module.tm.domain.TmTool" useGeneratedKeys="true" keyProperty="toolId">
+        insert into tm_tool
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="toolCode != null">tool_code,</if>
+            <if test="toolName != null">tool_name,</if>
+            <if test="toolType != null">tool_type,</if>
+            <if test="specification != null">specification,</if>
+            <if test="manufacturer != null">manufacturer,</if>
+            <if test="purchaseDate != null">purchase_date,</if>
+            <if test="price != null">price,</if>
+            <if test="lifeLimit != null">life_limit,</if>
+            <if test="usedLife != null">used_life,</if>
+            <if test="remainLife != null">remain_life,</if>
+            <if test="location != null">location,</if>
+            <if test="status != null">status,</if>
+            <if test="lastMaintainDate != null">last_maintain_date,</if>
+            <if test="maintainCycle != null">maintain_cycle,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="toolCode != null">#{toolCode},</if>
+            <if test="toolName != null">#{toolName},</if>
+            <if test="toolType != null">#{toolType},</if>
+            <if test="specification != null">#{specification},</if>
+            <if test="manufacturer != null">#{manufacturer},</if>
+            <if test="purchaseDate != null">#{purchaseDate},</if>
+            <if test="price != null">#{price},</if>
+            <if test="lifeLimit != null">#{lifeLimit},</if>
+            <if test="usedLife != null">#{usedLife},</if>
+            <if test="remainLife != null">#{remainLife},</if>
+            <if test="location != null">#{location},</if>
+            <if test="status != null">#{status},</if>
+            <if test="lastMaintainDate != null">#{lastMaintainDate},</if>
+            <if test="maintainCycle != null">#{maintainCycle},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateTmTool" parameterType="com.carels.mes.module.tm.domain.TmTool">
+        update tm_tool
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="toolCode != null">tool_code = #{toolCode},</if>
+            <if test="toolName != null">tool_name = #{toolName},</if>
+            <if test="toolType != null">tool_type = #{toolType},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="manufacturer != null">manufacturer = #{manufacturer},</if>
+            <if test="purchaseDate != null">purchase_date = #{purchaseDate},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="lifeLimit != null">life_limit = #{lifeLimit},</if>
+            <if test="usedLife != null">used_life = #{usedLife},</if>
+            <if test="remainLife != null">remain_life = #{remainLife},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastMaintainDate != null">last_maintain_date = #{lastMaintainDate},</if>
+            <if test="maintainCycle != null">maintain_cycle = #{maintainCycle},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where tool_id = #{toolId}
+    </update>
+
+    <update id="updateStatus">
+        update tm_tool
+        set status = #{status},
+            update_time = sysdate()
+        where tool_id = #{toolId}
+    </update>
+
+    <delete id="deleteTmToolById" parameterType="Long">
+        delete from tm_tool where tool_id = #{toolId}
+    </delete>
+
+    <delete id="deleteTmToolByIds">
+        delete from tm_tool where tool_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

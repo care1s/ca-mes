@@ -67,6 +67,12 @@ const DvMachinery = () => import('@/views/dv/machinery/index')
 const DvCheck = () => import('@/views/dv/check/index')
 const DvRepair = () => import('@/views/dv/repair/index')
 
+// 排班管理页面
+const CalCalendar = () => import('@/views/cal/calendar')
+const CalShift = () => import('@/views/cal/shift')
+const CalTeam = () => import('@/views/cal/team')
+const CalPlan = () => import('@/views/cal/plan')
+
 // 采购管理页面
 const PurRequest = () => import('@/views/pur/request/index')
 const PurOrder = () => import('@/views/pur/order/index')
@@ -262,6 +268,21 @@ export const routes = [
       { path: 'dict', name: 'SysDict', component: SysDict, meta: { title: '字典管理', icon: 'el-icon-collection' } },
       { path: 'config', name: 'SysConfig', component: SysConfig, meta: { title: '参数设置', icon: 'el-icon-s-operation' } },
       { path: 'log', name: 'SysLog', component: SysLog, meta: { title: '操作日志', icon: 'el-icon-document' } }
+    ]
+  },
+
+  // 排班管理
+  {
+    path: '/cal',
+    component: Layout,
+    redirect: '/cal/calendar',
+    name: 'Cal',
+    meta: { title: '排班管理', icon: 'el-icon-date' },
+    children: [
+      { path: 'calendar', name: 'CalCalendar', component: CalCalendar, meta: { title: '日历管理', icon: 'el-icon-date' } },
+      { path: 'shift', name: 'CalShift', component: CalShift, meta: { title: '班次管理', icon: 'el-icon-time' } },
+      { path: 'team', name: 'CalTeam', component: CalTeam, meta: { title: '班组管理', icon: 'el-icon-s-custom' } },
+      { path: 'plan', name: 'CalPlan', component: CalPlan, meta: { title: '排班计划', icon: 'el-icon-timer' } }
     ]
   },
   

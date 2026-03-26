@@ -48,54 +48,64 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        log.debug("JWT Secret from @Value: {}", jwtSecret);
+        log.info("JWT Filter - Request: {}, Secret from config: {}", requestPath, jwtSecret);
 
         // 从header中获取token
         String header = request.getHeader("Authorization");
-        
+        log.info("JWT Filter - Authorization header: {}", header);
+
         // 如果没有token，返回401
         if (header == null || !header.startsWith("Bearer ")) {
             log.warn("请求未携带token: {}", requestPath);
             writeUnauthorizedResponse(response, "请先登录");
             return;
         }
-        
+
         String token = header.substring(7);
-        
+        log.info("JWT Filter - Token: {}", token.substring(0, Math.min(30, token.length())) + "...");
+
         try {
             // 确保密钥长度足够（HS256需要至少256位）
             String secret = jwtSecret;
-            log.debug("Original JWT Secret: {}", secret);
             if (secret.length() < 32) {
                 secret = secret + "-carels-mes-padding-to-32chars";
-                log.debug("Padded JWT Secret: {}", secret);
             }
+            log.info("JWT Filter - Using secret (padded): {}", secret);
+
             // 解析token
             Claims claims = Jwts.parser()
                     .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody();
-            
+
             String username = claims.getSubject();
-            
+            log.info("JWT Filter - Token valid, username: {}", username);
+
             if (username != null) {
                 // 设置认证信息到Spring Security上下文
-                UsernamePasswordAuthenticationToken authentication = 
+                UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                username, 
-                                null, 
+                                username,
+                                null,
                                 Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("JWT验证成功, 用户: {}", username);
                 filterChain.doFilter(request, response);
             } else {
                 log.error("JWT token中无用户名");
                 writeUnauthorizedResponse(response, "登录已过期，请重新登录");
             }
-        } catch (Exception e) {
-            log.error("JWT验证失败: {}, jwtSecret used: {}", e.getMessage(), jwtSecret);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.error("JWT token已过期: {}", e.getMessage());
             SecurityContextHolder.clearContext();
             writeUnauthorizedResponse(response, "登录已过期，请重新登录");
+        } catch (io.jsonwebtoken.JwtException e) {
+            log.error("JWT验证失败: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+            writeUnauthorizedResponse(response, "登录已过期，请重新登录");
+        } catch (Exception e) {
+            // 其他异常（如业务异常）不应被JWT过滤器捕获，应继续传播
+            log.error("JWT Filter - 发生非JWT相关异常，继续传播: {}", e.getMessage());
+            throw e;
         }
     }
     

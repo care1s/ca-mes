@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.sale.mapper.SaleReturnLineMapper">
+
+    <resultMap type="com.carels.mes.module.sale.domain.SaleReturnLine" id="SaleReturnLineResult">
+        <id property="lineId" column="line_id"/>
+        <result property="returnId" column="return_id"/>
+        <result property="deliveryLineId" column="delivery_line_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemCode" column="item_code"/>
+        <result property="itemName" column="item_name"/>
+        <result property="specification" column="specification"/>
+        <result property="unit" column="unit"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+        <result property="amount" column="amount"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSaleReturnLineVo">
+        select line_id, return_id, delivery_line_id, item_id, item_code, item_name,
+               specification, unit, quantity, price, amount, batch_no, return_reason,
+               remark, create_by, create_time, update_by, update_time
+        from sale_return_line
+    </sql>
+
+    <select id="selectLinesByReturnId" parameterType="Long" resultMap="SaleReturnLineResult">
+        <include refid="selectSaleReturnLineVo"/>
+        where return_id = #{returnId}
+    </select>
+
+    <insert id="batchInsertLines">
+        insert into sale_return_line
+        (return_id, delivery_line_id, item_id, item_code, item_name, specification,
+         unit, quantity, price, amount, batch_no, return_reason, remark, create_time)
+        values
+        <foreach collection="list" item="line" separator=",">
+            (#{line.returnId}, #{line.deliveryLineId}, #{line.itemId}, #{line.itemCode}, #{line.itemName},
+             #{line.specification}, #{line.unit}, #{line.quantity}, #{line.price}, #{line.amount},
+             #{line.batchNo}, #{line.returnReason}, #{line.remark}, sysdate())
+        </foreach>
+    </insert>
+
+    <delete id="deleteLinesByReturnId" parameterType="Long">
+        delete from sale_return_line where return_id = #{returnId}
+    </delete>
+
+</mapper>

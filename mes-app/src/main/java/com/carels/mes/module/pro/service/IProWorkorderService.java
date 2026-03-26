@@ -63,4 +63,11 @@ public interface IProWorkorderService {
      * 根据生产计划生成工单
      */
     ProWorkorder createWorkorderFromPlan(Long planId, Long workshopId, String workshopName);
+
+    /**
+     * 工单分解为任务（按工艺路线）
+     * @param workorderId 工单ID
+     * @return 生成的任务数量
+     */
+    int splitWorkorderToTasks(Long workorderId);
 }

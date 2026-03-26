@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.tm.mapper.TmToolBorrowMapper">
+
+    <resultMap type="com.carels.mes.module.tm.domain.TmToolBorrow" id="TmToolBorrowResult">
+        <id property="borrowId" column="borrow_id"/>
+        <result property="borrowNo" column="borrow_no"/>
+        <result property="toolId" column="tool_id"/>
+        <result property="toolCode" column="tool_code"/>
+        <result property="toolName" column="tool_name"/>
+        <result property="borrowerCode" column="borrower_code"/>
+        <result property="borrowerName" column="borrower_name"/>
+        <result property="borrowDate" column="borrow_date"/>
+        <result property="planReturnDate" column="plan_return_date"/>
+        <result property="actualReturnDate" column="actual_return_date"/>
+        <result property="usedCount" column="used_count"/>
+        <result property="status" column="status"/>
+        <result property="borrowReason" column="borrow_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectTmToolBorrowVo">
+        select b.borrow_id, b.borrow_no, b.tool_id, t.tool_code, t.tool_name,
+               b.borrower_code, b.borrower_name, b.borrow_date, b.plan_return_date,
+               b.actual_return_date, b.used_count, b.status, b.borrow_reason, b.remark,
+               b.create_by, b.create_time, b.update_by, b.update_time
+        from tm_tool_borrow b
+        left join tm_tool t on b.tool_id = t.tool_id
+    </sql>
+
+    <select id="selectTmToolBorrowList" parameterType="com.carels.mes.module.tm.domain.TmToolBorrow" resultMap="TmToolBorrowResult">
+        <include refid="selectTmToolBorrowVo"/>
+        <where>
+            <if test="borrowNo != null and borrowNo != ''">
+                and b.borrow_no like concat('%', #{borrowNo}, '%')
+            </if>
+            <if test="toolCode != null and toolCode != ''">
+                and t.tool_code like concat('%', #{toolCode}, '%')
+            </if>
+            <if test="borrowerName != null and borrowerName != ''">
+                and b.borrower_name like concat('%', #{borrowerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and b.status = #{status}
+            </if>
+        </where>
+        order by b.borrow_date desc
+    </select>
+
+    <select id="selectTmToolBorrowById" parameterType="Long" resultMap="TmToolBorrowResult">
+        <include refid="selectTmToolBorrowVo"/>
+        where b.borrow_id = #{borrowId}
+    </select>
+
+    <insert id="insertTmToolBorrow" parameterType="com.carels.mes.module.tm.domain.TmToolBorrow" useGeneratedKeys="true" keyProperty="borrowId">
+        insert into tm_tool_borrow
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="borrowNo != null">borrow_no,</if>
+            <if test="toolId != null">tool_id,</if>
+            <if test="borrowerCode != null">borrower_code,</if>
+            <if test="borrowerName != null">borrower_name,</if>
+            <if test="borrowDate != null">borrow_date,</if>
+            <if test="planReturnDate != null">plan_return_date,</if>
+            <if test="actualReturnDate != null">actual_return_date,</if>
+            <if test="usedCount != null">used_count,</if>
+            <if test="status != null">status,</if>
+            <if test="borrowReason != null">borrow_reason,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="borrowNo != null">#{borrowNo},</if>
+            <if test="toolId != null">#{toolId},</if>
+            <if test="borrowerCode != null">#{borrowerCode},</if>
+            <if test="borrowerName != null">#{borrowerName},</if>
+            <if test="borrowDate != null">#{borrowDate},</if>
+            <if test="planReturnDate != null">#{planReturnDate},</if>
+            <if test="actualReturnDate != null">#{actualReturnDate},</if>
+            <if test="usedCount != null">#{usedCount},</if>
+            <if test="status != null">#{status},</if>
+            <if test="borrowReason != null">#{borrowReason},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateTmToolBorrow" parameterType="com.carels.mes.module.tm.domain.TmToolBorrow">
+        update tm_tool_borrow
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="actualReturnDate != null">actual_return_date = #{actualReturnDate},</if>
+            <if test="usedCount != null">used_count = #{usedCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where borrow_id = #{borrowId}
+    </update>
+
+    <update id="returnTool">
+        update tm_tool_borrow
+        set status = #{status},
+            actual_return_date = sysdate(),
+            update_time = sysdate()
+        where borrow_id = #{borrowId}
+    </update>
+
+    <delete id="deleteTmToolBorrowById" parameterType="Long">
+        delete from tm_tool_borrow where borrow_id = #{borrowId}
+    </delete>
+
+    <delete id="deleteTmToolBorrowByIds">
+        delete from tm_tool_borrow where borrow_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

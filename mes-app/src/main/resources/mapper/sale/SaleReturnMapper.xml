@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.sale.mapper.SaleReturnMapper">
+
+    <resultMap type="com.carels.mes.module.sale.domain.SaleReturn" id="SaleReturnResult">
+        <id property="returnId" column="return_id"/>
+        <result property="returnNo" column="return_no"/>
+        <result property="deliveryId" column="delivery_id"/>
+        <result property="deliveryNo" column="delivery_no"/>
+        <result property="orderId" column="order_id"/>
+        <result property="clientId" column="client_id"/>
+        <result property="clientName" column="client_name"/>
+        <result property="returnDate" column="return_date"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="status" column="status"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectSaleReturnVo">
+        select return_id, return_no, delivery_id, delivery_no, order_id, client_id, client_name,
+               return_date, warehouse_id, warehouse_name, total_amount, total_quantity,
+               status, return_reason, remark, create_by, create_time, update_by, update_time
+        from sale_return
+    </sql>
+
+    <select id="selectSaleReturnList" parameterType="com.carels.mes.module.sale.domain.SaleReturn" resultMap="SaleReturnResult">
+        <include refid="selectSaleReturnVo"/>
+        <where>
+            <if test="returnNo != null and returnNo != ''">
+                and return_no like concat('%', #{returnNo}, '%')
+            </if>
+            <if test="deliveryNo != null and deliveryNo != ''">
+                and delivery_no like concat('%', #{deliveryNo}, '%')
+            </if>
+            <if test="clientId != null">
+                and client_id = #{clientId}
+            </if>
+            <if test="clientName != null and clientName != ''">
+                and client_name like concat('%', #{clientName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="params != null and params.beginTime != null and params.beginTime != ''">
+                and return_date &gt;= #{params.beginTime}
+            </if>
+            <if test="params != null and params.endTime != null and params.endTime != ''">
+                and return_date &lt;= #{params.endTime}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSaleReturnById" parameterType="Long" resultMap="SaleReturnResult">
+        <include refid="selectSaleReturnVo"/>
+        where return_id = #{returnId}
+    </select>
+
+    <insert id="insertSaleReturn" parameterType="com.carels.mes.module.sale.domain.SaleReturn" useGeneratedKeys="true" keyProperty="returnId">
+        insert into sale_return
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="returnNo != null">return_no,</if>
+            <if test="deliveryId != null">delivery_id,</if>
+            <if test="deliveryNo != null">delivery_no,</if>
+            <if test="orderId != null">order_id,</if>
+            <if test="clientId != null">client_id,</if>
+            <if test="clientName != null">client_name,</if>
+            <if test="returnDate != null">return_date,</if>
+            <if test="warehouseId != null">warehouse_id,</if>
+            <if test="warehouseName != null">warehouse_name,</if>
+            <if test="totalAmount != null">total_amount,</if>
+            <if test="totalQuantity != null">total_quantity,</if>
+            <if test="status != null">status,</if>
+            <if test="returnReason != null">return_reason,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="returnNo != null">#{returnNo},</if>
+            <if test="deliveryId != null">#{deliveryId},</if>
+            <if test="deliveryNo != null">#{deliveryNo},</if>
+            <if test="orderId != null">#{orderId},</if>
+            <if test="clientId != null">#{clientId},</if>
+            <if test="clientName != null">#{clientName},</if>
+            <if test="returnDate != null">#{returnDate},</if>
+            <if test="warehouseId != null">#{warehouseId},</if>
+            <if test="warehouseName != null">#{warehouseName},</if>
+            <if test="totalAmount != null">#{totalAmount},</if>
+            <if test="totalQuantity != null">#{totalQuantity},</if>
+            <if test="status != null">#{status},</if>
+            <if test="returnReason != null">#{returnReason},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateSaleReturn" parameterType="com.carels.mes.module.sale.domain.SaleReturn">
+        update sale_return
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deliveryId != null">delivery_id = #{deliveryId},</if>
+            <if test="deliveryNo != null">delivery_no = #{deliveryNo},</if>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="clientId != null">client_id = #{clientId},</if>
+            <if test="clientName != null">client_name = #{clientName},</if>
+            <if test="returnDate != null">return_date = #{returnDate},</if>
+            <if test="warehouseId != null">warehouse_id = #{warehouseId},</if>
+            <if test="warehouseName != null">warehouse_name = #{warehouseName},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="returnReason != null">return_reason = #{returnReason},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where return_id = #{returnId}
+    </update>
+
+    <update id="updateStatus">
+        update sale_return
+        set status = #{status},
+            update_time = sysdate()
+        where return_id = #{returnId}
+    </update>
+
+    <delete id="deleteSaleReturnById" parameterType="Long">
+        delete from sale_return where return_id = #{returnId}
+    </delete>
+
+    <delete id="deleteSaleReturnByIds">
+        delete from sale_return where return_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

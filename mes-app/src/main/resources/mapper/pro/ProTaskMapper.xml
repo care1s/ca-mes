@@ -211,4 +211,8 @@
         order by t.status = 'PROCESSING' desc, t.plan_start_time asc
     </select>
 
+    <delete id="deleteByWorkorderId">
+        delete from pro_task where workorder_id = #{workorderId}
+    </delete>
+
 </mapper>

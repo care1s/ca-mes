@@ -143,7 +143,7 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="750px" :close-on-click-modal="false" :modal="false">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="850px" :close-on-click-modal="false" :modal="false">
       <el-form ref="form" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -196,7 +196,7 @@
         </el-form-item>
         <el-form-item label="生产产品" prop="itemId">
           <el-select v-model="form.itemId" placeholder="请选择生产产品" style="width: 100%" filterable @change="handleItemChange">
-            <el-option v-for="item in itemList" :key="item.itemId" :label="item.itemName + ' (' + item.itemCode + ')'" :value="item.itemId" />
+            <el-option v-for="item in itemList" :key="item.itemId" :label="item.itemName + ' (' + item.itemCode + ')'" :value="item.itemId" :title="item.itemName + ' (' + item.itemCode + ')'" />
           </el-select>
         </el-form-item>
         <el-row :gutter="20">
@@ -252,6 +252,7 @@
 
 <script>
 import { listProPlan, getProPlan, addProPlan, updateProPlan, delProPlan, publishPlan, startPlan, completePlan } from '@/api/pro'
+import { listItem } from '@/api/md'
 
 export default {
   name: 'ProPlan',
@@ -400,6 +401,7 @@ export default {
       if (this.form.scheduleType === 1) {
         this.loadSalesOrderList()
       }
+      this.loadItemList()
       this.dialogVisible = true
     },
     handleDelete(row) {
@@ -526,13 +528,12 @@ export default {
     },
     // 加载物料列表（成品）
     loadItemList() {
-      // TODO: 调用API获取物料列表（成品类型）
-      // 模拟数据
-      this.itemList = [
-        { itemId: 1, itemCode: 'P001', itemName: '手机主板', specification: '标准版' },
-        { itemId: 2, itemCode: 'P002', itemName: '电池组件', specification: '4000mAh' },
-        { itemId: 3, itemCode: 'P003', itemName: '显示屏', specification: '6.1英寸' }
-      ]
+      // 调用API获取物料列表（产成品类型）
+      listItem({ itemAttr: 'PRODUCT', pageSize: 1000 }).then(response => {
+        this.itemList = response.rows || []
+      }).catch(() => {
+        this.$message.error('加载物料列表失败')
+      })
     },
     // 产品选择改变
     handleItemChange(itemId) {

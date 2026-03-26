@@ -40,7 +40,8 @@ public class ProPlanController extends BaseController {
     
     @PostMapping
     public AjaxResult add(@RequestBody ProPlan plan) {
-        return toAjax(planService.insertProPlan(plan));
+        int rows = planService.insertProPlan(plan);
+        return toAjax(rows);
     }
     
     @PutMapping

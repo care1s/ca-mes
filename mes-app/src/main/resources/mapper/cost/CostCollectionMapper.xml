@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.cost.mapper.CostCollectionMapper">
+
+    <resultMap type="com.carels.mes.module.cost.domain.CostCollection" id="CostCollectionResult">
+        <id property="collectionId" column="collection_id"/>
+        <result property="collectionNo" column="collection_no"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="costType" column="cost_type"/>
+        <result property="collectionDate" column="collection_date"/>
+        <result property="workorderId" column="workorder_id"/>
+        <result property="workorderNo" column="workorder_no"/>
+        <result property="amount" column="amount"/>
+        <result property="workHours" column="work_hours"/>
+        <result property="quantity" column="quantity"/>
+        <result property="dataSource" column="data_source"/>
+        <result property="sourceId" column="source_id"/>
+        <result property="sourceNo" column="source_no"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectCostCollectionVo">
+        select c.collection_id, c.collection_no, c.item_id, i.item_name, i.cost_type, c.collection_date,
+               c.workorder_id, c.workorder_no, c.amount, c.work_hours, c.quantity,
+               c.data_source, c.source_id, c.source_no, c.status, c.remark,
+               c.create_by, c.create_time, c.update_by, c.update_time
+        from cost_collection c
+        left join cost_item i on c.item_id = i.item_id
+    </sql>
+
+    <select id="selectCostCollectionList" parameterType="com.carels.mes.module.cost.domain.CostCollection" resultMap="CostCollectionResult">
+        <include refid="selectCostCollectionVo"/>
+        <where>
+            <if test="collectionNo != null and collectionNo != ''">
+                and c.collection_no like concat('%', #{collectionNo}, '%')
+            </if>
+            <if test="itemId != null">
+                and c.item_id = #{itemId}
+            </if>
+            <if test="costType != null and costType != ''">
+                and i.cost_type = #{costType}
+            </if>
+            <if test="workorderNo != null and workorderNo != ''">
+                and c.workorder_no like concat('%', #{workorderNo}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and c.status = #{status}
+            </if>
+            <if test="collectionDate != null">
+                and c.collection_date = #{collectionDate}
+            </if>
+            <if test="params != null and params.beginTime != null and params.beginTime != ''">
+                and c.collection_date &gt;= #{params.beginTime}
+            </if>
+            <if test="params != null and params.endTime != null and params.endTime != ''">
+                and c.collection_date &lt;= #{params.endTime}
+            </if>
+        </where>
+        order by c.collection_date desc
+    </select>
+
+    <select id="selectCostCollectionById" parameterType="Long" resultMap="CostCollectionResult">
+        <include refid="selectCostCollectionVo"/>
+        where c.collection_id = #{collectionId}
+    </select>
+
+    <select id="sumCostByWorkorder" resultType="java.util.HashMap">
+        select
+            c.workorder_id as workorderId,
+            c.workorder_no as workorderNo,
+            i.cost_type as costType,
+            sum(c.amount) as totalAmount,
+            sum(c.work_hours) as totalWorkHours,
+            sum(c.quantity) as totalQuantity
+        from cost_collection c
+        left join cost_item i on c.item_id = i.item_id
+        where c.status = '1'
+          and c.collection_date &gt;= #{startDate}
+          and c.collection_date &lt;= #{endDate}
+        group by c.workorder_id, c.workorder_no, i.cost_type
+    </select>
+
+    <insert id="insertCostCollection" parameterType="com.carels.mes.module.cost.domain.CostCollection" useGeneratedKeys="true" keyProperty="collectionId">
+        insert into cost_collection
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="collectionNo != null">collection_no,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="collectionDate != null">collection_date,</if>
+            <if test="workorderId != null">workorder_id,</if>
+            <if test="workorderNo != null">workorder_no,</if>
+            <if test="amount != null">amount,</if>
+            <if test="workHours != null">work_hours,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="dataSource != null">data_source,</if>
+            <if test="sourceId != null">source_id,</if>
+            <if test="sourceNo != null">source_no,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="collectionNo != null">#{collectionNo},</if>
+            <if test="itemId != null">#{itemId},</if>
+            <if test="collectionDate != null">#{collectionDate},</if>
+            <if test="workorderId != null">#{workorderId},</if>
+            <if test="workorderNo != null">#{workorderNo},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="workHours != null">#{workHours},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="dataSource != null">#{dataSource},</if>
+            <if test="sourceId != null">#{sourceId},</if>
+            <if test="sourceNo != null">#{sourceNo},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateCostCollection" parameterType="com.carels.mes.module.cost.domain.CostCollection">
+        update cost_collection
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="collectionDate != null">collection_date = #{collectionDate},</if>
+            <if test="workorderId != null">workorder_id = #{workorderId},</if>
+            <if test="workorderNo != null">workorder_no = #{workorderNo},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="workHours != null">work_hours = #{workHours},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="dataSource != null">data_source = #{dataSource},</if>
+            <if test="sourceId != null">source_id = #{sourceId},</if>
+            <if test="sourceNo != null">source_no = #{sourceNo},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where collection_id = #{collectionId}
+    </update>
+
+    <update id="updateStatus">
+        update cost_collection
+        set status = #{status},
+            update_time = sysdate()
+        where collection_id = #{collectionId}
+    </update>
+
+    <delete id="deleteCostCollectionById" parameterType="Long">
+        delete from cost_collection where collection_id = #{collectionId}
+    </delete>
+
+    <delete id="deleteCostCollectionByIds">
+        delete from cost_collection where collection_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

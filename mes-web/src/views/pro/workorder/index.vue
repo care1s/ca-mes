@@ -108,7 +108,12 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="工单编码" prop="workorderCode">
-              <el-input v-model="form.workorderCode" placeholder="请输入编码" :disabled="!!form.workorderId" />
+              <el-input
+                v-model="form.workorderCode"
+                placeholder="留空则自动生成"
+                :disabled="!!form.workorderId"
+              />
+              <div v-if="!form.workorderId" class="input-tip">如不填写，系统将根据规则自动生成</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -123,23 +128,30 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="生产计划" prop="planId">
-              <el-select v-model="form.planId" placeholder="选择计划" style="width: 100%" filterable @change="handlePlanChange">
+              <el-select v-model="form.planId" placeholder="请选择生产计划（必选项）" style="width: 100%" filterable @change="handlePlanChange">
                 <el-option v-for="item in planList" :key="item.planId" :label="item.planNo" :value="item.planId" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="产品" prop="itemId">
-              <el-select v-model="form.itemId" placeholder="选择产品" style="width: 100%" filterable @change="handleItemChange">
-                <el-option v-for="item in itemList" :key="item.itemId" :label="item.itemName" :value="item.itemId" />
-              </el-select>
+            <el-form-item label="产品">
+              <div v-if="form.itemName" class="product-display">
+                <el-tag type="info" size="medium">
+                  <i class="el-icon-goods" /> {{ form.itemName }}
+                </el-tag>
+                <span class="product-code">({{ form.itemCode }})</span>
+              </div>
+              <el-input v-else disabled placeholder="选择生产计划后自动显示" />
+              <div class="input-tip">
+                <i class="el-icon-info" /> 产品信息从生产计划自动获取
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="工艺路线" prop="routeId">
-              <el-select v-model="form.routeId" placeholder="选择工艺路线" style="width: 100%" filterable>
+              <el-select v-model="form.routeId" placeholder="请选择工艺路线（必选项）" style="width: 100%" filterable>
                 <el-option v-for="item in routeList" :key="item.routeId" :label="item.routeName" :value="item.routeId" />
               </el-select>
             </el-form-item>
@@ -174,7 +186,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="生产车间" prop="workshopId">
-              <el-select v-model="form.workshopId" placeholder="选择车间" style="width: 100%" filterable @change="handleWorkshopChange">
+              <el-select v-model="form.workshopId" placeholder="请选择车间（必选项）" style="width: 100%" filterable @change="handleWorkshopChange">
                 <el-option v-for="item in workshopList" :key="item.workshopId" :label="item.workshopName" :value="item.workshopId" />
               </el-select>
             </el-form-item>
@@ -220,8 +232,8 @@
 </template>
 
 <script>
-import { listProWorkorder, getProWorkorder, addProWorkorder, updateProWorkorder, delProWorkorder, releaseWorkorder, closeWorkorder } from '@/api/pro'
-import { listProPlan } from '@/api/pro'
+import { listProWorkorder, getProWorkorder, addProWorkorder, updateProWorkorder, delProWorkorder, releaseWorkorder, closeWorkorder, listProPlan, listProRoute } from '@/api/pro'
+import { getWorkshopOptions } from '@/api/md'
 
 export default {
   name: 'ProWorkorder',
@@ -261,35 +273,26 @@ export default {
       },
       viewForm: {},
       rules: {
-        workorderCode: [{ required: true, message: '请输入工单编码', trigger: 'blur' }],
         workorderType: [{ required: true, message: '请选择工单类型', trigger: 'change' }],
-        itemId: [{ required: true, message: '请选择产品', trigger: 'change' }],
+        planId: [{ required: true, message: '请选择生产计划', trigger: 'change' }],
         routeId: [{ required: true, message: '请选择工艺路线', trigger: 'change' }],
         planQuantity: [{ required: true, message: '请输入计划数量', trigger: 'blur' }],
         planStartTime: [{ required: true, message: '请选择计划开始时间', trigger: 'change' }],
-        planEndTime: [{ required: true, message: '请选择计划完成时间', trigger: 'change' }]
+        planEndTime: [{ required: true, message: '请选择计划完成时间', trigger: 'change' }],
+        workshopId: [{ required: true, message: '请选择生产车间', trigger: 'change' }]
       },
       // 下拉选项数据
       planList: [],
-      itemList: [
-        { itemId: 1, itemCode: 'P001', itemName: '手机主板' },
-        { itemId: 2, itemCode: 'P002', itemName: '电池组件' },
-        { itemId: 3, itemCode: 'P003', itemName: '显示屏' }
-      ],
-      routeList: [
-        { routeId: 1, routeName: '手机主板生产工艺' },
-        { routeId: 2, routeName: '电池组件生产工艺' }
-      ],
-      workshopList: [
-        { workshopId: 1, workshopName: '总装车间' },
-        { workshopId: 2, workshopName: '注塑车间' },
-        { workshopId: 3, workshopName: '钣金车间' }
-      ]
+      itemList: [],
+      routeList: [],
+      workshopList: []
     }
   },
   created() {
     this.fetchData()
     this.loadPlanList()
+    this.loadWorkshopList()
+    this.loadRouteList()
   },
   methods: {
     fetchData() {
@@ -305,6 +308,16 @@ export default {
     loadPlanList() {
       listProPlan({ pageNum: 1, pageSize: 100 }).then(response => {
         this.planList = response.rows || []
+      })
+    },
+    loadWorkshopList() {
+      getWorkshopOptions().then(response => {
+        this.workshopList = response.data || []
+      })
+    },
+    loadRouteList() {
+      listProRoute({ pageNum: 1, pageSize: 100 }).then(response => {
+        this.routeList = response.rows || []
       })
     },
     handleQuery() {
@@ -404,13 +417,6 @@ export default {
         this.form.itemId = plan.itemId
         this.form.itemCode = plan.itemCode
         this.form.itemName = plan.itemName
-      }
-    },
-    handleItemChange(itemId) {
-      const item = this.itemList.find(i => i.itemId === itemId)
-      if (item) {
-        this.form.itemCode = item.itemCode
-        this.form.itemName = item.itemName
       }
     },
     handleWorkshopChange(workshopId) {
@@ -517,6 +523,47 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* 输入框提示文字样式 */
+.input-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+/* 产品展示样式 */
+.product-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+
+  .product-code {
+    font-size: 13px;
+    color: #606266;
+  }
+}
+
+/* 禁用输入框样式优化 */
+::v-deep .el-input.is-disabled .el-input__inner {
+  background-color: #f5f7fa;
+  color: #606266;
+}
+
+/* 表单标签加粗 */
+::v-deep .el-form-item__label {
+  font-weight: 500;
+}
+
+/* 必填项标记 */
+::v-deep .el-form-item.is-required .el-form-item__label::before {
+  color: #f56c6c;
+  font-weight: bold;
 }
 
 ::v-deep .el-loading-mask {

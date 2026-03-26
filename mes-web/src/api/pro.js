@@ -408,3 +408,171 @@ export function approveFeedback(feedbackId, status) {
     params: { status }
   })
 }
+
+// ==================== 工艺路线工序 API ====================
+
+// 查询工艺路线的工序列表
+export function listRouteProcess(routeId) {
+  return request({
+    url: '/mes/pro/route/process/list/' + routeId,
+    method: 'get'
+  })
+}
+
+// 保存工艺路线的工序配置
+export function saveRouteProcess(routeId, processes) {
+  return request({
+    url: '/mes/pro/route/process/save/' + routeId,
+    method: 'post',
+    data: processes
+  })
+}
+
+// 新增工艺路线工序
+export function addRouteProcess(data) {
+  return request({
+    url: '/mes/pro/route/process',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改工艺路线工序
+export function updateRouteProcess(data) {
+  return request({
+    url: '/mes/pro/route/process',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除工艺路线工序
+export function delRouteProcess(id) {
+  return request({
+    url: '/mes/pro/route/process/' + id,
+    method: 'delete'
+  })
+}
+
+// ==================== 安东异常管理 API ====================
+
+// 查询安东类型列表
+export function listProAndonType(query) {
+  return request({
+    url: '/mes/pro/andon/type/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询安东类型详细
+export function getProAndonType(typeId) {
+  return request({
+    url: '/mes/pro/andon/type/' + typeId,
+    method: 'get'
+  })
+}
+
+// 新增安东类型
+export function addProAndonType(data) {
+  return request({
+    url: '/mes/pro/andon/type',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改安东类型
+export function updateProAndonType(data) {
+  return request({
+    url: '/mes/pro/andon/type',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除安东类型
+export function delProAndonType(typeId) {
+  return request({
+    url: '/mes/pro/andon/type/' + typeId,
+    method: 'delete'
+  })
+}
+
+// 查询安东记录列表
+export function listProAndonRecord(query) {
+  return request({
+    url: '/mes/pro/andon/record/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询安东记录详细
+export function getProAndonRecord(recordId) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId,
+    method: 'get'
+  })
+}
+
+// 上报异常
+export function reportAndon(data) {
+  return request({
+    url: '/mes/pro/andon/record/report',
+    method: 'post',
+    data: data
+  })
+}
+
+// 受理异常
+export function acceptAndon(recordId, handlerId, handlerName) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId + '/accept',
+    method: 'put',
+    params: { handlerId, handlerName }
+  })
+}
+
+// 处理异常
+export function handleAndon(recordId, handleResult) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId + '/handle',
+    method: 'put',
+    params: { handleResult }
+  })
+}
+
+// 完成异常
+export function completeAndon(recordId) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId + '/complete',
+    method: 'put'
+  })
+}
+
+// 关闭异常
+export function closeAndon(recordId, closeReason) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId + '/close',
+    method: 'put',
+    params: { closeReason }
+  })
+}
+
+// 升级异常
+export function escalateAndon(recordId, escalateLevel) {
+  return request({
+    url: '/mes/pro/andon/record/' + recordId + '/escalate',
+    method: 'put',
+    params: { escalateLevel }
+  })
+}
+
+// 查询超时记录
+export function listTimeoutRecords() {
+  return request({
+    url: '/mes/pro/andon/record/timeout',
+    method: 'get'
+  })
+}

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.pro.mapper.ProAndonTypeMapper">
+
+    <resultMap type="com.carels.mes.module.pro.domain.ProAndonType" id="ProAndonTypeResult">
+        <id property="typeId" column="type_id"/>
+        <result property="typeCode" column="type_code"/>
+        <result property="typeName" column="type_name"/>
+        <result property="typeLevel" column="type_level"/>
+        <result property="defaultHandlerId" column="default_handler_id"/>
+        <result property="defaultHandlerName" column="default_handler_name"/>
+        <result property="timeoutMinutes" column="timeout_minutes"/>
+        <result property="escalateLevel" column="escalate_level"/>
+        <result property="colorCode" column="color_code"/>
+        <result property="status" column="status"/>
+        <result property="sortNo" column="sort_no"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProAndonTypeVo">
+        select type_id, type_code, type_name, type_level, default_handler_id, default_handler_name,
+               timeout_minutes, escalate_level, color_code, status, sort_no, remark,
+               create_by, create_time, update_by, update_time
+        from pro_andon_type
+    </sql>
+
+    <select id="selectProAndonTypeList" parameterType="com.carels.mes.module.pro.domain.ProAndonType" resultMap="ProAndonTypeResult">
+        <include refid="selectProAndonTypeVo"/>
+        <where>
+            <if test="typeCode != null and typeCode != ''">
+                and type_code like concat('%', #{typeCode}, '%')
+            </if>
+            <if test="typeName != null and typeName != ''">
+                and type_name like concat('%', #{typeName}, '%')
+            </if>
+            <if test="typeLevel != null and typeLevel != ''">
+                and type_level = #{typeLevel}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+        order by sort_no asc
+    </select>
+
+    <select id="selectProAndonTypeById" parameterType="Long" resultMap="ProAndonTypeResult">
+        <include refid="selectProAndonTypeVo"/>
+        where type_id = #{typeId}
+    </select>
+
+    <insert id="insertProAndonType" parameterType="com.carels.mes.module.pro.domain.ProAndonType" useGeneratedKeys="true" keyProperty="typeId">
+        insert into pro_andon_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="typeCode != null">type_code,</if>
+            <if test="typeName != null">type_name,</if>
+            <if test="typeLevel != null">type_level,</if>
+            <if test="defaultHandlerId != null">default_handler_id,</if>
+            <if test="defaultHandlerName != null">default_handler_name,</if>
+            <if test="timeoutMinutes != null">timeout_minutes,</if>
+            <if test="escalateLevel != null">escalate_level,</if>
+            <if test="colorCode != null">color_code,</if>
+            <if test="status != null">status,</if>
+            <if test="sortNo != null">sort_no,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="typeCode != null">#{typeCode},</if>
+            <if test="typeName != null">#{typeName},</if>
+            <if test="typeLevel != null">#{typeLevel},</if>
+            <if test="defaultHandlerId != null">#{defaultHandlerId},</if>
+            <if test="defaultHandlerName != null">#{defaultHandlerName},</if>
+            <if test="timeoutMinutes != null">#{timeoutMinutes},</if>
+            <if test="escalateLevel != null">#{escalateLevel},</if>
+            <if test="colorCode != null">#{colorCode},</if>
+            <if test="status != null">#{status},</if>
+            <if test="sortNo != null">#{sortNo},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateProAndonType" parameterType="com.carels.mes.module.pro.domain.ProAndonType">
+        update pro_andon_type
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="typeCode != null">type_code = #{typeCode},</if>
+            <if test="typeName != null">type_name = #{typeName},</if>
+            <if test="typeLevel != null">type_level = #{typeLevel},</if>
+            <if test="defaultHandlerId != null">default_handler_id = #{defaultHandlerId},</if>
+            <if test="defaultHandlerName != null">default_handler_name = #{defaultHandlerName},</if>
+            <if test="timeoutMinutes != null">timeout_minutes = #{timeoutMinutes},</if>
+            <if test="escalateLevel != null">escalate_level = #{escalateLevel},</if>
+            <if test="colorCode != null">color_code = #{colorCode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sortNo != null">sort_no = #{sortNo},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where type_id = #{typeId}
+    </update>
+
+    <delete id="deleteProAndonTypeById" parameterType="Long">
+        delete from pro_andon_type where type_id = #{typeId}
+    </delete>
+
+</mapper>

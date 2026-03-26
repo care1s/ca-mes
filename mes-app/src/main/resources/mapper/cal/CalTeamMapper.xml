@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.cal.mapper.CalTeamMapper">
+
+    <resultMap type="com.carels.mes.module.cal.domain.CalTeam" id="CalTeamResult">
+        <id property="teamId" column="team_id"/>
+        <result property="teamCode" column="team_code"/>
+        <result property="teamName" column="team_name"/>
+        <result property="workshopId" column="workshop_id"/>
+        <result property="workshopName" column="workshop_name"/>
+        <result property="leaderId" column="leader_id"/>
+        <result property="leaderName" column="leader_name"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectCalTeamVo">
+        select team_id, team_code, team_name, workshop_id, workshop_name, leader_id, leader_name,
+               status, remark, create_by, create_time, update_by, update_time
+        from cal_team
+    </sql>
+
+    <select id="selectCalTeamList" parameterType="com.carels.mes.module.cal.domain.CalTeam" resultMap="CalTeamResult">
+        <include refid="selectCalTeamVo"/>
+        <where>
+            <if test="teamCode != null and teamCode != ''">
+                AND team_code like concat('%', #{teamCode}, '%')
+            </if>
+            <if test="teamName != null and teamName != ''">
+                AND team_name like concat('%', #{teamName}, '%')
+            </if>
+            <if test="workshopId != null">
+                AND workshop_id = #{workshopId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (team_code like concat('%', #{keyword}, '%') OR team_name like concat('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by team_code
+    </select>
+
+    <select id="selectAllActiveTeams" resultMap="CalTeamResult">
+        <include refid="selectCalTeamVo"/>
+        where status = '0'
+        order by team_code
+    </select>
+
+    <select id="selectCalTeamById" resultMap="CalTeamResult">
+        <include refid="selectCalTeamVo"/>
+        where team_id = #{teamId}
+    </select>
+
+    <insert id="insertCalTeam" parameterType="com.carels.mes.module.cal.domain.CalTeam" useGeneratedKeys="true" keyProperty="teamId">
+        insert into cal_team (team_code, team_name, workshop_id, workshop_name, leader_id, leader_name,
+                              status, remark, create_by, create_time)
+        values (#{teamCode}, #{teamName}, #{workshopId}, #{workshopName}, #{leaderId}, #{leaderName},
+                #{status}, #{remark}, #{createBy}, now())
+    </insert>
+
+    <update id="updateCalTeam" parameterType="com.carels.mes.module.cal.domain.CalTeam">
+        update cal_team
+        <set>
+            <if test="teamCode != null and teamCode != ''">team_code = #{teamCode},</if>
+            <if test="teamName != null and teamName != ''">team_name = #{teamName},</if>
+            <if test="workshopId != null">workshop_id = #{workshopId},</if>
+            <if test="workshopName != null">workshop_name = #{workshopName},</if>
+            <if test="leaderId != null">leader_id = #{leaderId},</if>
+            <if test="leaderName != null">leader_name = #{leaderName},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy},
+            update_time = now()
+        </set>
+        where team_id = #{teamId}
+    </update>
+
+    <delete id="deleteCalTeamById">
+        delete from cal_team where team_id = #{teamId}
+    </delete>
+
+    <delete id="deleteCalTeamByIds">
+        delete from cal_team where team_id in
+        <foreach collection="array" item="teamId" open="(" separator="," close=")">
+            #{teamId}
+        </foreach>
+    </delete>
+
+    <select id="checkTeamCodeUnique" resultType="int">
+        select count(*) from cal_team where team_code = #{teamCode}
+    </select>
+
+</mapper>

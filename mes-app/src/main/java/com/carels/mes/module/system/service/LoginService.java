@@ -73,7 +73,7 @@ public class LoginService {
     
     /**
      * 生成JWT Token
-     * 
+     *
      * @param username 用户名
      * @return Token
      */
@@ -86,6 +86,9 @@ public class LoginService {
         if (secret.length() < 32) {
             secret = secret + "-carels-mes-padding-to-32chars";
         }
+
+        log.info("Generating token for user: {}, jwtSecret: {}, final secret: {}",
+                username, jwtSecret, secret);
 
         return Jwts.builder()
                 .setSubject(username)

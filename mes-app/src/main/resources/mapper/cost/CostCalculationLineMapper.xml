@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carels.mes.module.cost.mapper.CostCalculationLineMapper">
+
+    <resultMap type="com.carels.mes.module.cost.domain.CostCalculationLine" id="CostCalculationLineResult">
+        <id property="lineId" column="line_id"/>
+        <result property="calcId" column="calc_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="costType" column="cost_type"/>
+        <result property="amount" column="amount"/>
+        <result property="allocationRate" column="allocation_rate"/>
+        <result property="allocatedAmount" column="allocated_amount"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectCostCalculationLineVo">
+        select line_id, calc_id, item_id, item_name, cost_type, amount,
+               allocation_rate, allocated_amount, remark,
+               create_by, create_time, update_by, update_time
+        from cost_calculation_line
+    </sql>
+
+    <select id="selectLinesByCalcId" parameterType="Long" resultMap="CostCalculationLineResult">
+        <include refid="selectCostCalculationLineVo"/>
+        where calc_id = #{calcId}
+    </select>
+
+    <insert id="batchInsertLines">
+        insert into cost_calculation_line
+        (calc_id, item_id, item_name, cost_type, amount, allocation_rate, allocated_amount, remark, create_time)
+        values
+        <foreach collection="list" item="line" separator=",">
+            (#{line.calcId}, #{line.itemId}, #{line.itemName}, #{line.costType}, #{line.amount},
+             #{line.allocationRate}, #{line.allocatedAmount}, #{line.remark}, sysdate())
+        </foreach>
+    </insert>
+
+    <delete id="deleteLinesByCalcId" parameterType="Long">
+        delete from cost_calculation_line where calc_id = #{calcId}
+    </delete>
+
+</mapper>
